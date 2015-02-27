@@ -3,6 +3,8 @@ README.md
 setup.py
 bishop/Agent.py
 bishop/MDP.py
+bishop/Map.py
+bishop/Planner.py
 bishop/__init__.py
 bishop.egg-info/PKG-INFO
 bishop.egg-info/SOURCES.txt
