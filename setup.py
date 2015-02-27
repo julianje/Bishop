@@ -1,7 +1,7 @@
 from setuptools import setup
 
 def readme():
-	with open('README.rst') as f:
+	with open('README.md') as f:
 		return f.read()
 
 setup(name='bishop',
@@ -13,9 +13,6 @@ setup(name='bishop',
 	license='MIT',
 	packages=['bishop'],
 	install_requires=[
-		'numpy',
-		'math',
-		'random'
+		'numpy'
 	],
-	scripts=['bin/bishop'],
 	zip_safe=False)
