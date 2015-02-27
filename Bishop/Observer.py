@@ -1,5 +1,6 @@
 import numpy as np
 import Planner
+import sys
 
 # There are three main functions
 # ComputeLikelihood, SimulateAgent, and InferAgent
@@ -79,6 +80,19 @@ class Observer(object):
                 CurrState = self.Plr.MDP.T[CurrState, CurrAction, :].argmax() # Best guess
                 States.append(CurrState % self.M.GetWorldSize())
             return States
+
+    def SimulateAgents(self,StartingPoint,Samples,Softmax=False,ContrainTerrains=False):
+        for i in range(Samples):
+            self.A.ResampleAgent(ContrainTerrains)
+            [Actions, States] = self.SimulateAgent(StartingPoint,Softmax)
+            for j in range(self.A.RewardDimensions):
+                sys.stdout.write(str(self.A.rewards[j])+",")
+            for j in range(self.A.CostDimensions):
+                sys.stdout.write(str(self.A.costs[j])+",")
+            if (States[-1]==self.Plr.GetDeepStateSize(self.M)-1):
+                print Actions
+            else:
+                sys.stdout.write("AGENT FAILED TO REACH EXIT")
 
     def GetSemantics(self):
     	# Get names of states and actions
