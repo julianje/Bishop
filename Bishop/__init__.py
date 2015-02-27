@@ -3,3 +3,4 @@ from .Agent import *
 from .Map import *
 from .Planner import *
 from .Observer import *
+from .AuxiliaryFunctions import *
