@@ -6,6 +6,7 @@
 # the MDP.
 
 import numpy as np
+import sys
 
 class Map(object):
 
@@ -118,6 +119,25 @@ class Map(object):
 	            else:
 	                self.T[i, 7, i + x + 1] = 1
 
+    def InsertSquare(self, topleftx, toplefty, width, height, value):
+        """
+        InsertSquare(lowerleftx,lowerlefty,width,heigh,value)
+        Replace a map square with the given value
+
+        topleftx: x-value of the top left spot of the square, from left to right.
+        toplefty: y-value of the top left spot of the square, from bottom to top.
+        width: number of squares in width
+        height: number of squares in height
+        """
+        if ((topleftx+width-1)>self.x) or ((toplefty-height)<0):
+            print "ERROR: Square doesn't fit in map."
+            return None
+        TopLeftState=(self.y-toplefty)*self.x+(topleftx)-1
+        for i in range(height):
+            initial=TopLeftState+self.x*i
+            end=TopLeftState+width+1
+            self.StateTypes[initial:end] = [value] * width
+        
     def GetActionList(self, Actions):
         """
         GetActionList(ActionList)
@@ -190,6 +210,19 @@ class Map(object):
         AddStateNames(StateNames) takes a list of the length of the terrain types giving them names.
         """
         self.StateNames = StateNames
+
+    def PrintMap(self):
+        """
+        PrintMap()
+        """
+        print "Terrain types"
+        for i in range(len(self.StateNames)):
+            sys.stdout.write(self.StateNames[i]+": "+str(i)+"\n")
+        sys.stdout.write("\n")
+        for i in range(self.y):
+            for j in range(self.x):
+                sys.stdout.write(str(self.StateTypes[self.x*i+j]))
+            sys.stdout.write("\n")
 
     def Display(self, Full=False):
         """
