@@ -125,14 +125,14 @@ class Map(object):
         Replace a map square with the given value
 
         topleftx: x-value of the top left spot of the square, from left to right.
-        toplefty: y-value of the top left spot of the square, from bottom to top.
+        toplefty: y-value of the top left spot of the square, from top to bottom.
         width: number of squares in width
         height: number of squares in height
         """
-        if ((topleftx+width-1)>self.x) or ((toplefty-height)<0):
+        if ((topleftx+width-1)>self.x) or ((toplefty+height-1)>self.y):
             print "ERROR: Square doesn't fit in map."
             return None
-        TopLeftState=(self.y-toplefty)*self.x+(topleftx)-1
+        TopLeftState=(toplefty-1)*self.x+(topleftx)-1
         for i in range(height):
             initial=TopLeftState+self.x*i
             end=TopLeftState+width+1

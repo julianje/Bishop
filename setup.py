@@ -4,15 +4,17 @@ def readme():
 	with open('README.md') as f:
 		return f.read()
 
-setup(name='bishop',
-	version='0.101',
+setup(name='Bishop',
+	version='0.1.0.3',
 	description='Bayesian Theory of Mind library',
+	long_description=readme(),
 	url='http://gibthub.com/julianje/bishop',
 	author='Julian Jara-Ettinger',
 	author_email='jjara@mit.edu',
 	license='MIT',
-	packages=['bishop'],
+	packages=['Bishop'],
 	install_requires=[
 		'numpy'
 	],
+	include_package_data=True,
 	zip_safe=False)
