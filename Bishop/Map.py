@@ -1,8 +1,8 @@
-# Built for ComplexPlanner to manage.
+# Built for Planner class to manage.
 # Map has a simpler representation of the environment (no exit states),
 # allowing Planner to build the deep transition matrix.
 
-# Structure is a little different. ComplexPlanner now handles how to build
+# Structure is a little different. Planner now handles how to build
 # the MDP.
 
 import numpy as np
