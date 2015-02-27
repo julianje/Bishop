@@ -45,11 +45,13 @@ class Agent(object):
 
     def ResampleCosts(self,Apathy=0):
         # Resample the agent's competence
-        self.costs = [0 if random.random()<Apathy else self.Sample(self.CostDimensions,self.CostParam,Kind="Exponential")]
+        self.costs = self.Sample(self.CostDimensions,self.CostParam,Kind="Exponential")
+        self.costs = [0 if random.random()<Apathy else i for i in self.costs]
 
     def ResampleRewards(self,Apathy=0):
         # Resample the agent's preferences
-        self.rewards = [0 if random.random()<Apathy else self.Sample(self.RewardDimensions,self.RewardParam,Kind="Exponential")]
+        self.rewards = self.Sample(self.RewardDimensions,self.RewardParam,Kind="Exponential")
+        self.rewards = [0 if random.random()<Apathy else i for i in self.rewards]
 
     def Sample(self, dimensions, SamplingParam, Kind):
         # Generate a random sample from different distributions.
