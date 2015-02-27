@@ -14,6 +14,7 @@ Bishop.egg-info/dependency_links.txt
 Bishop.egg-info/not-zip-safe
 Bishop.egg-info/requires.txt
 Bishop.egg-info/top_level.txt
+Bishop/Examples/RunInference.py
 Bishop/Examples/SimulateAgents.py
 Bishop/Maps/.DS_Store
 Bishop/Maps/Tatik_Map

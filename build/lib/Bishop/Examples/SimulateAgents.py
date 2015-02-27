@@ -1,6 +1,6 @@
 # Path generator for a given map
 
-import bishop
+import Bishop
 
-Observer = bishop.LoadEnvironment("Tatik_T1")
+Observer = Bishop.LoadEnvironment("Tatik_T1")
 Observer.SimulateAgents(StartingPoint=45,Samples=100)
