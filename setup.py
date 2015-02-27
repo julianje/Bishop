@@ -5,7 +5,7 @@ def readme():
 		return f.read()
 
 setup(name='bishop',
-	version='0.01',
+	version='0.1',
 	description='Bayesian Theory of Mind library',
 	url='http://gibthub.com/julianje/bishop',
 	author='Julian Jara-Ettinger',
