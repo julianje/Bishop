@@ -4,6 +4,7 @@ setup.py
 bishop/Agent.py
 bishop/MDP.py
 bishop/Map.py
+bishop/Observer.py
 bishop/Planner.py
 bishop/__init__.py
 bishop.egg-info/PKG-INFO
