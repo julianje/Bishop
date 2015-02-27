@@ -1,0 +1,9 @@
+setup.py
+bishop/MDP.py
+bishop/__init__.py
+bishop.egg-info/PKG-INFO
+bishop.egg-info/SOURCES.txt
+bishop.egg-info/dependency_links.txt
+bishop.egg-info/not-zip-safe
+bishop.egg-info/requires.txt
+bishop.egg-info/top_level.txt
