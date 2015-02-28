@@ -18,9 +18,10 @@ class Observer(object):
         self.Plr.ComputePolicy(Softmax)
         return self.Plr.EvalRoute(StartingState, ActionSequence)
 
-    def InferAgent(self, StartingState, ActionSequence, Samples, Softmax=True, CostRestriction=False):
+    def InferAgent(self, StartingCoordinates, ActionSequence, Samples, Softmax=True, CostRestriction=False):
         # Generate different agents and compute their likelihoods
         # CostRestriction determines if first cost should always be the smallest
+        StartingPoint = self.GetStartingPoint(StartingCoordinates)
         SampledCosts = np.zeros((Samples, self.A.CostDimensions))
         SampledRewards = np.zeros((Samples, self.A.RewardDimensions))
         SampleLikelihoods = np.zeros((Samples))
@@ -32,8 +33,8 @@ class Observer(object):
             SampledCosts[i] = self.A.costs
             SampledRewards[i] = self.A.rewards
             SampleLikelihoods[i] = (self.ComputeLikelihood(
-                StartingState, ActionSequence, Softmax))
-            [APursuit[i],BPursuit[i]]=self.ComputeChoices(StartingState)
+                StartingPoint, ActionSequence, Softmax))
+            [APursuit[i],BPursuit[i]]=self.ComputeChoices(StartingPoint)
         SampleLikelihoods /= sum(SampleLikelihoods)
         return [SampledCosts, SampledRewards, SampleLikelihoods, APursuit, BPursuit]
 
@@ -55,7 +56,7 @@ class Observer(object):
     def SimulateAgent(self, StartingState, Softmax=True, Simple=False):
         self.Plr.Integrate(self.A, self.M)
         self.Plr.ComputePolicy(Softmax)
-        [Actions, States] = self.Plr.SimulatePathUntil(StartingState, self.GetExitState(), self.M.GetWorldSize()*2)
+        [Actions, States] = self.Plr.SimulatePathUntil(StartingState, self.GetExitState(), self.M.GetWorldSize()*2, Simple)
         return [Actions, States]
 
     def GetExitState(self):
@@ -76,12 +77,13 @@ class Observer(object):
             States.append(CurrState % self.M.GetWorldSize())
         return States
 
-    def SimulateAgents(self,StartingPoint,Samples,Softmax=False,Simple=True,ConstrainTerrains=False):
+    def SimulateAgents(self,StartingCoordinates,Samples,HumanReadable=False,Simple=True,Softmax=False,ConstrainTerrains=False):
         """
         Simulate agents navigating through the map.
 
         Attributes:
-        StartingPoint [int]    Agent's starting point
+        StartingCoordinates [x,y]    Agent's starting point
+        HumanReadable [boolean] Outputs actions in their numeric values or their names
         Samples [int]          Number of agents to generate
         Softmax [boolean]      Marks wether to softmax actions. False by default
         Simple [boolean]       Sometimes the agent can take more than one action.
@@ -89,6 +91,11 @@ class Observer(object):
                                When simple is set to true the agent will take the first action on the set. True by default. 
         ConstrainTerrains      [boolean] When set to true the samples force the first terrain to be less costly than the rest. False by default.
         """
+        if Softmax:
+            if Simple==True:
+                print "WARNING: Can't do simple sampling when softmax is on. Turning Simple off"
+                Simple=False
+        StartingPoint = self.GetStartingPoint(StartingCoordinates)
         for i in range(Samples):
             self.A.ResampleAgent(ConstrainTerrains)
             [Actions, States] = self.SimulateAgent(StartingPoint,Softmax,Simple)
@@ -97,9 +104,15 @@ class Observer(object):
             for j in range(self.A.CostDimensions):
                 sys.stdout.write(str(self.A.costs[j])+",")
             if (States[-1]==self.Plr.GetDeepStateSize(self.M)-1):
-                print Actions
+                if HumanReadable:
+                    print self.M.GetActionNames(Actions)
+                else:
+                    print Actions
             else:
                 sys.stdout.write("AGENT FAILED TO REACH EXIT")
+
+    def GetStartingPoint(self, StartingCoordinates):
+        return self.M.GetStartingPoint(StartingCoordinates)
 
     def GetSemantics(self):
     	# Get names of states and actions

@@ -173,6 +173,12 @@ class Map(object):
             ActionNames[i] = self.ActionNames[Actions[i]]
         return ActionNames
 
+    def GetStartingPoint(self, StartingCoordinates):
+        # Calculate starting point here.
+        xval=StartingCoordinates[0]
+        yval=StartingCoordinates[1]
+        return (yval-1)*self.x+xval-1
+
     def InsertTargets(self, Locations):
         """
         InsertTargets(Locations)
