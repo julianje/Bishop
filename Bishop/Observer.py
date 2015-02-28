@@ -52,10 +52,10 @@ class Observer(object):
             BPursuit=1
         return([APursuit,BPursuit])
 
-    def SimulateAgent(self, StartingState, Softmax=True, Stop=True):
+    def SimulateAgent(self, StartingState, Softmax=True):
         self.Plr.Integrate(self.A, self.M)
         self.Plr.ComputePolicy(Softmax)
-        [Actions, States] = self.Plr.SimulatePathUntil(StartingState, self.GetExitState(), Stop, self.M.GetWorldSize()*2)
+        [Actions, States] = self.Plr.SimulatePathUntil(StartingState, self.GetExitState(), self.M.GetWorldSize()*2)
         return [Actions, States]
 
     def GetExitState(self):

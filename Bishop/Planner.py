@@ -99,10 +99,10 @@ class Planner(object):
             [State, Actions[i]] = self.MDP.Run(State)
         return Actions
 
-    def SimulatePathUntil(self, StartingPoint, StopStates, Stop, Limit):
+    def SimulatePathUntil(self, StartingPoint, StopStates, Limit):
         """
         Simulate path from StartingPoint until agent reaches a state in the StopStates list.
-        If Stop is set to true, then the simulation ends after the agent has taken more steps than specified on Limit.
+        Simulation ends after the agent has taken more steps than specified on Limit.
         """
         iterations= 0
         Actions = []
@@ -187,13 +187,12 @@ class Planner(object):
         Rdiagonal[Map.GetWorldSize()*3]=10
         return [Rstraight, Rdiagonal]
 
-    def BuildDeepT(self, Agent, Map, ExitStates=[]):
+    def BuildDeepT(self, Agent, Map, ExitStates=None):
         """
         Build an deep transition matrix using map information.
         This function takes a Map.T transition matrix and expands it
         so the agent can only pick up each object once.
-        If FullExit is set to false, then the ExitStates list is used to build exits.
-        Otherwise, any map border is an exit state.
+        ExitStates list is used to build exits.
         """
         if (sum(map(len, Map.Locations)) != 2):
             print "Warning: Didn't find exactly two objects. Don't use Planner.BuildDeepT unless you have exactly two objects."
@@ -207,7 +206,7 @@ class Planner(object):
         T[WorldSize*1:WorldSize*2,:, WorldSize*1:WorldSize*2] = Map.T
         T[WorldSize*2:WorldSize*3,:, WorldSize*2:WorldSize*3] = Map.T
         T[WorldSize*3:WorldSize*4,:, WorldSize*3:WorldSize*4] = Map.T
-        if (ExitStates==[]):
+        if (ExitStates==None):
             print "Warning in Planner.BuilDeepT(). No exit states in Map!"
         for exitstate in ExitStates:
             # Check if ExitState is top, left, right, or bottom.
