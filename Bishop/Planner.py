@@ -99,7 +99,7 @@ class Planner(object):
             [State, Actions[i]] = self.MDP.Run(State)
         return Actions
 
-    def SimulatePathUntil(self, StartingPoint, StopStates, Limit):
+    def SimulatePathUntil(self, StartingPoint, StopStates, Limit, Simple=False):
         """
         Simulate path from StartingPoint until agent reaches a state in the StopStates list.
         Simulation ends after the agent has taken more steps than specified on Limit.
@@ -109,7 +109,7 @@ class Planner(object):
         StateSequence = [StartingPoint]
         State = StartingPoint
         while State not in StopStates:
-            [State, NewAct] = self.MDP.Run(State)
+            [State, NewAct] = self.MDP.Run(State,Simple)
             Actions.append(NewAct)
             StateSequence.append(State)
             iterations += 1

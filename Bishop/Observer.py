@@ -52,7 +52,7 @@ class Observer(object):
             BPursuit=1
         return([APursuit,BPursuit])
 
-    def SimulateAgent(self, StartingState, Softmax=True):
+    def SimulateAgent(self, StartingState, Softmax=True, Simple=False):
         self.Plr.Integrate(self.A, self.M)
         self.Plr.ComputePolicy(Softmax)
         [Actions, States] = self.Plr.SimulatePathUntil(StartingState, self.GetExitState(), self.M.GetWorldSize()*2)
@@ -81,10 +81,22 @@ class Observer(object):
                 States.append(CurrState % self.M.GetWorldSize())
             return States
 
-    def SimulateAgents(self,StartingPoint,Samples,Softmax=False,ContrainTerrains=False):
+    def SimulateAgents(self,StartingPoint,Samples,Softmax=False,Simple=True,ConstrainTerrains=False):
+        """
+        Simulate agents navigating through the map.
+
+        Attributes:
+        StartingPoint [int]    Agent's starting point
+        Samples [int]          Number of agents to generate
+        Softmax [boolean]      Marks wether to softmax actions. False by default
+        Simple [boolean]       Sometimes the agent can take more than one action.
+                               When this happens the agent will randomly select one of the actions.
+                               When simple is set to true the agent will take the first action on the set. True by default. 
+        ConstrainTerrains      [boolean] When set to true the samples force the first terrain to be less costly than the rest. False by default.
+        """
         for i in range(Samples):
-            self.A.ResampleAgent(ContrainTerrains)
-            [Actions, States] = self.SimulateAgent(StartingPoint,Softmax)
+            self.A.ResampleAgent(ConstrainTerrains)
+            [Actions, States] = self.SimulateAgent(StartingPoint,Softmax,Simple)
             for j in range(self.A.RewardDimensions):
                 sys.stdout.write(str(self.A.rewards[j])+",")
             for j in range(self.A.CostDimensions):

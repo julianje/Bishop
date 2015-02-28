@@ -6,7 +6,7 @@ Observer = Bishop.LoadEnvironment("Tatik_T1")
 
 Samples = 100
 StartingPoint = 45
-ObservedPath = [4, 4, 4]
+ObservedPath = Observer.M.GetActionList(['LU','LU','LU'])
 
 [Costs, Rewards, Likelihoods, APursuit, BPursuit] = Observer.InferAgent(
     StartingPoint, ObservedPath, Samples, Softmax=True)
