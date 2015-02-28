@@ -114,6 +114,9 @@ class Observer(object):
     def GetStartingPoint(self, StartingCoordinates):
         return self.M.GetStartingPoint(StartingCoordinates)
 
+    def GetActionList(self, Actions):
+        return self.M.GetActionList(Actions)
+
     def GetSemantics(self):
     	# Get names of states and actions
     	print self.M.ActionNames

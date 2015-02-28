@@ -9,6 +9,10 @@ Bishop, after [Washington Bishop](http://en.wikipedia.org/wiki/Washington_Irving
 
 <code>python setup.py install</code>
 
+Use pip to uninstall
+
+<code>pip uninstall Bishop</code>
+
 ## How it works
 
 Bishop has five kinds of objects you can build. You can see the contents of any object by calling their Display() method.
@@ -38,3 +42,26 @@ This object contains agent information. It's main method, ResampleAgent() re-gen
 A Markov Decision Process object.
 
 ## Running Bishop
+
+#### Simulate agents traveling in an existing map
+
+<code>
+	import Bishop
+	Observer = Bishop.LoadEnvironment("Tatik_T1")
+	Observer.SimulateAgents(StartingPoint=[6,6],Samples=100,HumanReadable=True)
+</code>
+
+#### Infer an agent's costs and rewards given their actions
+
+<code>
+	import Bishop
+	Observer = Bishop.LoadEnvironment("Tatik_T1")
+	ObservedPath = Observer.GetActionList(['L','L','U'])
+	[C,R,L,A,B] = Observer.InferAgent(StartingPoint=[6,6], ObservedPath, Samples=100, Softmax=True)
+</code>
+
+#### Creating a new map
+
+##### Within python
+
+##### Through configuraton files
