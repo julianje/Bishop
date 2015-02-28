@@ -65,21 +65,16 @@ class Observer(object):
         # Function makes best guess on where the actions will lead.
         print "Warning: This function makes the best guesses. If all noise is in softmax and the transition matrix is deterministic then you're fine."
         print "Also note that Action vector is numeric (instead of having action numbers, set the extra flag to false"
-        if (type(self.M) == Map.Map):
-            # Call Map function if it's a simple map.
-            return self.M.GetStateSequence(StartingState, Actions)
+        if Numerical:
+            ActionNumbers = Actions
         else:
-            # Otherwise...
-            if Numerical:
-                ActionNumbers = Actions
-            else:
-                ActionNumbers = self.M.GetActionList(Actions)
-            States = [StartingState]
-            CurrState = StartingState
-            for CurrAction in ActionNumbers:
-                CurrState = self.Plr.MDP.T[CurrState, CurrAction, :].argmax() # Best guess
-                States.append(CurrState % self.M.GetWorldSize())
-            return States
+            ActionNumbers = self.M.GetActionList(Actions)
+        States = [StartingState]
+        CurrState = StartingState
+        for CurrAction in ActionNumbers:
+            CurrState = self.Plr.MDP.T[CurrState, CurrAction, :].argmax() # Best guess
+            States.append(CurrState % self.M.GetWorldSize())
+        return States
 
     def SimulateAgents(self,StartingPoint,Samples,Softmax=False,Simple=True,ConstrainTerrains=False):
         """
