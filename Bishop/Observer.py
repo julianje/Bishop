@@ -1,6 +1,8 @@
 import numpy as np
 import Planner
 import sys
+import PosteriorContainer
+import time
 
 # There are three main functions
 # ComputeLikelihood, SimulateAgent, and InferAgent
@@ -28,6 +30,8 @@ class Observer(object):
         APursuit = np.zeros((Samples))
         BPursuit = np.zeros((Samples))
         for i in range(Samples):
+            if i==0:
+                start = time.time()
             self.A.ResampleAgent(CostRestriction) # First terrain is not necessarily the easiest.
             # Save all sampled costs, rewards, and likelihoods
             SampledCosts[i] = self.A.costs
@@ -35,8 +39,24 @@ class Observer(object):
             SampleLikelihoods[i] = (self.ComputeLikelihood(
                 StartingPoint, ActionSequence, Softmax))
             [APursuit[i],BPursuit[i]]=self.ComputeChoices(StartingPoint)
+            if i==0:
+                end = time.time()
+                secs=(end-start)*Samples
+                sys.stdout.write("Expected time: ")
+                if (secs<60):
+                    sys.stdout.write(str(secs)+ " seconds.\n")
+                else:
+                    mins = secs*1.0/60
+                    if (mins<60):
+                        sys.stdout.write(str(mins)+ " minutes.\n")
+                    else:
+                        hours = mins*1.0/60
+                        sys.stdout.write(str(hours)+ " hours.\n")
+                sys.stdout.flush()
         SampleLikelihoods /= sum(SampleLikelihoods)
-        return [SampledCosts, SampledRewards, SampleLikelihoods, APursuit, BPursuit]
+        Res =PosteriorContainer.PosteriorContainer(SampledCosts,SampledRewards,SampleLikelihoods,APursuit,BPursuit)
+        Res.AddCostNames(self.M.StateNames)
+        return Res
 
     def ComputeChoices(self,StartingPoint):
         # For each set of costs and reward check if a rational agent

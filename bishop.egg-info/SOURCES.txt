@@ -7,6 +7,7 @@ Bishop/MDP.py
 Bishop/Map.py
 Bishop/Observer.py
 Bishop/Planner.py
+Bishop/PosteriorContainer.py
 Bishop/__init__.py
 Bishop.egg-info/PKG-INFO
 Bishop.egg-info/SOURCES.txt

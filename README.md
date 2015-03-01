@@ -64,4 +64,6 @@ A Markov Decision Process object.
 
 ##### Within python
 
-##### Through configuraton files
+##### Through configuraton files. The first Map is an ASCII
+
+Maps need two files. 

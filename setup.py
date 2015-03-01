@@ -5,7 +5,7 @@ def readme():
 		return f.read()
 
 setup(name='Bishop',
-	version='0.1.0.3',
+	version='0.1.0.4',
 	description='Bayesian Theory of Mind library',
 	long_description=readme(),
 	url='http://gibthub.com/julianje/bishop',
@@ -14,7 +14,8 @@ setup(name='Bishop',
 	license='MIT',
 	packages=['Bishop'],
 	install_requires=[
-		'numpy'
+		'numpy',
+		'matplotlib'
 	],
 	include_package_data=True,
 	zip_safe=False)

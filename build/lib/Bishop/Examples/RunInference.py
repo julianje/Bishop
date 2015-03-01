@@ -4,9 +4,14 @@ import Bishop
 
 Observer = Bishop.LoadEnvironment("Tatik_T1")
 
-Samples = 100
-ObservedPath = Observer.M.GetActionList(['LU','LU','LU'])
+Samples = 10
+ObservedPath = Observer.M.GetActionList(['UL','UL','UL'])
 StartingPoint=[6,6]
 
-[Costs, Rewards, Likelihoods, APursuit, BPursuit] = Observer.InferAgent(
-    StartingPoint, ObservedPath, Samples, Softmax=True)
+Res = Observer.InferAgent(StartingPoint, ObservedPath, Samples, Softmax=True)
+
+Res.ObjectAPrediction()
+Res.ObjectBPrediction()
+Res.GetExpectedCosts()
+Res.GetExpectedRewards()
+Res.PlotCostPosterior()
