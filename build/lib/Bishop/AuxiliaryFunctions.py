@@ -1,8 +1,14 @@
 import ConfigParser
 import os.path
+import pickle
+from PosteriorContainer import *
 from Observer import *
 from Map import *
 from Agent import *
+
+def LoadSamples(FileName):
+	Samples = pickle.load(open(FileName, "rb"))
+	return Samples
 
 def LoadEnvironment(MapName):
 	Config = ConfigParser.ConfigParser()

@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
+import pickle
 
 class PosteriorContainer(object):
 	"""
@@ -99,10 +100,7 @@ class PosteriorContainer(object):
 			yvals = [0] * int(xlength)
 			for j in range(self.Samples):
 				yvals[insert_indices[j]]+=self.Likelihoods[j]
-			#xvals=[round(cost,Precision) for cost in self.CostSamples[:,i]]
 			axarr[i].plot(xvals,yvals, 'b-')
-			if self.CostNames!=None:
-				axarr[i].set_title(self.CostNames[i])
 		plt.show()
 
 	def Summary(self):
@@ -149,6 +147,10 @@ class PosteriorContainer(object):
 		axarr[1,1].plot(xvals,yrewardvals[:,1], 'b-')
 		axarr[1,1].set_title("Target B")
 		plt.show()
+
+	def SaveSamples(self, Name):
+		FileName = Name + ".p"
+		pickle.dump(self, open(FileName, "wb"))
 
 	def Display(self, Full=False):
 		# Print class properties

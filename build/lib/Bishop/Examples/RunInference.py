@@ -5,13 +5,14 @@ import Bishop
 Observer = Bishop.LoadEnvironment("Tatik_T1")
 
 Samples = 50
-ObservedPath = Observer.M.GetActionList(['UL'])
+ObservedPath = Observer.M.GetActionList(['R'])
 StartingPoint=[6,6]
 
 Res = Observer.InferAgent(StartingPoint, ObservedPath, Samples, Softmax=True)
 
 Res.Summary()
 
-Res.PlotCostPosterior()
-
 Res.AnalyzeConvergence()
+
+Res.PlotRewardPosterior()
+Res.PlotCostPosterior()

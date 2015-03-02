@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
+import pickle
 
 class PosteriorContainer(object):
 	"""
@@ -146,6 +147,10 @@ class PosteriorContainer(object):
 		axarr[1,1].plot(xvals,yrewardvals[:,1], 'b-')
 		axarr[1,1].set_title("Target B")
 		plt.show()
+
+	def SaveSamples(self, Name):
+		FileName = Name + ".p"
+		pickle.dump(self, open(FileName, "wb"))
 
 	def Display(self, Full=False):
 		# Print class properties
