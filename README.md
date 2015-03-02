@@ -43,9 +43,13 @@ Res will be a PosteriorContainer object. Here are a couple of things you can do 
 
 <code>
 	Res.Summary # Human-readable summary
+
 	Res.AnalyzeConvergence() # Visual check if sampling converged
+	
 	Res.PlotCostPosterior()
+	
 	Res.PlotRewardPosterior()
+	
 	Res.SaveSamples("MyResults")
 </code>
 
@@ -53,6 +57,7 @@ You can then re-load the samples and the observer model...
 
 <code>
 	Res = Bishop.LoadSamples("MyResults.p")
+	
 	Observer = Bishop.LoadObserver(Res)
 </code>
 
