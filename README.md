@@ -5,96 +5,78 @@ ______
 
 Bishop, after [Washington Bishop](http://en.wikipedia.org/wiki/Washington_Irving_Bishop), is a cognitive model of [Theory of mind](http://en.wikipedia.org/wiki/Theory_of_mind).
 
-## Installation
+## Install and uninstall
 
-<code>python setup.py install</code>
-
-Use pip to uninstall
-
-<code>pip uninstall Bishop</code>
+	python setup.py install
+	pip uninstall Bishop
 
 ## Running Bishop
 
 #### Simulate agents traveling in an existing map
 
-<code>
-	import Bishop
-	
+	import Bishop	
 	Observer = Bishop.LoadEnvironment("Tatik_T1")
-	
 	Observer.SimulateAgents(StartingPoint=[6,6],Samples=100,HumanReadable=True)
-</code>
 
 
 
-#### Infer an agent's costs and rewards given their actions
+#### Cost-reward inference given observable actions
 
-<code>
 	import Bishop
-
 	Observer = Bishop.LoadEnvironment("Tatik_T1")
-	
 	ObservedPath = Observer.GetActionList(['L','L','U'])
-	
 	Res = Observer.InferAgent(StartingPoint=[6,6], ObservedPath, Samples=100, Softmax=True)
-</code>
 
-Res will be a PosteriorContainer object. Here are a couple of things you can do with Res
+The result is a __PosteriorContainer__ object. Here are some things you can do with the output
 
-<code>
 	Res.Summary # Human-readable summary
-
-	Res.AnalyzeConvergence() # Visual check if sampling converged
-	
+	Res.AnalyzeConvergence() # Visually check if sampling converged
 	Res.PlotCostPosterior()
-	
 	Res.PlotRewardPosterior()
-	
 	Res.SaveSamples("MyResults")
-</code>
 
-You can then re-load the samples and the observer model...
+You can reload the samples and the observer model later with
 
-<code>
 	Res = Bishop.LoadSamples("MyResults.p")
-	
 	Observer = Bishop.LoadObserver(Res)
-</code>
 
-#### Creating a new map
+## Creating a new map
 
-##### Within python
+#### Through configuration files
 
-##### Through configuraton files.
+A map consists of two files: An ASCII description, and a .ini configuration file.
 
-The first Map is an ASCII
+#### Inside python
 
-Maps need two files. 
+To generate a simple grid-world with one terrain start with
+
+	MyMap = Bishop.Map()
+	MyMap.BuildGridWorld(5,3,Diagonal=True)
+
+This creates a 5 by 3 map that can be navigated diagonally. Terrain type is stored in MyMap.StateTypes
 
 ## How it works
 
-Bishop has five kinds of objects you can build. You can see the contents of any object by calling their Display() method.
+Bishop does bayesian inference over optimal planners to infer the cost and rewards underlying an agent's actions. It then uses the posterior distribution of costs and rewards to predict how the agent will navigate.
 
-#### Observer
+## Details
 
-Observer objects are rational observers. They require a Map and an Agent (see below). Observers have three main methods:
+Bishop has six classes. You can see what each class is saving by calling the Display() method on an object.
+
+__Observer__ objects are rational observers. They require a Map and an Agent object (see below) and have three main methods:
 
 * **ComputeLikelihood:** Computes the likelihood that the agent would take a given sequence of actions
 * **SimulateAgent:** Simulates the agent from a given starting point
 * **InferAgent:** Infers the agents costs and rewards given a sequence of observable actions
 
-#### Planner
+See Example folder for examples on how to use these methods.
 
-Planner objects contain an MDP and supporting methods. This is the main object the Observers use to infer agents.
+__PosteriorContainer__ objects save cost and reward samples along with their likelihoods. They store some additional information and have methods for deriving meaningful results from the samples.
 
-#### Map
+__Planner__ objects contain a Markov Decision Process and supporting methods for modifying the MDP structures.
 
-This object contains a map specification for the observer. It's main method is BuildGridWorld(xdimension, ydimension, Diagonal=[True/False]). The last parameter determines if traveling across the diagonals is allowed.
+__Map__ objects contained a map's description for the agent and the observer to use. It's main method is BuildGridWorld() to generate simple 2-dimensional grid worlds.
 
-#### Agent
+__Agent__ objects contain agent information.
 
-This object contains agent information. It's main method, ResampleAgent() re-generates a new random agent.
-
-#### MDP
-
-A Markov Decision Process object.
+__MDP__ objects store Markov Decision Processes along with exact planning algorithms and supporting methods.
