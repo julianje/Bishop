@@ -42,7 +42,7 @@ def LoadEnvironment(MapName):
 		return None
 	# Inference parameter section
 	if not Config.has_section("InferenceParameters"):
-		print "No inference parameters specified. Using default:"
+		print "No inference parameters specified. Using defaults."
 		FutureDiscount=0.9999
 		SoftMaxParam=0.001
 		ConvergenceLimit=0.0001

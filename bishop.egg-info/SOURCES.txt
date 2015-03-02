@@ -15,10 +15,12 @@ Bishop.egg-info/dependency_links.txt
 Bishop.egg-info/not-zip-safe
 Bishop.egg-info/requires.txt
 Bishop.egg-info/top_level.txt
-Bishop/Examples/RunInference.py
+Bishop/Examples/DetailedInference.py
+Bishop/Examples/SimpleInference.py
 Bishop/Examples/SimulateAgents.py
 Bishop/Maps/.DS_Store
 Bishop/Maps/Tatik_Map
 Bishop/Maps/Tatik_T1.ini
+Bishop/Maps/Tatik_T1_NoDiag.ini
 Bishop/Maps/Tatik_T2.ini
 Bishop/Maps/Tatik_T3.ini
