@@ -4,19 +4,15 @@ import Bishop
 
 Observer = Bishop.LoadEnvironment("Tatik_T1")
 
-Samples = 10
-ObservedPath = Observer.M.GetActionList(['UL','UL','UL'])
+Samples = 250
+ObservedPath = Observer.M.GetActionList(['R'])
 StartingPoint=[6,6]
 
 Res = Observer.InferAgent(StartingPoint, ObservedPath, Samples, Softmax=True)
 
-# Probability that agent will pickup object A?
-Res.ObjectAPrediction()
-# Probability that agent will pickup object B?
-Res.ObjectBPrediction()
-# Infer costs
-Res.GetExpectedCosts()
-# Infer rewards
-Res.GetExpectedRewards()
-# Plot costs
+Res.Summary()
+
+Res.AnalyzeConvergence()
+
+Res.PlotRewardPosterior()
 Res.PlotCostPosterior()

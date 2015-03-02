@@ -1,6 +1,6 @@
 Metadata-Version: 1.0
 Name: Bishop
-Version: 0.1.0.3
+Version: 0.1.0.4
 Summary: Bayesian Theory of Mind library
 Home-page: http://gibthub.com/julianje/bishop
 Author: Julian Jara-Ettinger
@@ -20,6 +20,42 @@ Description: #Bishop
         Use pip to uninstall
         
         <code>pip uninstall Bishop</code>
+        
+        ## Running Bishop
+        
+        #### Simulate agents traveling in an existing map
+        
+        <code>
+        	import Bishop
+        	
+        	Observer = Bishop.LoadEnvironment("Tatik_T1")
+        	
+        	Observer.SimulateAgents(StartingPoint=[6,6],Samples=100,HumanReadable=True)
+        </code>
+        
+        #### Infer an agent's costs and rewards given their actions
+        
+        <code>
+        	import Bishop
+        
+        	Observer = Bishop.LoadEnvironment("Tatik_T1")
+        	
+        	ObservedPath = Observer.GetActionList(['L','L','U'])
+        	
+        	Res = Observer.InferAgent(StartingPoint=[6,6], ObservedPath, Samples=100, Softmax=True)
+        </code>
+        
+        
+        
+        #### Creating a new map
+        
+        ##### Within python
+        
+        ##### Through configuraton files.
+        
+        The first Map is an ASCII
+        
+        Maps need two files. 
         
         ## How it works
         
@@ -48,31 +84,4 @@ Description: #Bishop
         #### MDP
         
         A Markov Decision Process object.
-        
-        ## Running Bishop
-        
-        #### Simulate agents traveling in an existing map
-        
-        <code>
-        	import Bishop
-        	Observer = Bishop.LoadEnvironment("Tatik_T1")
-        	Observer.SimulateAgents(StartingPoint=[6,6],Samples=100,HumanReadable=True)
-        </code>
-        
-        #### Infer an agent's costs and rewards given their actions
-        
-        <code>
-        	import Bishop
-        	Observer = Bishop.LoadEnvironment("Tatik_T1")
-        	ObservedPath = Observer.GetActionList(['L','L','U'])
-        	[C,R,L,A,B] = Observer.InferAgent(StartingPoint=[6,6], ObservedPath, Samples=100, Softmax=True)
-        </code>
-        
-        #### Creating a new map
-        
-        ##### Within python
-        
-        ##### Through configuraton files. The first Map is an ASCII
-        
-        Maps need two files. 
 Platform: UNKNOWN

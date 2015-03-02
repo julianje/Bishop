@@ -44,14 +44,14 @@ class Observer(object):
                 secs=(end-start)*Samples
                 sys.stdout.write("Expected time: ")
                 if (secs<60):
-                    sys.stdout.write(str(secs)+ " seconds.\n")
+                    sys.stdout.write(str(round(secs,2))+ " seconds.\n")
                 else:
                     mins = secs*1.0/60
                     if (mins<60):
-                        sys.stdout.write(str(mins)+ " minutes.\n")
+                        sys.stdout.write(str(round(mins,2))+ " minutes.\n")
                     else:
                         hours = mins*1.0/60
-                        sys.stdout.write(str(hours)+ " hours.\n")
+                        sys.stdout.write(str(round(hours,2))+ " hours.\n")
                 sys.stdout.flush()
         SampleLikelihoods /= sum(SampleLikelihoods)
         Res =PosteriorContainer.PosteriorContainer(SampledCosts,SampledRewards,SampleLikelihoods,APursuit,BPursuit)
