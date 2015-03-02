@@ -42,18 +42,58 @@ You can reload the samples and the observer model later with
 
 ## Creating a new map
 
-#### Through configuration files
+### Through configuration files
 
 A map consists of two files: An ASCII description, and a .ini configuration file.
 
-#### Inside python
+ASCII files begin with a map drawing, with each terrain type indicated numerically. After a line break, each terrain name is specified in a single line
+
+	000
+	111
+	000
+	
+	Jungle
+	Water
+
+specifies a 3x3 map where the top and bottom row are "Jungle" and the middle row is "Water."
+
+The second file, MapName.ini, specifies the location of the targets, the ASCII file to load, as well as other parameters. See the Maps folder for an example.
+
+### Inside python
+
+##### Map skeleton
 
 To generate a simple grid-world with one terrain start with
 
 	MyMap = Bishop.Map()
 	MyMap.BuildGridWorld(5,3,Diagonal=True)
 
-This creates a 5 by 3 map that can be navigated diagonally. Terrain type is stored in MyMap.StateTypes
+This creates a 5 by 3 map that can be navigated diagonally. Terrain type is stored in MyMap.StateTypes. The first terrain has by default a value of 0. New terrains are added through squares:
+
+	MyMap.InsertSquare(2, 1, 2, 3, 1):
+
+added a 2x3 square with the top-left corner positioned on (2,1). Both coordinates begin in 1 and the y-axis is counted from top to bottom. The last argument (1) gives the terrain code. Inserting overlapping squares always rewrites past terrain. You can then add terrain names
+
+	MyMap.AddStateNames(["Water","Jungle"])
+
+To see what your map looks like type
+
+	MyMap.PrintMap()
+
+##### Adding targets
+
+SOON
+
+##### Saving the map
+
+SOON
+
+##### Using the map
+
+Once you have a map, you need to create an agent, and use both to create an observer
+
+	MyAgent = Bishop.Agent(MyMap, CostParam, RewardParam)
+	Observer = Bishop.Observer(MyMap, MyAgent)
 
 ## How it works
 
