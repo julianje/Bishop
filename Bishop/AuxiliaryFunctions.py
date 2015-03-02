@@ -10,6 +10,13 @@ def LoadSamples(FileName):
 	Samples = pickle.load(open(FileName, "rb"))
 	return Samples
 
+def LoadObserver(PostCont):
+	if PostCont.MapFile == None:
+		print "No map associated with samples."
+		return None
+	else:
+		return LoadEnvironment(PostCont.MapFile)
+
 def LoadEnvironment(MapName):
 	Config = ConfigParser.ConfigParser()
 	FilePath=os.path.dirname(__file__) + "/Maps/"+MapName+".ini"

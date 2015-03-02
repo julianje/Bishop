@@ -54,7 +54,7 @@ class Observer(object):
                         sys.stdout.write(str(round(hours,2))+ " hours.\n")
                 sys.stdout.flush()
         SampleLikelihoods /= sum(SampleLikelihoods)
-        Res =PosteriorContainer.PosteriorContainer(SampledCosts,SampledRewards,SampleLikelihoods,APursuit,BPursuit)
+        Res = PosteriorContainer.PosteriorContainer(SampledCosts,SampledRewards,SampleLikelihoods,APursuit,BPursuit)
         Res.AddCostNames(self.M.StateNames)
         return Res
 

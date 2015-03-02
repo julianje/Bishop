@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 import pickle
+import os.path
 
 class PosteriorContainer(object):
 	"""
@@ -18,6 +19,13 @@ class PosteriorContainer(object):
 		self.RewardDimensions = self.RewardSamples.shape[1]
 		self.Samples = self.RewardSamples.shape[0]
 		self.CostNames = None
+		self.MapFile = None
+
+	def AssociateMap(self,MapName):
+		self.MapFile=MapName
+		FilePath = os.path.dirname(__file__) + "/Maps/"+MapName+".ini"
+		if not os.path.isfile(FilePath):
+			print "WARNING: Map not found in library"
 
 	def ObjectAPrediction(self):
 		return sum(self.ObjectAOutcome*self.Likelihoods)

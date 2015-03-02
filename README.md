@@ -25,6 +25,8 @@ Use pip to uninstall
 	Observer.SimulateAgents(StartingPoint=[6,6],Samples=100,HumanReadable=True)
 </code>
 
+
+
 #### Infer an agent's costs and rewards given their actions
 
 <code>
@@ -37,7 +39,22 @@ Use pip to uninstall
 	Res = Observer.InferAgent(StartingPoint=[6,6], ObservedPath, Samples=100, Softmax=True)
 </code>
 
+Res will be a PosteriorContainer object. Here are a couple of things you can do with Res
 
+<code>
+	Res.Summary # Human-readable summary
+	Res.AnalyzeConvergence() # Visual check if sampling converged
+	Res.PlotCostPosterior()
+	Res.PlotRewardPosterior()
+	Res.SaveSamples("MyResults")
+</code>
+
+You can then re-load the samples and the observer model...
+
+<code>
+	Res = Bishop.LoadSamples("MyResults.p")
+	Observer = Bishop.LoadObserver(Res)
+</code>
 
 #### Creating a new map
 
