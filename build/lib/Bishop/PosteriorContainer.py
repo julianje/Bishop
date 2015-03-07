@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import sys
 import pickle
 import os.path
+import math
 
 class PosteriorContainer(object):
 	"""
@@ -80,35 +81,40 @@ class PosteriorContainer(object):
 			ExpectedRewards.append(np.dot(self.RewardSamples[0:(limit+1), i], NL))
 		return ExpectedRewards
 
-	def PlotCostPosterior(self,Precision=1):
-		if Precision>3:
-			print "WARNING: You're binning posterior to 3 decimal digits. This is going to take some time."
+	def PlotCostPosterior(self,bins=None):
+		if bins == None:
+			print "Number of bins not specified. Defaulting to 10."
+			bins = 10
+		maxval = np.amax(self.CostSamples)
 		f, axarr = plt.subplots(self.CostDimensions, sharex=True)
+		binwidth = maxval*1.0/bins+0.00001
+		xvals = [binwidth*(i+0.5) for i in range(bins)]
 		for i in range(self.CostDimensions):
-			xlength=round(self.CostSamples.max(),Precision)*10**Precision+1
-			xvals = [j*1.0/(10**Precision) for j in range(int(xlength))]
-			insert_indices=[int(round(j,Precision)*10**Precision) for j in self.CostSamples[:,i]]
-			yvals = [0] * int(xlength)
+			yvals = [0] * bins
+			insert_indices = [int(math.floor(j/binwidth)) for j in self.CostSamples[:,i]]
 			for j in range(self.Samples):
 				yvals[insert_indices[j]]+=self.Likelihoods[j]
-			#xvals=[round(cost,Precision) for cost in self.CostSamples[:,i]]
 			axarr[i].plot(xvals,yvals, 'b-')
 			if self.CostNames!=None:
 				axarr[i].set_title(self.CostNames[i])
 		plt.show()
 
-	def PlotRewardPosterior(self,Precision=1):
-		if Precision>3:
-			print "WARNING: You're binning posterior to 3 decimal digits. This is going to take some time."
+	def PlotRewardPosterior(self,bins=None):
+		if bins == None:
+			print "Number of bins not specified. Defaulting to 10."
+			bins = 10
+		maxval = np.amax(self.RewardSamples)
 		f, axarr = plt.subplots(self.RewardDimensions, sharex=True)
+		binwidth = maxval*1.0/bins+0.00001
+		xvals = [binwidth*(i+0.5) for i in range(bins)]
 		for i in range(self.RewardDimensions):
-			xlength=round(self.RewardSamples.max(),Precision)*10**Precision+1
-			xvals = [j*1.0/(10**Precision) for j in range(int(xlength))]
-			insert_indices=[int(round(j,Precision)*10**Precision) for j in self.RewardSamples[:,i]]
-			yvals = [0] * int(xlength)
+			yvals = [0] * bins
+			insert_indices = [int(math.floor(j/binwidth)) for j in self.RewardSamples[:,i]]
 			for j in range(self.Samples):
 				yvals[insert_indices[j]]+=self.Likelihoods[j]
 			axarr[i].plot(xvals,yvals, 'b-')
+		axarr[0].set_title("Target A")
+		axarr[1].set_title("Target B")
 		plt.show()
 
 	def Summary(self, human=True):
