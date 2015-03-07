@@ -26,14 +26,15 @@ def LoadEnvironment(MapName):
 	Config = ConfigParser.ConfigParser()
 	FilePath=os.path.dirname(__file__) + "/Maps/"+MapName+".ini"
 	if not os.path.isfile(FilePath):
-		print "ERROR: Map not found."
-		print FilePath
-		return None
-	else:
-		Config.read(FilePath)
+		print "Map not in library. Checking local directory..."
+		FilePath=MapName+".ini"
+		if not os.path.isfile(FilePath):
+			print "ERROR: Map not found."
+			return None
+	Config.read(FilePath)
 	# Agent parameter section
 	if not Config.has_section("AgentParameters"):
-		print "ERROR: AgentParameter block missing."
+		print "ERROR: AgentParameters block missing."
 		return None
 	if Config.has_option("AgentParameters","CostParameter"):
 		CostParam=Config.getfloat("AgentParameters","CostParameter")
