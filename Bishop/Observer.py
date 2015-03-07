@@ -12,7 +12,7 @@ class Observer(object):
     def __init__(self, M, A):
         self.M = M #Map
         self.A = A #Agent
-        self.Plr = Planner.Planner()
+        self.Plr = Planner.Planner(self.M.diagonal)
         self.Plr.Integrate(A, M)
 
     def ComputeLikelihood(self, StartingState, ActionSequence, Softmax=True):
@@ -53,6 +53,10 @@ class Observer(object):
                         hours = mins*1.0/60
                         sys.stdout.write(str(round(hours,2))+ " hours.\n")
                 sys.stdout.flush()
+        Normalizer = sum(SampleLikelihoods)
+        if Normalizer==0:
+            print "Error: Failed to infer agent. Consider running more samples, lowering softmax, or using a more efficient path."
+            return None
         SampleLikelihoods /= sum(SampleLikelihoods)
         Res = PosteriorContainer.PosteriorContainer(SampledCosts,SampledRewards,SampleLikelihoods,APursuit,BPursuit)
         Res.AddCostNames(self.M.StateNames)

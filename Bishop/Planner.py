@@ -10,13 +10,14 @@ class Planner(object):
     and the probability that agents may die (deathprob)
     """
 
-    def __init__(self, MDP=MDP.MDP(), deathprob=0, tau=0.001, gamma=0.9999, epsilon=0.00001):
+    def __init__(self, diagonal=True, MDP=MDP.MDP(), deathprob=0, tau=0.001, gamma=0.9999, epsilon=0.00001):
         """
         Build a Planner.
 
         All arguments are option. If no arguments are provided the object contains an empty MDP with prespecified parameters.
 
         ARGUMENTS:
+        diagonal[boolean] determines if agent can travel diagonally
         MDP         MDP object
         deathprob   0<=deathprob<1 is the probability of targets disappearing (Using the last two positions or targets in Map class).
         tau         softmax parameter. Set by default to 0.001
@@ -27,6 +28,7 @@ class Planner(object):
         self.tau = tau
         self.gamma = gamma
         self.epsilon = epsilon
+        self.diagonal = diagonal
         # Probability that a target will disappear.
         self.deathprob = deathprob
 
@@ -35,7 +37,6 @@ class Planner(object):
         Integrate builds the MDP using a Map and an Agent object.
         This function calls Planner methods that help build the MDP.
         It doesn't return anything. Instead. the object's MDP will change.
-
         ARGUMENTS:
         Agent     Agent object
         Map       Map or Map object
@@ -45,17 +46,17 @@ class Planner(object):
             found=1
             # Agent can only exit from the map in exitstate
             self.MDP = MDP.MDP(range(self.GetDeepStateSize(Map)), Map.A, self.BuildDeepT(
-                Agent, Map, [exitstate]), self.BuildDeepR(Agent, Map), self.gamma)
+                Agent, Map, [exitstate]), self.BuildDeepR(Agent, Map), self.diagonal, self.gamma)
         if ExitType=="Border":
             found=1
             # Exit from any map border:
             self.MDP = MDP.MDP(range(self.GetDeepStateSize(Map)), Map.A, self.BuildDeepT(
-                Agent, Map), self.BuildDeepR(Agent, Map), self.gamma)
+                Agent, Map), self.BuildDeepR(Agent, Map), self.diagonal, self.gamma)
         if ExitType=="North":
             found=1
             # Exit from any top location:
             self.MDP = MDP.MDP(range(self.GetDeepStateSize(Map)), Map.A, self.BuildDeepT(
-                Agent, Map, False, [range(Map.x)]), self.BuildDeepR(Agent, Map), self.gamma)
+                Agent, Map, False, [range(Map.x)]), self.BuildDeepR(Agent, Map), self.diagonal, self.gamma)
         if found==0:
             print "ERROR: ExitType does not exit."
 
@@ -138,6 +139,9 @@ class Planner(object):
         Agent an Agent object.
         Map   a Map of Map object.
         """
+        # Note that this function also builds the diagonal rewards,
+        # MDP object will discard them if diagonal is off.
+
         # Build a reward function over the expanded transition matrix.
         Rstraight = [0] * self.GetDeepStateSize(Map) # Reward function for actions when you move horizontally or diagonally.
         # Code logic is similar to Planner.BuildRewardFunction.

@@ -15,10 +15,11 @@ class MDP(object):
         A      A list of actions
         T      Transition matrix T[S,A,S] (StartingState,Action,TargetState)
         R      Reward function
+        diagonal boolean variable indicating if agent can travel diagonally
         gamma  Future discount parameter
     """
 
-    def __init__(self, S=[], A=[], T=[], R=[[],[]], gamma=0.1):
+    def __init__(self, S=[], A=[], T=[], R=[[],[]], diagonal=True, gamma=0.1):
         self.S = S
         self.A = A
         self.T = T
@@ -29,6 +30,7 @@ class MDP(object):
         self.Rstraight = R[0]
         self.Rdiagonal = R[1]
         self.gamma = gamma
+        self.diagonal = diagonal
         self.vals = np.zeros((1, len(S)))
         # Where we'll store the softmaxed probabilities
         self.policy = np.zeros((len(A), len(S)))
@@ -41,8 +43,11 @@ class MDP(object):
                 # horizontal and vertical actions are always 0 to 3, and diagonal actions are always 4 to 7
                 # Update value iteration depending on the action taken.
                 StraightValues = (self.Rstraight[i] + self.gamma * (np.mat(self.T[i, range(0,4),:]) * np.mat(V2.transpose()))).max()
-                DiagonalValues = (self.Rdiagonal[i] + self.gamma * (np.mat(self.T[i, range(4,8),:]) * np.mat(V2.transpose()))).max()
-                self.vals[0, i] = max(StraightValues,DiagonalValues)
+                if self.diagonal:
+                    DiagonalValues = (self.Rdiagonal[i] + self.gamma * (np.mat(self.T[i, range(4,8),:]) * np.mat(V2.transpose()))).max()
+                    self.vals[0, i] = max(StraightValues,DiagonalValues)
+                else:
+                    self.vals[0, i] = StraightValues
             if (self.vals - V2).max() <= epsilon:
                 break
 
@@ -50,8 +55,11 @@ class MDP(object):
         # Build a policy using the results from value iteration
         for i in range(0, len(self.S)):
             optionsstraight = np.mat(self.T[i, range(0,4),:]) * np.mat(self.vals.transpose()) + self.Rstraight[i]
-            optionsdiagonal = np.mat(self.T[i, range(4,8),:]) * np.mat(self.vals.transpose()) + self.Rdiagonal[i]
-            options = np.concatenate([optionsstraight,optionsdiagonal])
+            if self.diagonal:
+                optionsdiagonal = np.mat(self.T[i, range(4,8),:]) * np.mat(self.vals.transpose()) + self.Rdiagonal[i]
+                options = np.concatenate([optionsstraight,optionsdiagonal])
+            else:
+                options = np.concatenate([optionsstraight])
             # Prevent softmax from overflowing
             options = options-abs(max(options))
             # Softmax the policy

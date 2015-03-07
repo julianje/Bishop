@@ -16,16 +16,19 @@ Bishop, after [Washington Bishop](http://en.wikipedia.org/wiki/Washington_Irving
 
 	import Bishop	
 	Observer = Bishop.LoadEnvironment("Tatik_T1")
-	Observer.SimulateAgents(StartingPoint=[6,6],Samples=100,HumanReadable=True)
+	Observer.SimulateAgents(StartingCoordinates=[6,6],Samples=100,HumanReadable=True)
 
+To see a list of available maps just type
 
+	import Bishop	
+	Bishop.ShowAvailableMaps()
 
 #### Cost-reward inference given observable actions
 
 	import Bishop
 	Observer = Bishop.LoadEnvironment("Tatik_T1")
 	ObservedPath = Observer.GetActionList(['L','L','U'])
-	Res = Observer.InferAgent(StartingPoint=[6,6], ObservedPath, Samples=100, Softmax=True)
+	Res = Observer.InferAgent(StartingCoordinates=[6,6], ActionSequence=ObservedPath, Samples=100, Softmax=True)
 
 The result is a __PosteriorContainer__ object. Here are some things you can do with the output
 
@@ -33,6 +36,7 @@ The result is a __PosteriorContainer__ object. Here are some things you can do w
 	Res.AnalyzeConvergence() # Visually check if sampling converged
 	Res.PlotCostPosterior()
 	Res.PlotRewardPosterior()
+	Res.Summary(Human=False) # prints compressed summary for easier analysis
 	Res.SaveSamples("MyResults")
 
 You can reload the samples and the observer model later with

@@ -1,5 +1,5 @@
 import ConfigParser
-import os.path
+import os
 import pickle
 from PosteriorContainer import *
 from Observer import *
@@ -16,6 +16,11 @@ def LoadObserver(PostCont):
 		return None
 	else:
 		return LoadEnvironment(PostCont.MapFile)
+
+def ShowAvailableMaps():
+	for file in os.listdir(os.path.dirname(__file__) + "/Maps/"):
+		if file.endswith(".ini"):
+			print file[:-4]
 
 def LoadEnvironment(MapName):
 	Config = ConfigParser.ConfigParser()

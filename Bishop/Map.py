@@ -2,7 +2,7 @@
 # Map has a simpler representation of the environment (no exit states),
 # allowing Planner to build the deep transition matrix.
 
-# Structure is a little different. Planner now handles how to build
+# Structure is a little different. Planner handles how to build
 # the MDP.
 
 import numpy as np
@@ -20,7 +20,7 @@ class Map(object):
     The Map specification is not the map we do planning on. Planner takes the Map description and uses it to build the true MDP (where objects can be removed).
     """
 
-    def __init__(self, Locations=[[], [], [], []], S=[], StateTypes=[], StateNames=[], A=[], ActionNames=[], LocationNames=[], T=[]):
+    def __init__(self, Locations=[[], [], [], []], S=[], StateTypes=[], StateNames=[], A=[], diagonal=None, ActionNames=[], LocationNames=[], T=[]):
         """
         Create New map
 
@@ -36,12 +36,14 @@ class Map(object):
                          terrain type (As a discrete number).
         StateNames       A list containing names for each possible state type.
         A                Set of actions the world allows for
+        diagonal         [boolean] determines if agents can travel diagonally.
         ActionNames      Names of the actions
         LocationNames    List containing names of the objects taht are placed on the map.
                          LocationNames[i] contains the names of objects in Locations[i]
         T                Transition matrix. T[so,a,sf] contains the probability of switching
                          to state sf when taking action a in state so.
         """
+        self.diagonal = diagonal
         self.S = S
         self.A = A
         self.T = T
@@ -54,7 +56,7 @@ class Map(object):
         self.x = -1
         self.y = -1
 
-    def BuildGridWorld(self, x, y, Diagonal=False):
+    def BuildGridWorld(self, x, y, diagonal=True):
         """
         Build a simple grid world with a noiseless transition matrix.
         This gives the basic structure that can then be used to build the MDPs real transition matrix.
@@ -62,13 +64,15 @@ class Map(object):
         ARGUMENTS
         x [integer]     Map's length
         y [integer]     Map's height
+        diagonal [boolean] Can agent move diagonally?
         """
         self.x = x
         self.y = y
+        self.diagonal=diagonal
         WorldSize = x * y
         self.S = range(WorldSize)
         self.StateTypes = [0] * len(self.S)
-        if Diagonal:
+        if diagonal:
             self.A = range(8)
             self.ActionNames = ["L", "R", "U", "D", "UL", "UR", "DL", "DR"]
         else:
@@ -100,7 +104,7 @@ class Map(object):
                 self.T[i, 3, i] = 1
             else:
                 self.T[i, 3, i + x] = 1
-            if Diagonal:  # Add diagonal transitions.
+            if diagonal:  # Add diagonal transitions.
 	            if ((i % x == 0) or (i < x)):  # Left and top edges
 	                self.T[i, 4, i] = 1
 	            else:

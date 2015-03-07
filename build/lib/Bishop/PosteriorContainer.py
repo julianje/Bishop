@@ -111,28 +111,37 @@ class PosteriorContainer(object):
 			axarr[i].plot(xvals,yvals, 'b-')
 		plt.show()
 
-	def Summary(self):
-		# Combine all function to print summary here
-		sys.stdout.write("Results using "+str(self.Samples)+ " samples.\n")
-		sys.stdout.write("\nINFERRED REWARDS\n\n")
+	def Summary(self, human=True):
 		ExpectedRewards = self.GetExpectedRewards()
-		sys.stdout.write("Target A: "+str(ExpectedRewards[0])+"\n")
-		sys.stdout.write("Target B: "+str(ExpectedRewards[1])+"\n")
-		sys.stdout.write("Probability that R(A)>R(B): "+ str(self.CompareRewards())+ "\n")
-		sys.stdout.write("\nGOAL PREDICTIONS\n\n")
-		sys.stdout.write("Probability that agent will get target A: "+ str(self.ObjectAPrediction())+"\n")
-		sys.stdout.write("Probability that agent will get target B: "+ str(self.ObjectBPrediction())+ "\n")
+		RewardComp = self.CompareRewards()
+		ObjAPred = self.ObjectAPrediction()
+		ObjBPred = self.ObjectBPrediction()
 		ExpectedCosts = self.GetExpectedCosts()
 		CostMatrix=self.CompareCosts()
-		sys.stdout.write("\nINFERRED COSTS\n\n")
-		if (self.CostNames!=None):
-			for i in range(self.CostDimensions):
-				sys.stdout.write(str(self.CostNames[i])+": "+str(ExpectedCosts[i])+"\n")
-			sys.stdout.write(str(self.CostNames)+"\n")
+		# Combine all function to print summary here
+		if human:
+			sys.stdout.write("Results using "+str(self.Samples)+ " samples.\n")
+			sys.stdout.write("\nINFERRED REWARDS\n\n")
+			sys.stdout.write("Target A: "+str(ExpectedRewards[0])+"\n")
+			sys.stdout.write("Target B: "+str(ExpectedRewards[1])+"\n")
+			sys.stdout.write("Probability that R(A)>R(B): "+ str(RewardComp)+ "\n")
+			sys.stdout.write("\nGOAL PREDICTIONS\n\n")
+			sys.stdout.write("Probability that agent will get target A: "+ str(ObjAPred)+"\n")
+			sys.stdout.write("Probability that agent will get target B: "+ str(ObjBPred)+ "\n")
+			sys.stdout.write("\nINFERRED COSTS\n\n")
+			if (self.CostNames!=None):
+				for i in range(self.CostDimensions):
+					sys.stdout.write(str(self.CostNames[i])+": "+str(ExpectedCosts[i])+"\n")
+				sys.stdout.write(str(self.CostNames)+"\n")
+			else:
+				sys.stdout.write(str(ExpectedCosts)+"\n")
+				sys.stdout.write("Cost comparison matrix (i,j = prob that C(terrain_i)>=C(terrain_j)):\n")
+			sys.stdout.write(str(CostMatrix)+"\n")
 		else:
-			sys.stdout.write(str(ExpectedCosts)+"\n")
-			sys.stdout.write("Cost comparison matrix (i,j = prob that C(terrain_i)>=C(terrain_j)):\n")
-		sys.stdout.write(str(CostMatrix)+"\n")
+			sys.stdout.write("WARNING: Printed limited version\n")
+			sys.stdout.write("Samples,ObjectA,ObjectB,AvsB,PredictionA,PredictionB\n")
+			sys.stdout.write(str(self.Samples)+","+str(ExpectedRewards[0])+","+
+				str(ExpectedRewards[1])+","+str(RewardComp)+","+str(ObjAPred)+","+str(ObjBPred)+"\n")
 
 	def AnalyzeConvergence(self,jump=1):
 		# jump indicates how often to recompute the average
