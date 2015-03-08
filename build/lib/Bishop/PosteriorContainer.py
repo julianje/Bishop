@@ -28,6 +28,12 @@ class PosteriorContainer(object):
 		if not os.path.isfile(FilePath):
 			print "WARNING: Map not found in library"
 
+	def LongSummary(self):
+		self.Summary()
+		self.AnalyzeConvergence()
+		self.PlotCostPosterior()
+		self.PlotRewardPosterior()
+
 	def ObjectAPrediction(self):
 		return sum(self.ObjectAOutcome*self.Likelihoods)
 
@@ -149,8 +155,13 @@ class PosteriorContainer(object):
 			sys.stdout.write(str(self.Samples)+","+str(ExpectedRewards[0])+","+
 				str(ExpectedRewards[1])+","+str(RewardComp)+","+str(ObjAPred)+","+str(ObjBPred)+"\n")
 
-	def AnalyzeConvergence(self,jump=1):
+	def AnalyzeConvergence(self,jump=None):
 		# jump indicates how often to recompute the average
+		if jump==None:
+			if self.Samples>100:
+				jump=round(self.Samples*1.0/100)
+			else:
+				jump = 1
 		xvals=range(self.Samples)
 		rangevals=range(0,self.Samples,jump)
 		ycostvals=[self.GetExpectedCosts(i) for i in rangevals]

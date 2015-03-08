@@ -10,6 +10,10 @@ def LoadSamples(FileName):
 	Samples = pickle.load(open(FileName, "rb"))
 	return Samples
 
+def AnalyzeSamples(FileName):
+	Samples = pickle.load(open(FileName, "rb"))
+	Samples.LongSummary()
+
 def LoadObserver(PostCont):
 	if PostCont.MapFile == None:
 		print "No map associated with samples."
