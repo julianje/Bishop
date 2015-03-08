@@ -17,6 +17,8 @@ Res = Observer.InferAgent(StartingCoordinates=[6,6],
 Res.AssociateMap(MapName)
 # Human-friendly summary
 Res.Summary()
+# Or print csv-style
+Res.Summary(human=False)
 # Visually assess if samples converged
 Res.AnalyzeConvergence()
 # Look at cost and reward posterior plots
@@ -32,10 +34,14 @@ Res.GetExpectedCosts()
 Res.GetExpectedRewards()
 # Show cost comparison matrix
 Res.CompareCosts()
+# Do everything above at once
+Res.LongSummary()
 # Save results
 Res.SaveSamples("MyResults")
 
 # Load samples
-Res = Bishop.LoadSamples("MyResults")
+Res = Bishop.LoadSamples("MyResults.p")
+# Or just look at them
+Bishop.AnalyzeSamples("MyResults.p") # Does not return samples
 # Load the observer model associated with samples
 Observer = Bishop.LoadObserver(Res) # Only works if Results had a mapp associated
