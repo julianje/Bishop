@@ -38,7 +38,15 @@ class Observer(object):
             SampledRewards[i] = self.A.rewards
             SampleLikelihoods[i] = (self.ComputeLikelihood(
                 StartingPoint, ActionSequence, Softmax))
-            [APursuit[i],BPursuit[i]]=self.ComputeChoices(StartingPoint)
+            StateSequence = self.Plr.MDP.GetStates(StartingPoint, ActionSequence)
+            # The death state has no information about what the agent did
+            # If the agent is already in death state then go back
+            # two steps
+            if StateSequence[-1] == self.GetExitState():
+                CurrentPoint = StateSequence[-2]
+            else:
+                CurrentPoint = StateSequence[-1]
+            [APursuit[i],BPursuit[i]]=self.ComputeChoices(CurrentPoint)
             if i==0:
                 end = time.time()
                 secs=(end-start)*Samples
@@ -78,6 +86,9 @@ class Observer(object):
         return([APursuit,BPursuit])
 
     def SimulateAgent(self, StartingState, Softmax=True, Simple=False):
+        # Simple parameter gets sent to the MDP. When set to true the MDP
+        # always returns the first highest-value action. Otherwise it
+        # returns a sample from the set of highest-value actions.
         self.Plr.Integrate(self.A, self.M)
         self.Plr.ComputePolicy(Softmax)
         [Actions, States] = self.Plr.SimulatePathUntil(StartingState, self.GetExitState(), self.M.GetWorldSize()*2, Simple)
