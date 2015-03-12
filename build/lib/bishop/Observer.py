@@ -14,6 +14,10 @@ class Observer(object):
         self.A = A #Agent
         self.Plr = Planner.Planner(self.M.diagonal)
         self.Plr.Integrate(A, M)
+        self.MapName = None
+
+    def AddMapName(self, MapName):
+        self.MapName = MapName
 
     def ComputeLikelihood(self, StartingState, ActionSequence, Softmax=True):
         self.Plr.Integrate(self.A, self.M)
@@ -67,7 +71,10 @@ class Observer(object):
             return None
         SampleLikelihoods /= sum(SampleLikelihoods)
         Res = PosteriorContainer.PosteriorContainer(SampledCosts,SampledRewards,SampleLikelihoods,APursuit,BPursuit)
+        # Add meta data to the PosteriorContainer
+        Res.AddAgentInfo(StartingCoordinates,ActionSequence,self.M.GetActionNames(ActionSequence),Softmax)
         Res.AddCostNames(self.M.StateNames)
+        Res.AssociateMap(self.MapName)
         return Res
 
     def ComputeChoices(self,StartingPoint):
@@ -130,6 +137,9 @@ class Observer(object):
             if Simple==True:
                 print "WARNING: Can't do simple sampling when softmax is on. Turning Simple off"
                 Simple=False
+        sys.stdout.write("ObjectA,ObjectB,")
+        discard = [sys.stdout.write(str(i)+",") for i in self.M.StateNames]
+        sys.stdout.write("Actions\n")
         StartingPoint = self.GetStartingPoint(StartingCoordinates)
         for i in range(Samples):
             self.A.ResampleAgent(ConstrainTerrains)
@@ -147,7 +157,7 @@ class Observer(object):
                 sys.stdout.write("AGENT FAILED TO REACH EXIT")
 
     def GetStartingPoint(self, StartingCoordinates):
-        return self.M.GetStartingPoint(StartingCoordinates)
+        return self.M.GetRawStateNumber(StartingCoordinates)
 
     def GetActionList(self, Actions):
         return self.M.GetActionList(Actions)

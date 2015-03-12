@@ -162,6 +162,7 @@ def LoadEnvironment(MapName):
 	Terrain.InsertTargets(Targets)
 	Protagonist=Agent(Terrain,CostParam,RewardParam)
 	RObs = Observer(Terrain,Protagonist)
+	RObs.AddMapName(MapName)
 	RObs.Plr.UpdateSoftMax(SoftMaxParam)
 	RObs.Plr.UpdateConvergence(ConvergenceLimit)
 	RObs.Plr.UpdateDiscount(FutureDiscount)

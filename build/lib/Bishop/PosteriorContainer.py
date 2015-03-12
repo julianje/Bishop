@@ -21,6 +21,18 @@ class PosteriorContainer(object):
 		self.Samples = self.RewardSamples.shape[0]
 		self.CostNames = None
 		self.MapFile = None
+		self.StartingCoordinates = None
+		self.Actions = None
+		self.ActionNames = None
+		self.Softmax = None
+
+	def AddAgentInfo(self,StartingCoordinates,Actions,ActionNames,Softmax):
+		# Save starting coordinate, numeric action vector,
+		# action names, and softmax
+		self.StartingCoordinates = StartingCoordinates
+		self.Actions = Actions
+		self.ActionNames = ActionNames
+		self.Softmax = Softmax
 
 	def AssociateMap(self,MapName):
 		self.MapFile=MapName
@@ -31,8 +43,9 @@ class PosteriorContainer(object):
 	def LongSummary(self):
 		self.Summary()
 		self.AnalyzeConvergence()
-		self.PlotCostPosterior()
-		self.PlotRewardPosterior()
+		# 10 is the default input. Just sending it to avoid the print message
+		self.PlotCostPosterior(10)
+		self.PlotRewardPosterior(10)
 
 	def ObjectAPrediction(self):
 		return sum(self.ObjectAOutcome*self.Likelihoods)
@@ -133,13 +146,19 @@ class PosteriorContainer(object):
 		# Combine all function to print summary here
 		if human:
 			sys.stdout.write("Results using "+str(self.Samples)+ " samples.\n")
+			sys.stdout.write("\nPATH INFORMATION\n\n")
+			sys.stdout.write("Starting at "+str(self.StartingCoordinates)+" and taking actions "+
+				str(self.ActionNames)+" with")
+			if self.Softmax:
+				sys.stdout.write("out")
+			sys.stdout.write(" softmaxing inference.\n")
+			sys.stdout.write("\nGOAL PREDICTIONS\n\n")
+			sys.stdout.write("Probability that agent will get target A: "+ str(ObjAPred)+"\n")
+			sys.stdout.write("Probability that agent will get target B: "+ str(ObjBPred)+ "\n")
 			sys.stdout.write("\nINFERRED REWARDS\n\n")
 			sys.stdout.write("Target A: "+str(ExpectedRewards[0])+"\n")
 			sys.stdout.write("Target B: "+str(ExpectedRewards[1])+"\n")
 			sys.stdout.write("Probability that R(A)>R(B): "+ str(RewardComp)+ "\n")
-			sys.stdout.write("\nGOAL PREDICTIONS\n\n")
-			sys.stdout.write("Probability that agent will get target A: "+ str(ObjAPred)+"\n")
-			sys.stdout.write("Probability that agent will get target B: "+ str(ObjBPred)+ "\n")
 			sys.stdout.write("\nINFERRED COSTS\n\n")
 			if (self.CostNames!=None):
 				for i in range(self.CostDimensions):
@@ -147,22 +166,25 @@ class PosteriorContainer(object):
 				sys.stdout.write(str(self.CostNames)+"\n")
 			else:
 				sys.stdout.write(str(ExpectedCosts)+"\n")
-				sys.stdout.write("Cost comparison matrix (i,j = prob that C(terrain_i)>=C(terrain_j)):\n")
+			sys.stdout.write("Cost comparison matrix: i, j = p( C(i)>=C(j) )\n")
 			sys.stdout.write(str(CostMatrix)+"\n")
 		else:
 			sys.stdout.write("WARNING: Printed limited version\n")
-			sys.stdout.write("Samples,ObjectA,ObjectB,AvsB,PredictionA,PredictionB\n")
-			sys.stdout.write(str(self.Samples)+","+str(ExpectedRewards[0])+","+
+			sys.stdout.write("Samples,StartingCoordinates,Actions,ObjectA,ObjectB,AvsB,PredictionA,PredictionB\n")
+			sys.stdout.write(str(self.Samples)+","+str(self.StartingCoordinates)+
+				","+str(self.Actions)+","+
+				str(ExpectedRewards[0])+","+
 				str(ExpectedRewards[1])+","+str(RewardComp)+","+str(ObjAPred)+","+str(ObjBPred)+"\n")
 
 	def AnalyzeConvergence(self,jump=None):
 		# jump indicates how often to recompute the average
 		if jump==None:
 			if self.Samples>100:
-				jump=round(self.Samples*1.0/100)
+				print "Recomputing average after every 20 samples"
+				jump=int(round(self.Samples*1.0/20))
 			else:
+				print "Recomputing average after every sample"
 				jump = 1
-		xvals=range(self.Samples)
 		rangevals=range(0,self.Samples,jump)
 		ycostvals=[self.GetExpectedCosts(i) for i in rangevals]
 		ycostvals=np.array(ycostvals)
@@ -172,13 +194,13 @@ class PosteriorContainer(object):
 		# Costs
 		f, axarr = plt.subplots(self.CostDimensions, 2)
 		for i in range(self.CostDimensions):
-			axarr[i,0].plot(xvals,ycostvals[:,i], 'b-')
+			axarr[i,0].plot(rangevals,ycostvals[:,i], 'b-')
 			if self.CostNames!=None:
 				axarr[i,0].set_title(self.CostNames[i])
 		# Rewards
-		axarr[0,1].plot(xvals,yrewardvals[:,0], 'b-')
+		axarr[0,1].plot(rangevals,yrewardvals[:,0], 'b-')
 		axarr[0,1].set_title("Target A")
-		axarr[1,1].plot(xvals,yrewardvals[:,1], 'b-')
+		axarr[1,1].plot(rangevals,yrewardvals[:,1], 'b-')
 		axarr[1,1].set_title("Target B")
 		plt.show()
 

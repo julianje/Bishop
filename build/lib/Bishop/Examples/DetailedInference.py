@@ -5,7 +5,7 @@ MapName = "Tatik_T1"
 
 Observer = Bishop.LoadEnvironment(MapName)
 
-ObservedPath = Observer.M.GetActionList(['UL','R'])
+ObservedPath = Observer.GetActionList(['UL','R'])
 
 Res = Observer.InferAgent(StartingCoordinates=[6,6],
 	ActionSequence=ObservedPath,

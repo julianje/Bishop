@@ -7,6 +7,7 @@
 
 import numpy as np
 import sys
+import math
 
 class Map(object):
 
@@ -177,11 +178,16 @@ class Map(object):
             ActionNames[i] = self.ActionNames[Actions[i]]
         return ActionNames
 
-    def GetStartingPoint(self, StartingCoordinates):
-        # Calculate starting point here.
-        xval=StartingCoordinates[0]
-        yval=StartingCoordinates[1]
+    def GetRawStateNumber(self, Coordinates):
+        # Transform coordinates to raw state numbers.
+        xval=Coordinates[0]
+        yval=Coordinates[1]
         return (yval-1)*self.x+xval-1
+
+    def GetCoordinates(self, State):
+        yval = int(math.floor(State/self.x))+1
+        xval = State - self.x*(yval-1)+1
+        return [xval,yval]
 
     def InsertTargets(self, Locations):
         """
@@ -202,18 +208,19 @@ class Map(object):
             print "Warning: More than two rewards on Map. Code will work, but this is a deviation from the experimental design."
         self.Locations = Locations
 
-    def PullTargetStates(self, AddTerminalState=True):
+    def PullTargetStates(self, Coordinates=True):
         """
         PullTargetSTates(AddTerminalState=True)
-        Returns a list of states that have an object in them. If AddTerminalState is set to True the list will include states where the agent can leave the Map.
-        This function is useful for running simulations that can stop whenever something interesting happens (i.e., when the agent reaches an object, or when it leaves the map).
+        Returns a list of states that have an object in them.
+        When Coordinates is set to false the function returns the raw state numbers
         """
         TargetStates = []
         for i in range(len(self.Locations)):
             discard = [TargetStates.append(j) for j in self.Locations[i]]
-        if AddTerminalState:
-            TargetStates.append(max(self.S))
-        return TargetStates
+        if not Coordinates:
+            return TargetStates
+        else:
+            return [self.GetCoordinates(item) for item in TargetStates]
 
     def AddStateNames(self, StateNames):
         """
@@ -225,6 +232,10 @@ class Map(object):
         """
         PrintMap()
         """
+        sys.stdout.write("Possible actions: "+str(self.ActionNames)+"\n")
+        sys.stdout.write("Diagonal travel: "+str(self.diagonal)+"\n")
+        sys.stdout.write("Targets: ")
+        sys.stdout.write(str(self.PullTargetStates(True))+"\n\n")
         print "Terrain types"
         for i in range(len(self.StateNames)):
             sys.stdout.write(self.StateNames[i]+": "+str(i)+"\n")
