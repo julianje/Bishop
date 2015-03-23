@@ -25,11 +25,14 @@ class PosteriorContainer(object):
 		self.Actions = None
 		self.ActionNames = None
 		self.Softmax = None
+		self.TargetStates = None
 
-	def AddAgentInfo(self,StartingCoordinates,Actions,ActionNames,Softmax):
+	def AddExtraInfo(self,StartingCoordinates,Targets,Actions,ActionNames,Softmax):
 		# Save starting coordinate, numeric action vector,
 		# action names, and softmax
+		# This function is for internal use only.
 		self.StartingCoordinates = StartingCoordinates
+		self.Targets = Targets
 		self.Actions = Actions
 		self.ActionNames = ActionNames
 		self.Softmax = Softmax
@@ -38,7 +41,7 @@ class PosteriorContainer(object):
 		self.MapFile=MapName
 		FilePath = os.path.dirname(__file__) + "/Maps/"+MapName+".ini"
 		if not os.path.isfile(FilePath):
-			print "WARNING: Map not found in library"
+			print "WARNING: PosteriorContainer is linked with a map that doesn't exist in Bishop's library."
 
 	def LongSummary(self):
 		self.Summary()
@@ -145,13 +148,19 @@ class PosteriorContainer(object):
 		CostMatrix=self.CompareCosts()
 		# Combine all function to print summary here
 		if human:
+			sys.stdout.write("Map: "+str(self.MapFile)+"\n")
+			sys.stdout.write("To see map details run Bishop.LoadObserver(self).\n")
+			sys.stdout.write("Targets: "+str(self.Targets)+"\n")
 			sys.stdout.write("Results using "+str(self.Samples)+ " samples.\n")
 			sys.stdout.write("\nPATH INFORMATION\n\n")
-			sys.stdout.write("Starting at "+str(self.StartingCoordinates)+" and taking actions "+
+			sys.stdout.write("Starting position: "+str(self.StartingCoordinates)+"\n")
+			sys.stdout.write("Actions: "+
 				str(self.ActionNames)+" with")
 			if self.Softmax:
 				sys.stdout.write("out")
-			sys.stdout.write(" softmaxing inference.\n")
+			sys.stdout.write(" softmaxed inference.\n")
+			sys.stdout.write
+
 			sys.stdout.write("\nGOAL PREDICTIONS\n\n")
 			sys.stdout.write("Probability that agent will get target A: "+ str(ObjAPred)+"\n")
 			sys.stdout.write("Probability that agent will get target B: "+ str(ObjBPred)+ "\n")
