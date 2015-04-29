@@ -72,7 +72,7 @@ class Observer(object):
         SampleLikelihoods /= sum(SampleLikelihoods)
         Res = PosteriorContainer.PosteriorContainer(SampledCosts,SampledRewards,SampleLikelihoods,APursuit,BPursuit)
         # Add meta data to the PosteriorContainer
-        Res.AddAgentInfo(StartingCoordinates,ActionSequence,self.M.GetActionNames(ActionSequence),Softmax)
+        Res.AddExtraInfo(StartingCoordinates,self.M.PullTargetStates(),ActionSequence,self.M.GetActionNames(ActionSequence),Softmax)
         Res.AddCostNames(self.M.StateNames)
         Res.AssociateMap(self.MapName)
         return Res
