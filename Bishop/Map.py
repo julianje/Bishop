@@ -9,6 +9,7 @@ import numpy as np
 import sys
 import math
 
+
 class Map(object):
 
     """
@@ -69,7 +70,7 @@ class Map(object):
         """
         self.x = x
         self.y = y
-        self.diagonal=diagonal
+        self.diagonal = diagonal
         WorldSize = x * y
         self.S = range(WorldSize)
         self.StateTypes = [0] * len(self.S)
@@ -106,23 +107,24 @@ class Map(object):
             else:
                 self.T[i, 3, i + x] = 1
             if diagonal:  # Add diagonal transitions.
-	            if ((i % x == 0) or (i < x)):  # Left and top edges
-	                self.T[i, 4, i] = 1
-	            else:
-	                self.T[i, 4, i - x - 1] = 1
-	            if ((i < x) or (i % x == x - 1)):  # Top and right edges
-	                self.T[i, 5, i] = 1
-	            else:
-	                self.T[i, 5, i - x + 1] = 1
-	            if ((i % x == 0) or (i + x >= WorldSize)):  # Bottom and left edges
-	                self.T[i, 6, i] = 1
-	            else:
-	                self.T[i, 6, i + x - 1] = 1
-	            # Bottom and right edges
-	            if ((i % x == x - 1) or (i + x >= WorldSize)):
-	                self.T[i, 7, i] = 1
-	            else:
-	                self.T[i, 7, i + x + 1] = 1
+                if ((i % x == 0) or (i < x)):  # Left and top edges
+                    self.T[i, 4, i] = 1
+                else:
+                    self.T[i, 4, i - x - 1] = 1
+                if ((i < x) or (i % x == x - 1)):  # Top and right edges
+                    self.T[i, 5, i] = 1
+                else:
+                    self.T[i, 5, i - x + 1] = 1
+                # Bottom and left edges
+                if ((i % x == 0) or (i + x >= WorldSize)):
+                    self.T[i, 6, i] = 1
+                else:
+                    self.T[i, 6, i + x - 1] = 1
+                # Bottom and right edges
+                if ((i % x == x - 1) or (i + x >= WorldSize)):
+                    self.T[i, 7, i] = 1
+                else:
+                    self.T[i, 7, i + x + 1] = 1
 
     def InsertSquare(self, topleftx, toplefty, width, height, value):
         """
@@ -134,15 +136,15 @@ class Map(object):
         width: number of squares in width
         height: number of squares in height
         """
-        if ((topleftx+width-1)>self.x) or ((toplefty+height-1)>self.y):
+        if ((topleftx + width - 1) > self.x) or ((toplefty + height - 1) > self.y):
             print "ERROR: Square doesn't fit in map."
             return None
-        TopLeftState=(toplefty-1)*self.x+(topleftx)-1
+        TopLeftState = (toplefty - 1) * self.x + (topleftx) - 1
         for i in range(height):
-            initial=TopLeftState+self.x*i
-            end=TopLeftState+width+1
+            initial = TopLeftState + self.x * i
+            end = TopLeftState + width + 1
             self.StateTypes[initial:end] = [value] * width
-        
+
     def GetActionList(self, Actions):
         """
         GetActionList(ActionList)
@@ -180,14 +182,14 @@ class Map(object):
 
     def GetRawStateNumber(self, Coordinates):
         # Transform coordinates to raw state numbers.
-        xval=Coordinates[0]
-        yval=Coordinates[1]
-        return (yval-1)*self.x+xval-1
+        xval = Coordinates[0]
+        yval = Coordinates[1]
+        return (yval - 1) * self.x + xval - 1
 
     def GetCoordinates(self, State):
-        yval = int(math.floor(State/self.x))+1
-        xval = State - self.x*(yval-1)+1
-        return [xval,yval]
+        yval = int(math.floor(State / self.x)) + 1
+        xval = State - self.x * (yval - 1) + 1
+        return [xval, yval]
 
     def InsertTargets(self, Locations):
         """
@@ -232,17 +234,17 @@ class Map(object):
         """
         PrintMap()
         """
-        sys.stdout.write("Possible actions: "+str(self.ActionNames)+"\n")
-        sys.stdout.write("Diagonal travel: "+str(self.diagonal)+"\n")
+        sys.stdout.write("Possible actions: " + str(self.ActionNames) + "\n")
+        sys.stdout.write("Diagonal travel: " + str(self.diagonal) + "\n")
         sys.stdout.write("Targets: ")
-        sys.stdout.write(str(self.PullTargetStates(True))+"\n\n")
+        sys.stdout.write(str(self.PullTargetStates(True)) + "\n\n")
         print "Terrain types"
         for i in range(len(self.StateNames)):
-            sys.stdout.write(self.StateNames[i]+": "+str(i)+"\n")
+            sys.stdout.write(self.StateNames[i] + ": " + str(i) + "\n")
         sys.stdout.write("\n")
         for i in range(self.y):
             for j in range(self.x):
-                sys.stdout.write(str(self.StateTypes[self.x*i+j]))
+                sys.stdout.write(str(self.StateTypes[self.x * i + j]))
             sys.stdout.write("\n")
 
     def Display(self, Full=False):

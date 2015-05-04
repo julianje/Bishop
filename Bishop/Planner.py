@@ -4,6 +4,7 @@ import math
 
 
 class Planner(object):
+
     """
     Planner class handles the MDP and has additional functions to use the MDPs policy.
     Planner contains an Markov Decision Process object (MDP), a softmax parameter (tau), a future discount parameter (gamma), a value iteration convergence parameter (epsilon)
@@ -41,23 +42,23 @@ class Planner(object):
         Agent     Agent object
         Map       Map or Map object
         """
-        found=0
-        if ExitType=="OneLocation":
-            found=1
+        found = 0
+        if ExitType == "OneLocation":
+            found = 1
             # Agent can only exit from the map in exitstate
             self.MDP = MDP.MDP(range(self.GetDeepStateSize(Map)), Map.A, self.BuildDeepT(
                 Agent, Map, [exitstate]), self.BuildDeepR(Agent, Map), self.diagonal, self.gamma)
-        if ExitType=="Border":
-            found=1
+        if ExitType == "Border":
+            found = 1
             # Exit from any map border:
             self.MDP = MDP.MDP(range(self.GetDeepStateSize(Map)), Map.A, self.BuildDeepT(
                 Agent, Map), self.BuildDeepR(Agent, Map), self.diagonal, self.gamma)
-        if ExitType=="North":
-            found=1
+        if ExitType == "North":
+            found = 1
             # Exit from any top location:
             self.MDP = MDP.MDP(range(self.GetDeepStateSize(Map)), Map.A, self.BuildDeepT(
                 Agent, Map, False, [range(Map.x)]), self.BuildDeepR(Agent, Map), self.diagonal, self.gamma)
-        if found==0:
+        if found == 0:
             print "ERROR: ExitType does not exit."
 
     def ComputePolicy(self, Softmax=True):
@@ -75,7 +76,8 @@ class Planner(object):
         returns the probability of the agent taking the ActionSequence from StartingPoint.
         If there are agents who need help and may die this function is optimistic and assumes no one dies (thus never sending the agent to deathstates)
         """
-        # This function retrieves the optimistic state sequence where no objects disappear.
+        # This function retrieves the optimistic state sequence where no
+        # objects disappear.
         StateSequence = self.MDP.GetStates(StartingPoint, ActionSequence)
         p = 1  # probability taking the action sequence
         for i in range(len(ActionSequence)):
@@ -105,16 +107,16 @@ class Planner(object):
         Simulate path from StartingPoint until agent reaches a state in the StopStates list.
         Simulation ends after the agent has taken more steps than specified on Limit.
         """
-        iterations= 0
+        iterations = 0
         Actions = []
         StateSequence = [StartingPoint]
         State = StartingPoint
         while State not in StopStates:
-            [State, NewAct] = self.MDP.Run(State,Simple)
+            [State, NewAct] = self.MDP.Run(State, Simple)
             Actions.append(NewAct)
             StateSequence.append(State)
             iterations += 1
-            if (iterations>Limit):
+            if (iterations > Limit):
                 return [Actions, StateSequence]
         return [Actions, StateSequence]
 
@@ -143,16 +145,18 @@ class Planner(object):
         # MDP object will discard them if diagonal is off.
 
         # Build a reward function over the expanded transition matrix.
-        Rstraight = [0] * self.GetDeepStateSize(Map) # Reward function for actions when you move horizontally or diagonally.
+        # Reward function for actions when you move horizontally or diagonally.
+        Rstraight = [0] * self.GetDeepStateSize(Map)
         # Code logic is similar to Planner.BuildRewardFunction.
         # First reward gets inserted in Levels 0 and 2. Second reward gets inserted in Levels 0 and 2.
         # Add costs first
         ActiveStateCosts = [-Agent.costs[Map.StateTypes[i]]
-            for i in range(len(Map.S))] * 4
+                            for i in range(len(Map.S))] * 4
         ActiveStateCosts.append(0)  # Death state has no cost yet.
         ActiveStateCosts.append(0)  # Exit state has no cost
         Rstraight = ActiveStateCosts
-        Rdiagonal = [i*math.sqrt(2) for i in Rstraight] # Create the diagonal reward matrix
+        # Create the diagonal reward matrix
+        Rdiagonal = [i * math.sqrt(2) for i in Rstraight]
         # Add rewards
         RewardIndex = 0
         RewardObject = 0  # What object is this reward for?
@@ -162,33 +166,43 @@ class Planner(object):
                     Rstraight[j] = Agent.rewards[RewardIndex]
                     Rdiagonal[j] = Agent.rewards[RewardIndex]
                     Rstraight[j + Map.GetWorldSize() * (2 - RewardObject)] = Agent.rewards[
-                                         RewardIndex]
+                        RewardIndex]
                     Rdiagonal[j + Map.GetWorldSize() * (2 - RewardObject)] = Agent.rewards[
-                                         RewardIndex]
+                        RewardIndex]
                     if i > 1:  # If this an agent-type reward
-                        # If Object A is an agent then make the reward for saving A a cost on all states while A needs help.
-                        if (RewardObject==0):
-                            Rstraight[0:Map.GetWorldSize()]=[Rstraight[pos] - Agent.rewards[RewardIndex] for pos in range(Map.GetWorldSize())]
-                            Rstraight[(Map.GetWorldSize()*2):(Map.GetWorldSize()*3)]=[Rstraight[pos] - Agent.rewards[RewardIndex] for pos in range(Map.GetWorldSize()*2,Map.GetWorldSize()*3)]
-                            Rdiagonal[0:Map.GetWorldSize()]=[Rdiagonal[pos] - Agent.rewards[RewardIndex] for pos in range(Map.GetWorldSize())]
-                            Rdiagonal[(Map.GetWorldSize()*2):(Map.GetWorldSize()*3)]=[Rdiagonal[pos] - Agent.rewards[RewardIndex] for pos in range(Map.GetWorldSize()*2,Map.GetWorldSize()*3)]
+                        # If Object A is an agent then make the reward for
+                        # saving A a cost on all states while A needs help.
+                        if (RewardObject == 0):
+                            Rstraight[0:Map.GetWorldSize()] = [
+                                Rstraight[pos] - Agent.rewards[RewardIndex] for pos in range(Map.GetWorldSize())]
+                            Rstraight[(Map.GetWorldSize() * 2):(Map.GetWorldSize() * 3)] = [Rstraight[pos] - Agent.rewards[
+                                RewardIndex] for pos in range(Map.GetWorldSize() * 2, Map.GetWorldSize() * 3)]
+                            Rdiagonal[0:Map.GetWorldSize()] = [
+                                Rdiagonal[pos] - Agent.rewards[RewardIndex] for pos in range(Map.GetWorldSize())]
+                            Rdiagonal[(Map.GetWorldSize() * 2):(Map.GetWorldSize() * 3)] = [Rdiagonal[pos] - Agent.rewards[
+                                RewardIndex] for pos in range(Map.GetWorldSize() * 2, Map.GetWorldSize() * 3)]
                         else:
-                            Rstraight[0:Map.GetWorldSize()]=[Rstraight[pos] - Agent.rewards[RewardIndex] for pos in range(Map.GetWorldSize())]
-                            Rstraight[(Map.GetWorldSize()):(Map.GetWorldSize()*2)]=[Rstraight[pos] - Agent.rewards[RewardIndex] for pos in range(Map.GetWorldSize(),Map.GetWorldSize()*2)]
-                            Rdiagonal[0:Map.GetWorldSize()]=[Rdiagonal[pos] - Agent.rewards[RewardIndex] for pos in range(Map.GetWorldSize())]
-                            Rdiagonal[(Map.GetWorldSize()):(Map.GetWorldSize()*2)]=[Rdiagonal[pos] - Agent.rewards[RewardIndex] for pos in range(Map.GetWorldSize(),Map.GetWorldSize()*2)]
+                            Rstraight[0:Map.GetWorldSize()] = [
+                                Rstraight[pos] - Agent.rewards[RewardIndex] for pos in range(Map.GetWorldSize())]
+                            Rstraight[(Map.GetWorldSize()):(Map.GetWorldSize() * 2)] = [Rstraight[pos] - Agent.rewards[
+                                RewardIndex] for pos in range(Map.GetWorldSize(), Map.GetWorldSize() * 2)]
+                            Rdiagonal[0:Map.GetWorldSize()] = [
+                                Rdiagonal[pos] - Agent.rewards[RewardIndex] for pos in range(Map.GetWorldSize())]
+                            Rdiagonal[(Map.GetWorldSize()):(Map.GetWorldSize() * 2)] = [Rdiagonal[pos] - Agent.rewards[
+                                RewardIndex] for pos in range(Map.GetWorldSize(), Map.GetWorldSize() * 2)]
 
                     RewardObject += 1
                 RewardIndex += 1
-        # GIVE A SMALL REWARD FOR GETTING HOME. So MPD can converge in regions where all other rewards were picked up.
-        Rstraight[0]=10
-        Rdiagonal[0]=10
-        Rstraight[Map.GetWorldSize()]=10
-        Rdiagonal[Map.GetWorldSize()]=10
-        Rstraight[Map.GetWorldSize()*2]=10
-        Rdiagonal[Map.GetWorldSize()*2]=10
-        Rstraight[Map.GetWorldSize()*3]=10
-        Rdiagonal[Map.GetWorldSize()*3]=10
+        # GIVE A SMALL REWARD FOR GETTING HOME. So MPD can converge in regions
+        # where all other rewards were picked up.
+        Rstraight[0] = 10
+        Rdiagonal[0] = 10
+        Rstraight[Map.GetWorldSize()] = 10
+        Rdiagonal[Map.GetWorldSize()] = 10
+        Rstraight[Map.GetWorldSize() * 2] = 10
+        Rdiagonal[Map.GetWorldSize() * 2] = 10
+        Rstraight[Map.GetWorldSize() * 3] = 10
+        Rdiagonal[Map.GetWorldSize() * 3] = 10
         return [Rstraight, Rdiagonal]
 
     def BuildDeepT(self, Agent, Map, ExitStates=None):
@@ -201,43 +215,56 @@ class Planner(object):
         if (sum(map(len, Map.Locations)) != 2):
             print "Warning: Didn't find exactly two objects. Don't use Planner.BuildDeepT unless you have exactly two objects."
         WorldSize = Map.GetWorldSize()
-        MapExitState = WorldSize * 4 + 1 #Position of exit state.
+        MapExitState = WorldSize * 4 + 1  # Position of exit state.
         # Create big world with death and exit states.
         T = np.zeros(
             (WorldSize * 4 + 2, Map.NumberOfActions(), WorldSize * 4 + 2))
         # Insert the Map's transition matrix into the big matrix.
-        T[WorldSize*0:WorldSize*1,:, WorldSize*0:WorldSize*1] = Map.T
-        T[WorldSize*1:WorldSize*2,:, WorldSize*1:WorldSize*2] = Map.T
-        T[WorldSize*2:WorldSize*3,:, WorldSize*2:WorldSize*3] = Map.T
-        T[WorldSize*3:WorldSize*4,:, WorldSize*3:WorldSize*4] = Map.T
-        if (ExitStates==None):
+        T[WorldSize * 0:WorldSize * 1, :, WorldSize * 0:WorldSize * 1] = Map.T
+        T[WorldSize * 1:WorldSize * 2, :, WorldSize * 1:WorldSize * 2] = Map.T
+        T[WorldSize * 2:WorldSize * 3, :, WorldSize * 2:WorldSize * 3] = Map.T
+        T[WorldSize * 3:WorldSize * 4, :, WorldSize * 3:WorldSize * 4] = Map.T
+        if (ExitStates == None):
             print "Warning in Planner.BuilDeepT(). No exit states in Map!"
         for exitstate in ExitStates:
             # Check if ExitState is top, left, right, or bottom.
-            if (exitstate in [loopvar*Map.x for loopvar in range(Map.y)]): # Left
+            # Left
+            if (exitstate in [loopvar * Map.x for loopvar in range(Map.y)]):
                 for DepthLevel in range(4):
-                    T[exitstate+WorldSize*DepthLevel,0,:]=np.zeros((T[exitstate+WorldSize*DepthLevel,0,:].shape))
-                    T[exitstate+WorldSize*DepthLevel,0,MapExitState]=1
-            if (exitstate in [loopvar*Map.x+Map.x-1 for loopvar in range(Map.y)]): # Right
+                    T[exitstate + WorldSize * DepthLevel, 0,
+                        :] = np.zeros((T[exitstate + WorldSize * DepthLevel, 0, :].shape))
+                    T[exitstate + WorldSize * DepthLevel, 0, MapExitState] = 1
+            # Right
+            if (exitstate in [loopvar * Map.x + Map.x - 1 for loopvar in range(Map.y)]):
                 for DepthLevel in range(4):
-                    T[exitstate+WorldSize*DepthLevel,1,:]=np.zeros((T[exitstate+WorldSize*DepthLevel,1,:].shape))
-                    T[exitstate+WorldSize*DepthLevel,1,MapExitState]=1
-            if (exitstate in range(Map.x)): # Top
+                    T[exitstate + WorldSize * DepthLevel, 1,
+                        :] = np.zeros((T[exitstate + WorldSize * DepthLevel, 1, :].shape))
+                    T[exitstate + WorldSize * DepthLevel, 1, MapExitState] = 1
+            if (exitstate in range(Map.x)):  # Top
                 for DepthLevel in range(4):
-                    T[exitstate+WorldSize*DepthLevel,2,:]=np.zeros((T[exitstate+WorldSize*DepthLevel,2,:].shape))
-                    T[exitstate+WorldSize*DepthLevel,2,MapExitState]=1
-            if (exitstate in range(WorldSize-Map.x,WorldSize)): # Bottom
+                    T[exitstate + WorldSize * DepthLevel, 2,
+                        :] = np.zeros((T[exitstate + WorldSize * DepthLevel, 2, :].shape))
+                    T[exitstate + WorldSize * DepthLevel, 2, MapExitState] = 1
+            if (exitstate in range(WorldSize - Map.x, WorldSize)):  # Bottom
                 for DepthLevel in range(4):
-                    T[exitstate+WorldSize*DepthLevel,3,:]=np.zeros((T[exitstate+WorldSize*DepthLevel,3,:].shape))
-                    T[exitstate+WorldSize*DepthLevel,3,MapExitState]=1
-            T[exitstate,:,:]=np.zeros((T[exitstate,:,:].shape))
-            T[exitstate+WorldSize,:,:]=np.zeros((T[exitstate,:,:].shape))
-            T[exitstate+WorldSize*2,:,:]=np.zeros((T[exitstate,:,:].shape))
-            T[exitstate+WorldSize*3,:,:]=np.zeros((T[exitstate,:,:].shape))
-            T[exitstate,:,MapExitState]=[1]*len(T[exitstate,:,MapExitState])
-            T[exitstate+WorldSize,:,MapExitState]=[1]*len(T[exitstate,:,MapExitState])
-            T[exitstate+WorldSize*2,:,MapExitState]=[1]*len(T[exitstate,:,MapExitState])
-            T[exitstate+WorldSize*3,:,MapExitState]=[1]*len(T[exitstate,:,MapExitState])
+                    T[exitstate + WorldSize * DepthLevel, 3,
+                        :] = np.zeros((T[exitstate + WorldSize * DepthLevel, 3, :].shape))
+                    T[exitstate + WorldSize * DepthLevel, 3, MapExitState] = 1
+            T[exitstate, :, :] = np.zeros((T[exitstate, :, :].shape))
+            T[exitstate + WorldSize, :,
+                :] = np.zeros((T[exitstate, :, :].shape))
+            T[exitstate + WorldSize * 2, :,
+                :] = np.zeros((T[exitstate, :, :].shape))
+            T[exitstate + WorldSize * 3, :,
+                :] = np.zeros((T[exitstate, :, :].shape))
+            T[exitstate, :, MapExitState] = [
+                1] * len(T[exitstate, :, MapExitState])
+            T[exitstate + WorldSize, :, MapExitState] = [1] * \
+                len(T[exitstate, :, MapExitState])
+            T[exitstate + WorldSize * 2, :, MapExitState] = [1] * \
+                len(T[exitstate, :, MapExitState])
+            T[exitstate + WorldSize * 3, :, MapExitState] = [1] * \
+                len(T[exitstate, :, MapExitState])
         # Add how picking up objects takes you to different levels.
         # Wit this construction, the agent needs to take one action to pick up
         # the object that will not change it's location.
@@ -247,11 +274,16 @@ class Planner(object):
                 for j in Map.Locations[i]:
                     if Target == 1:
                         # First delete all previous moves
-                        T[j,:,:] = np.zeros((T[j,:,:].shape))
-                        T[j,:, j+WorldSize] = [1]*len(T[j,:, j+WorldSize]) #Level 0 goes to level 1
+                        T[j, :, :] = np.zeros((T[j, :, :].shape))
+                        # Level 0 goes to level 1
+                        T[j, :, j + WorldSize] = [1] * \
+                            len(T[j, :, j + WorldSize])
                         # And level 2 takes you to level 3
-                        T[j+WorldSize*2,:,:] = np.zeros((T[j+WorldSize*2,:,:].shape))
-                        T[j+WorldSize*2,:, j+WorldSize*3] = [1]*len(T[j+WorldSize*2,:, j+WorldSize*3]) #Level 2 goes to level 3
+                        T[j + WorldSize * 2, :,
+                            :] = np.zeros((T[j + WorldSize * 2, :, :].shape))
+                        T[j + WorldSize * 2, :, j + WorldSize * 3] = [1] * \
+                            len(T[j + WorldSize * 2, :, j + WorldSize * 3]
+                                )  # Level 2 goes to level 3
                         Target += 1
                         # If the target corresponds to an agent who needs help
                         if (i >= 2):
@@ -267,15 +299,22 @@ class Planner(object):
                                             T[subloop1 + WorldSize * 2, subloop3,
                                                 subloop2] = 1 - self.deathprob
                             # Add chance of moving to death state in all.
-                            T[WorldSize*0:WorldSize*1,:, WorldSize*4] = np.ones((T[WorldSize*0:WorldSize*1,:, WorldSize*4].shape))*self.deathprob
-                            T[WorldSize*2:WorldSize*3,:, WorldSize*4] = np.ones((T[WorldSize*2:WorldSize*3,:, WorldSize*4].shape))*self.deathprob
+                            T[WorldSize * 0:WorldSize * 1, :, WorldSize * 4] = np.ones(
+                                (T[WorldSize * 0:WorldSize * 1, :, WorldSize * 4].shape)) * self.deathprob
+                            T[WorldSize * 2:WorldSize * 3, :, WorldSize * 4] = np.ones(
+                                (T[WorldSize * 2:WorldSize * 3, :, WorldSize * 4].shape)) * self.deathprob
                     else:
                         # First delete all previous moves
-                        T[j,:,:] = np.zeros((T[j,:,:].shape))
-                        T[j,:, j+WorldSize*2] = [1]*len(T[j,:, j+WorldSize*2]) #Level 0 goes to level 2
+                        T[j, :, :] = np.zeros((T[j, :, :].shape))
+                        # Level 0 goes to level 2
+                        T[j, :, j + WorldSize * 2] = [1] * \
+                            len(T[j, :, j + WorldSize * 2])
                         # And level 1 takes you to level 3
-                        T[j+WorldSize,:,:] = np.zeros((T[j+WorldSize,:,:].shape))
-                        T[j+WorldSize,:, j+WorldSize*3] = [1]*len(T[j+WorldSize,:, j+WorldSize*3]) #Level 1 goes to level 3
+                        T[j + WorldSize, :,
+                            :] = np.zeros((T[j + WorldSize, :, :].shape))
+                        # Level 1 goes to level 3
+                        T[j + WorldSize, :, j + WorldSize * 3] = [1] * \
+                            len(T[j + WorldSize, :, j + WorldSize * 3])
                         # If the target corresponds to an agent who needs help
                         if (i >= 2):
                             # Take all actions on that level and add the change of the agent dying.
@@ -290,12 +329,16 @@ class Planner(object):
                                             T[subloop1 + WorldSize, subloop3,
                                                 subloop2] = 1 - self.deathprob
                             # Add chance of moving to death state in all.
-                            T[WorldSize*0:WorldSize*1,:, WorldSize*4] = np.ones((T[WorldSize*0:WorldSize*1,:, WorldSize*4].shape))*self.deathprob
-                            T[WorldSize*1:WorldSize*2,:, WorldSize*4] = np.ones((T[WorldSize*1:WorldSize*2,:, WorldSize*4].shape))*self.deathprob
+                            T[WorldSize * 0:WorldSize * 1, :, WorldSize * 4] = np.ones(
+                                (T[WorldSize * 0:WorldSize * 1, :, WorldSize * 4].shape)) * self.deathprob
+                            T[WorldSize * 1:WorldSize * 2, :, WorldSize * 4] = np.ones(
+                                (T[WorldSize * 1:WorldSize * 2, :, WorldSize * 4].shape)) * self.deathprob
         # Have death state send you to exit.
-        T[WorldSize*4,:, WorldSize*4+1] = np.ones((T[WorldSize*4,:, WorldSize*4+1].shape))
+        T[WorldSize * 4, :, WorldSize * 4 +
+            1] = np.ones((T[WorldSize * 4, :, WorldSize * 4 + 1].shape))
         # Make exit state absorbing.
-        T[WorldSize*4+1,:, WorldSize*4+1] = np.ones((T[WorldSize*4+1,:, WorldSize*4+1].shape))
+        T[WorldSize * 4 + 1, :, WorldSize * 4 +
+            1] = np.ones((T[WorldSize * 4 + 1, :, WorldSize * 4 + 1].shape))
         return T
 
     def UpdateDeathProb(self, deathprob):
