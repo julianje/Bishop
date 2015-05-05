@@ -1,9 +1,10 @@
-# Built for Planner class to manage.
-# Map has a simpler representation of the environment (no exit states),
-# allowing Planner to build the deep transition matrix.
+# -*- coding: utf-8 -*-
 
-# Structure is a little different. Planner handles how to build
-# the MDP.
+"""
+Class to store Maps.
+"""
+
+__license__ = "MIT"
 
 import numpy as np
 import sys
@@ -12,38 +13,29 @@ import math
 
 class Map(object):
 
-    """
-    Map class.
-
-    This class stores the environments states (S) and the terrain type (StateTypes), the possible actions (A), the transition matrix (T), and reward locations (Locations).
-    It also stores human-readable information: StateNames, ActionNames, and LocationNames.
-
-    Map comes with functions that help you build the transition matrix (BuildGridWorld).
-    The Map specification is not the map we do planning on. Planner takes the Map description and uses it to build the true MDP (where objects can be removed).
-    """
-
-    def __init__(self, Locations=[[], [], [], []], S=[], StateTypes=[], StateNames=[], A=[], diagonal=None, ActionNames=[], LocationNames=[], T=[]):
+    def __init__(self, Locations=[], LocationTypes=[], ObjectNames=[], S=[], StateTypes=[], StateNames=[], A=[], ActionNames=[], diagonal=None, T=[]):
         """
         Create New map
 
+        This class stores the environments states (S) and the terrain type (StateTypes), the possible actions (A), the transition matrix (T), and reward locations (Locations).
+        It also stores human-readable information: StateNames, ActionNames, and LocationNames.
         If no arguments are provided the structures are just initialized.
 
-        ARGUMENTS:
-        Locations[]      An array marking the locations of the targets.
-                         There are four possible types of objects. Each entry
-                         marks the locations of object 1, object 2, agent 1, and
-                         agent 2, respectively.
-        S                Set of states in the world.
-        StateTypes[]     A set that matches in length the set of states and marks their
-                         terrain type (As a discrete number).
-        StateNames       A list containing names for each possible state type.
-        A                Set of actions the world allows for
-        diagonal         [boolean] determines if agents can travel diagonally.
-        ActionNames      Names of the actions
-        LocationNames    List containing names of the objects taht are placed on the map.
-                         LocationNames[i] contains the names of objects in Locations[i]
-        T                Transition matrix. T[so,a,sf] contains the probability of switching
-                         to state sf when taking action a in state so.
+        .. Warning::
+
+           The constructor is designed to only initialize variables. Objects should be build through BuildGridWorld method.
+
+        Args:
+            Locations (list): List of object locations.
+            LocationTypes (list): List indicating the object type in each location.
+            ObjectNames (list): List with object names.
+            S (list): List of states.
+            StateTypes (list): List indicating the terrain type of each state.
+            StateNames (list): List of strings indicating the names of states.
+            A (list): List of actions available.
+            ActionNames (list): List of action names.
+            diagonal (boolean): Determines if agents can travel diagonally.
+            T (matrix): Transition matrix. T[SO,A,SF] contains the probability that agent will go from SO to SF after taking action A.
         """
         self.diagonal = diagonal
         self.S = S
@@ -51,7 +43,8 @@ class Map(object):
         self.T = T
         self.ActionNames = ActionNames
         self.Locations = Locations
-        self.LocationNames = LocationNames
+        self.LocationTypes = LocationTypes
+        self.ObjectNames = ObjectNames
         self.StateNames = StateNames
         self.StateTypes = StateTypes
         # Ensure rest of code breaks if BuildGridWorld wasn't called.
@@ -61,12 +54,11 @@ class Map(object):
     def BuildGridWorld(self, x, y, diagonal=True):
         """
         Build a simple grid world with a noiseless transition matrix.
-        This gives the basic structure that can then be used to build the MDPs real transition matrix.
 
-        ARGUMENTS
-        x [integer]     Map's length
-        y [integer]     Map's height
-        diagonal [boolean] Can agent move diagonally?
+        Args:
+            x (int): Map's length
+            y (int): Map's height
+            diagonal (bool): Can the agent travel diagonally?
         """
         self.x = x
         self.y = y
@@ -128,14 +120,15 @@ class Map(object):
 
     def InsertSquare(self, topleftx, toplefty, width, height, value):
         """
-        InsertSquare(lowerleftx,lowerlefty,width,heigh,value)
-        Replace a map square with the given value
+        Insert a square of some type of terrain. This function rewrites old terrains
 
-        topleftx: x-value of the top left spot of the square, from left to right.
-        toplefty: y-value of the top left spot of the square, from top to bottom.
-        width: number of squares in width
-        height: number of squares in height
+        Args:
+            topleftx (int): x coordinate of top left corner of square (counting from left to right)
+            toplefty (int): y coordinate of top left corner of square (counting from top to bottom)
+            width (int): Square's width
+            height (int): Square's height
         """
+
         if ((topleftx + width - 1) > self.x) or ((toplefty + height - 1) > self.y):
             print "ERROR: Square doesn't fit in map."
             return None
@@ -147,9 +140,13 @@ class Map(object):
 
     def GetActionList(self, Actions):
         """
-        GetActionList(ActionList)
-        Transform a list of action names into the corresponding action numbers in the Map.
-        This function helps make inference code human-readable
+        Transform a list of action names into a list of action indices.
+
+        Args:
+            Actions (list): List of action names
+
+        Returns
+            Actions (list): List of actions in numerical value
         """
         ActionList = [0] * len(Actions)
         for i in range(len(Actions)):
@@ -158,22 +155,37 @@ class Map(object):
 
     def GetWorldSize(self):
         """
-        GetWorldSize()
-        returns number of states.
+        Get size of world
+
+        Args:
+            None
+
+        Returns:
+            Size (int)
         """
         return len(self.S)
 
     def NumberOfActions(self):
         """
-        NumberOfActions()
-        returns number of actions.
+        Get number of actions
+
+        Args:
+            None
+
+        Returns:
+            Number of actions (int)
         """
         return len(self.A)
 
     def GetActionNames(self, Actions):
         """
-        GetActionNames(Actions)
-        Receives a list of action numbers and returns the names for the actions.
+        Get names of actions
+
+        Args:
+            Actions (list): List of actions in numerical value
+
+        Returns
+            Actions (list): List of action names
         """
         ActionNames = [0] * len(Actions)
         for i in range(len(Actions)):
@@ -181,34 +193,61 @@ class Map(object):
         return ActionNames
 
     def GetRawStateNumber(self, Coordinates):
+        """
+        Transform coordinate into raw state number
+
+        Args:
+            Coordinates (list): with the x and y coordinate.
+
+        Returns
+            State (int)
+        """
         # Transform coordinates to raw state numbers.
         xval = Coordinates[0]
         yval = Coordinates[1]
         return (yval - 1) * self.x + xval - 1
 
     def GetCoordinates(self, State):
+        """
+        Transform raw state number into coordinates
+
+        Args:
+            State (int): State id
+
+        Returns
+            Coordinates (list): x and y coordinates ([x,y])
+        """
         yval = int(math.floor(State / self.x)) + 1
         xval = State - self.x * (yval - 1) + 1
         return [xval, yval]
 
-    def InsertTargets(self, Locations):
+    def InsertTargets(self, Locations, LocationTypes, ObjectNames=None):
         """
-        InsertTargets(Locations)
-        Adds objects to the map. Locations must be of the form [[],[],[],[]], with a total of two states.
-        State numbers in the first list are objects of type 1. State numbers in the second list are objects of type 2.
-        State numbers in the third and fourth lists are agents.
+        Add objects to map.
 
-        Example:
-        InsertTargets([0,1],[],[],[]) # Insert two objects of the same kind on states 0 and 1
-        InsertTargets([0],[1],[],[]) # Insert two different objects on states 0 and 1
-        InsertTargets([0],[],[1],[]) # Insert an object in state 0 and an agent who needs help in state 1
-        InsertTargets([],[],[0,1],[]) # Insert two agents of the same kind on states 0 and 1. This means the algorithm will assume the motivation to save both agents is the same.
-        InsertTargets([],[],[0],[1]) # Insert two different agents in states 0 and 1. This way, the agent might have different motivation for saving the different agents.
+        Args:
+            Locations (list): List of state numbers where objects should be placed
+            LocationTypes (list): List of identifiers about object id
+            ObjectNames (list): List of names for the objects
+
+        Returns:
+            None
+
+        Example: Add five objects on first five states. First two and last three objects are of the same kind, respectively.
+        >> InsertTargets([0,1,2,3,4],[0,0,1,1,1],["Object A","Object B"])
         """
-        # Store the state position of the objects in the world.
-        if sum(map(len, Locations)) > 2:
-            print "Warning: More than two rewards on Map. Code will work, but this is a deviation from the experimental design."
+        # Check that location and locationtype match
+        if len(Locations) != len(LocationTypes):
+            print "ERROR: List of locations and list of location types are of different length"
+            return None
+        # Check that objectnames match number of objects
+        if ObjectNames != None:
+            if len(ObjectNames) != len(set(Locations)):
+                print "ERROR: Object names does not match number of objects"
+                return None
         self.Locations = Locations
+        self.LocationTypes = LocationTypes
+        self.ObjectNames = ObjectNames
 
     def PullTargetStates(self, Coordinates=True):
         """
@@ -226,13 +265,21 @@ class Map(object):
 
     def AddStateNames(self, StateNames):
         """
-        AddStateNames(StateNames) takes a list of the length of the terrain types giving them names.
+        Add names to the states.
+
+        Args:
+            StateNames (list): List of strings with state names
         """
         self.StateNames = StateNames
 
     def PrintMap(self):
         """
-        PrintMap()
+        Print map in ascii
+
+        Args:
+            None
+
+        >> MyMap.PrintMap()
         """
         sys.stdout.write("Possible actions: " + str(self.ActionNames) + "\n")
         sys.stdout.write("Diagonal travel: " + str(self.diagonal) + "\n")
@@ -249,9 +296,17 @@ class Map(object):
 
     def Display(self, Full=False):
         """
-        Print class attributes.
-        Display() prints the stored values.
-        Display(False) prints the variable names only.
+        Print object attributes.
+
+        .. Internal function::
+
+           This function is for internal use only.
+
+        Args:
+            Full (bool): When set to False, function only prints attribute names. Otherwise, it also prints its values.
+
+        Returns:
+            standard output summary
         """
         if Full:
             for (property, value) in vars(self).iteritems():
