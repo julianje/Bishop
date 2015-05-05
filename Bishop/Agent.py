@@ -1,27 +1,29 @@
+# -*- coding: utf-8 -*-
+
+"""
+Markov Decision Process solver.
+"""
+
+__license__ = "MIT"
+
 import random
 import numpy as np
 
 
 class Agent(object):
 
-    """Agent class.
-    Create an agent who has costs and rewards.
+    def __init__(self, Map, Prior="Exponential", CostParam=0.1, RewardParam=10):
+        """
+        Agent class.
 
-    Attributes:
-    CostDimensions [int]   Dimension of cost simplex
-    RewardDimensions [int] Dimensions of reward simplex
-    costs [list]           list with sampled costs
-    rewards [list]         list with sampled rewards
-    """
+        Create an agent who has costs and rewards.
 
-    def __init__(self, Map, CostParam=0.1, RewardParam=10):
-        # ARGUMENTS:
-        #
-        # Map          MAP object
-        # CostParam    Parameter used for sampling costs.
-        # RewardParam  Parameter used for sampling rewards.
-        # Both parameters change meaning depending on the distribution you use.
-
+        Args:
+            Map (Map): A map object.
+            Prior (str): String indicating prior's name (Only Simplex and Exponential supported)
+            CostParam (float): Parameter for sampling costs
+            RewardParam (float): Parameter for sampling rewards
+        """
         self.CostDimensions = len(np.unique(Map.StateTypes))
         # Get dimensions over which you'll build your simplex
         self.RewardDimensions = sum([i > 0 for i in map(len, Map.Locations)])
@@ -33,9 +35,16 @@ class Agent(object):
         self.ResampleRewards()  # Generate random rewards for objects
 
     def ResampleAgent(self, Apathy=0, Restrict=False):
-        # Generate a random agent by changing it's competence and motivation
-        # If Restrict is set to true the agent assumes that the first terrain
-        # is always the least costly
+        """
+        Reset the agent with random parameters.
+
+        Args:
+            Apathy (float): Probability that agent doesn't like objects.
+            Restrict (bool): If true, first terrain is always the least costly
+
+        Returns:
+            None
+        """
         self.ResampleCosts(Apathy)
         self.ResampleRewards(Apathy)
         if Restrict:
@@ -46,21 +55,48 @@ class Agent(object):
             self.costs[0] = minval
 
     def ResampleCosts(self, Apathy=0):
+        """
+        Reset agent's costs.
+
+        Args:
+            Apathy (float): Probability that agent doesn't like objects.
+
+        Returns:
+            None
+        """
         # Resample the agent's competence
         self.costs = self.Sample(
-            self.CostDimensions, self.CostParam, Kind="Exponential")
+            self.CostDimensions, self.CostParam, Kind=self.Prior)
         self.costs = [0 if random.random() < Apathy else i for i in self.costs]
 
     def ResampleRewards(self, Apathy=0):
+        """
+        Reset agent's rewards.
+
+        Args:
+            Apathy (float): Probability that agent doesn't like objects.
+
+        Returns:
+            None
+        """
         # Resample the agent's preferences
         self.rewards = self.Sample(
-            self.RewardDimensions, self.RewardParam, Kind="Exponential")
+            self.RewardDimensions, self.RewardParam, Kind=self.Prior)
         self.rewards = [
             0 if random.random() < Apathy else i for i in self.rewards]
 
     def Sample(self, dimensions, SamplingParam, Kind):
-        # Generate a random sample from different distributions.
-        # ARGUMENTS: Dimensions and sample kind
+        """
+        Generate a sample from some distribution
+
+        Args:
+            dimensions (int): Number of dimensions
+            SamplingParam: Parameter to use on distribution
+            Kind (str): Name of distribution
+
+        Returns:
+            None
+        """
         if(Kind == "Simplex"):
             # Output: Simplex sample of length 'dimensions' (Adds to 1)
             sample = -np.log(np.random.rand(dimensions))
