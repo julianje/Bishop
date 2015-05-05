@@ -13,7 +13,7 @@ import math
 
 class Map(object):
 
-    def __init__(self, Locations=[], LocationTypes=[], ObjectNames=[], S=[], StateTypes=[], StateNames=[], A=[], ActionNames=[], diagonal=None, T=[]):
+    def __init__(self, Locations=[], LocationTypes=[], ObjectNames=[], S=[], StateTypes=[], StateNames=[], A=[], ActionNames=[], diagonal=None, T=[], ExitState=None, StartingPoint=None):
         """
         Create New map
 
@@ -36,6 +36,8 @@ class Map(object):
             ActionNames (list): List of action names.
             diagonal (boolean): Determines if agents can travel diagonally.
             T (matrix): Transition matrix. T[SO,A,SF] contains the probability that agent will go from SO to SF after taking action A.
+            ExitState (int): Exit state
+            StartingPoint (int): Map's starting point
         """
         self.diagonal = diagonal
         self.S = S
@@ -47,9 +49,59 @@ class Map(object):
         self.ObjectNames = ObjectNames
         self.StateNames = StateNames
         self.StateTypes = StateTypes
+        self.ExitState = ExitState
+        self.StartingPoint = StartingPoint
         # Ensure rest of code breaks if BuildGridWorld wasn't called.
         self.x = -1
         self.y = -1
+
+    def Validate(self):
+        """
+        Check if Map object has everything it needs.
+        """
+        # Test 1. Check transition matrix has correct size.
+        Tshape = self.T.shape
+        if Tshape[0] != Tshape[2]:
+            print "ERROR: Transition matrix has wrong dimensions"
+            return 0
+        if Tshape[0] != len(self.S):
+            print "ERROR: Transition matrix does not match number of states"
+            return 0
+        if Tshape[1] != len(self.A):
+            print "ERROR: Transition matrix does not match number of actions"
+            return 0
+        # Check that location and locationtype match
+        if len(self.Locations) == 0 or len(self.LocationTypes) == 0:
+            print "ERROR: Missing object locations"
+            return 0
+        if len(self.Locations) != len(self.LocationTypes):
+            print "ERROR: List of locations and list of location types are of different length"
+            return 0
+        # Check that objectnames match number of objects
+        if self.ObjectNames is not None:
+            if len(self.ObjectNames) != len(set(self.Locations)):
+                print "ERROR: Object names does not match number of objects"
+                return 0
+        # Check that starting point and exit state are in map
+        if self.StartingPoint is not None:
+            if self.StartingPoint < 0 or self.StartingPoint >= len(self.S):
+                print "ERROR: Starting point is not a state number"
+                return 0
+        else:
+            print "ERROR: Missing starting point."
+            return 0
+        if self.ExitState is not None:
+            if self.ExitState < 0 or self.ExitState >= len(self.S):
+                print "ERROR: Exit state is not a state number"
+                return 0
+        else:
+            print "ERROR: Missing exit states."
+            return 0
+        # Check that transition matrix makes sense
+        if sum([np.all(np.sum(self.T[:, i, :], axis=1) == 1) for i in range(len(self.A))]) != len(self.A):
+            print "ERROR: Transition matrix is not well formed"
+            return 0
+        return 1
 
     def BuildGridWorld(self, x, y, diagonal=True):
         """
@@ -241,7 +293,7 @@ class Map(object):
             print "ERROR: List of locations and list of location types are of different length"
             return None
         # Check that objectnames match number of objects
-        if ObjectNames != None:
+        if ObjectNames is not None:
             if len(ObjectNames) != len(set(Locations)):
                 print "ERROR: Object names does not match number of objects"
                 return None
@@ -271,6 +323,24 @@ class Map(object):
             StateNames (list): List of strings with state names
         """
         self.StateNames = StateNames
+
+    def AddExitState(self, ExitState):
+        """
+        Add exit state to map
+        """
+        if ExitState < 0 or ExitState >= len(self.S):
+            print "ERROR: Exit state is not a state in the map."
+            return None
+        self.ExistState = ExitState
+
+    def AddStartingPoint(self, StartingPoint):
+        """
+        Add starting point to map
+        """
+        if StartingPoint < 0 or StartingPoint >= len(self.S):
+            print "ERROR: Starting point is not a state in the map."
+            return None
+        self.StartingPoint = StartingPoint
 
     def PrintMap(self):
         """
