@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+
+"""
+Markov Decision Process solver.
+"""
+
+__license__ = "MIT"
+
 import ConfigParser
 import os
 import pickle
@@ -8,16 +16,43 @@ from Agent import *
 
 
 def LoadSamples(FileName):
+    """
+    Load samples from a pickle file
+
+    Args:
+        FileName (str): filename
+
+    returns:
+        Samples
+    """
     Samples = pickle.load(open(FileName, "rb"))
     return Samples
 
 
 def AnalyzeSamples(FileName):
+    """
+    Print sample summary from a pickle file
+
+    Args:
+        FileName (str): filename
+
+    returns:
+        None
+    """
     Samples = pickle.load(open(FileName, "rb"))
     Samples.LongSummary()
 
 
 def LoadObserver(PostCont):
+    """
+    Load observer object from a PosteriorContainer object.
+
+    Args:
+        Postcont (PosteriorContainer): Posterior container object
+
+    Returns:
+        Observer object
+    """
     if PostCont.MapFile is None:
         print "No map associated with samples."
         return None
@@ -26,12 +61,27 @@ def LoadObserver(PostCont):
 
 
 def ShowAvailableMaps():
+    """
+    Print list of maps in Bishop library
+
+    Args:
+        None
+    """
     for file in os.listdir(os.path.dirname(__file__) + "/Maps/"):
         if file.endswith(".ini"):
             print file[:-4]
 
 
 def LoadEnvironment(MapName):
+    """
+    Load a map. If map isn't found in Bishop's library it searches for the map in your working directory.
+
+    Args:
+        MapName (str): Name of map to load
+
+    Returns:
+        Observer object
+    """
     Config = ConfigParser.ConfigParser()
     FilePath = os.path.dirname(__file__) + "/Maps/" + MapName + ".ini"
     if not os.path.isfile(FilePath):

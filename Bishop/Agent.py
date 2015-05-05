@@ -107,6 +107,19 @@ class Agent(object):
             return sample
 
     def Display(self, Full=True):
+        """
+        Print object attributes.
+
+        .. Internal function::
+
+           This function is for internal use only.
+
+        Args:
+            Full (bool): When set to False, function only prints attribute names. Otherwise, it also prints its values.
+
+        Returns:
+            standard output summary
+        """
         # Print class properties
         if Full:
             for (property, value) in vars(self).iteritems():
