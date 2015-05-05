@@ -21,7 +21,7 @@ class MDP(object):
             S (list): List of states
             A (list): List of actions
             T (matrix): Transition matrix where T[SO,A,SF] is the probability of moving from So to SF after taking action A
-            R (list): Reward function
+            R (matrix): Reward function where R[A,S] is the reward for taking action A in state S
             gamma (float): Future discount
             tau (float): Softmax parameter
 
@@ -54,7 +54,9 @@ class MDP(object):
         while True:
             V2 = self.values.copy()
             for i in range(0, len(self.S)):
-                self.values[0, i] = (self.R[i] + self.gamma * (np.mat(self.T[i, :, :])) * np.mat(V2.transpose())).max()
+                options = [(self.R[j, i] + self.gamma * (np.mat(self.T[i, :, :]))
+                            * np.mat(V2.transpose())).max() for j in range(len(self.A))]
+                self.values[0, i] = max(options)
             if (self.values - V2).max() <= epsilon:
                 break
 
@@ -73,8 +75,7 @@ class MDP(object):
         # Build a policy using the results from value iteration
         for i in range(0, len(self.S)):
             options = np.mat(
-                self.T[i, range(0, 4), :]) * np.mat(self.values.transpose()) + self.R[i]
-            options = np.concatenate([options])
+                self.T[i, :, :]) * np.mat(self.values.transpose())
             # Prevent softmax from overflowing
             options = options - abs(max(options))
             # Softmax the policy
