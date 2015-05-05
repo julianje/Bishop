@@ -50,9 +50,9 @@ class MDP(object):
         Returns:
             None
         """
-        self.vals = np.zeros(self.vals.shape)
+        self.values = np.zeros(self.values.shape)
         while True:
-            V2 = self.vals.copy()
+            V2 = self.values.copy()
             for i in range(0, len(self.S)):
                 self.values[0, i] = (self.R[i] + self.gamma * (np.mat(self.T[i, :, :])) * np.mat(V2.transpose())).max()
             if (self.values - V2).max() <= epsilon:
@@ -73,7 +73,7 @@ class MDP(object):
         # Build a policy using the results from value iteration
         for i in range(0, len(self.S)):
             options = np.mat(
-                self.T[i, range(0, 4), :]) * np.mat(self.vals.transpose()) + self.R[i]
+                self.T[i, range(0, 4), :]) * np.mat(self.values.transpose()) + self.R[i]
             options = np.concatenate([options])
             # Prevent softmax from overflowing
             options = options - abs(max(options))
