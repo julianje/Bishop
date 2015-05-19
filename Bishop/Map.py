@@ -390,7 +390,7 @@ class Map(object):
         else:
             sys.stdout.write("None\n\n")
         print "Map"
-        print "(Terrain type is coded by color. Objects are numbered, and exit state is marked with an E)"
+        print "Terrain type is color-coded. Objects are numbered. E = exit state and S = starting point"
         for i in range(len(self.StateNames)):
             sys.stdout.write(self.StateNames[i] + ": " + str(i) + "\n")
         sys.stdout.write("\n")
@@ -403,6 +403,8 @@ class Map(object):
                 character = 'X'
                 if currstate == self.ExitState:
                     character = 'E'
+                if currstate == self.StartingPoint:
+                    character == 'S'
                 if currstate in ObjectStates:
                     index = ObjectStates.index(currstate)
                     character = self.ObjectTypes[index]
