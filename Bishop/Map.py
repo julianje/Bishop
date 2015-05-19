@@ -14,10 +14,10 @@ import math
 
 class Map(object):
 
-    def __init__(self, Locations=[], ObjectTypes=[], ObjectNames=[], S=[], StateTypes=[], StateNames=[], A=[], ActionNames=[], diagonal=None, T=[], ExitState=None, StartingPoint=None):
+    def __init__(self, ObjectLocations=[], ObjectTypes=[], ObjectNames=[], S=[], StateTypes=[], StateNames=[], A=[], ActionNames=[], diagonal=None, T=[], ExitState=None, StartingPoint=None):
         """
 
-        This class stores the environments states (S) and the terrain type (StateTypes), the possible actions (A), the transition matrix (T), and reward locations (Locations).
+        This class stores the environments states (S) and the terrain type (StateTypes), the possible actions (A), the transition matrix (T), and reward locations (ObjectLocations).
         It also stores human-readable information: StateNames, ActionNames, and LocationNames.
         If no arguments are provided the structures are just initialized.
 
@@ -26,7 +26,7 @@ class Map(object):
            The constructor is designed to only initialize variables. Objects should be build through BuildGridWorld method.
 
         Args:
-            Locations (list): List of object locations.
+            ObjectLocations (list): List of object locations.
             ObjectTypes (list): List indicating the object type in each location.
             ObjectNames (list): List with object names.
             S (list): List of states.
@@ -44,7 +44,7 @@ class Map(object):
         self.A = A
         self.T = T
         self.ActionNames = ActionNames
-        self.Locations = Locations
+        self.ObjectLocations = ObjectLocations
         self.ObjectTypes = ObjectTypes
         self.ObjectNames = ObjectNames
         self.StateNames = StateNames
@@ -71,10 +71,10 @@ class Map(object):
             print "ERROR: Transition matrix does not match number of actions. MAP-003"
             return 0
         # Check that location and locationtype match
-        if len(self.Locations) == 0 or len(self.ObjectTypes) == 0:
+        if len(self.ObjectLocations) == 0 or len(self.ObjectTypes) == 0:
             print "ERROR: Missing object locations. MAP-004"
             return 0
-        if len(self.Locations) != len(self.ObjectTypes):
+        if len(self.ObjectLocations) != len(self.ObjectTypes):
             print "ERROR: List of locations and list of location types are of different length. MAP-005"
             return 0
         # Check that location types are ordered
@@ -104,7 +104,7 @@ class Map(object):
             print "ERROR: Missing exit states. MAP-010"
             return 0
         # Check that there are no object in exit state.
-        if self.ExitState in self.Locations:
+        if self.ExitState in self.ObjectLocations:
             print "ERROR: Cannot have object on exit state. MAP-022"
         # Check that transition matrix makes sense
         if sum([np.all(np.sum(self.T[:, i, :], axis=1) == 1) for i in range(len(self.A))]) != len(self.A):
@@ -317,7 +317,7 @@ class Map(object):
                 return None
         # Not useful to validate object types because user might add targets in more than one step.
         # That can be checked later through the validate() method
-        self.Locations = Locations
+        self.ObjectLocations = Locations
         self.ObjectTypes = ObjectTypes
         self.ObjectNames = ObjectNames
 
@@ -329,9 +329,9 @@ class Map(object):
             Coordinates (bool): Return raw state numbers or coordinates?
         """
         if not Coordinates:
-            return self.Locations
+            return self.ObjectLocations
         else:
-            return [self.GetCoordinates(item) for item in self.Locations]
+            return [self.GetCoordinates(item) for item in self.ObjectLocations]
 
     def AddStateNames(self, StateNames):
         """
@@ -380,7 +380,7 @@ class Map(object):
         sys.stdout.write("Possible actions: " + str(self.ActionNames) + "\n")
         sys.stdout.write("Diagonal travel: " + str(self.diagonal) + "\n")
         sys.stdout.write("Targets: ")
-        if self.Locations != []:
+        if self.ObjectLocations != []:
             sys.stdout.write(str(self.PullObjectStates(True)) + "\n")
         else:
             sys.stdout.write("None\n")
