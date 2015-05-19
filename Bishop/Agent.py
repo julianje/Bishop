@@ -26,9 +26,10 @@ class Agent(object):
             CostParams (list): List of parameters for sampling costs
             RewardParams (list): List of parameters for sampling rewards
         """
+        self.Prior = Prior
         self.CostDimensions = len(np.unique(Map.StateTypes))
         # Get dimensions over which you'll build your simplex
-        self.RewardDimensions = sum([i > 0 for i in map(len, Map.Locations)])
+        self.RewardDimensions = len(set(Map.ObjectTypes))
         if self.RewardDimensions == 0:
             print "WARNING: No rewards on map. AGENT-001"
         if isinstance(CostParams, list):

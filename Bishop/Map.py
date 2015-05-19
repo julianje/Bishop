@@ -64,7 +64,7 @@ class Map(object):
         if Tshape[0] != Tshape[2]:
             print "ERROR: Transition matrix has wrong dimensions. MAP-001"
             return 0
-        if Tshape[0] != len(self.S):
+        if Tshape[0] != len(self.S)+1:  # 1 for the dead state!
             print "ERROR: Transition matrix does not match number of states. MAP-002"
             return 0
         if Tshape[1] != len(self.A):
@@ -114,7 +114,8 @@ class Map(object):
 
     def BuildGridWorld(self, x, y, diagonal=True):
         """
-        Build a simple grid world with a noiseless transition matrix.
+        Build a simple grid world with a noiseless transition matrix and an unreachable dead.
+        Planner objects take advantage of the dead state to build MDPs that converge faster.
 
         Args:
             x (int): Map's length
@@ -133,9 +134,13 @@ class Map(object):
         else:
             self.A = range(4)
             self.ActionNames = ["L", "R", "U", "D"]
-        self.LocationNames = ["Object A", "Object B", "Agent A", "Agent B"]
-        #From, With, To
-        self.T = np.zeros((len(self.S), len(self.A), len(self.S)))
+        if self.ObjectNames == []:
+            self.ObjectNames = [
+                "Object " + str(i) for i in set(self.ObjectTypes)]
+        # From, With, To. Add one for the dead state
+        self.T = np.zeros((len(self.S) + 1, len(self.A), len(self.S) + 1))
+        # First create dead state structure. All actions leave agent in same place.
+        self.T[len(self.S), :, len(self.S)] = 1
         # Make all states of the same type
         self.StateTypes = [0] * (len(self.S))
         for i in range(len(self.S)):
@@ -404,7 +409,7 @@ class Map(object):
                 if currstate == self.ExitState:
                     character = 'E'
                 if currstate == self.StartingPoint:
-                    character == 'S'
+                    character = 'S'
                 if currstate in ObjectStates:
                     index = ObjectStates.index(currstate)
                     character = self.ObjectTypes[index]
