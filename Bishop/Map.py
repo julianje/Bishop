@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
 """
-Class to store Maps.
+Map class. Maps are a essentially an abstraction on top of MDPs that make it move intuitive to interact with the planner.
 """
 
+__author__ = "Julian Jara-Ettinger"
 __license__ = "MIT"
 
 import numpy as np
@@ -13,9 +14,8 @@ import math
 
 class Map(object):
 
-    def __init__(self, Locations=[], LocationTypes=[], ObjectNames=[], S=[], StateTypes=[], StateNames=[], A=[], ActionNames=[], diagonal=None, T=[], ExitState=None, StartingPoint=None):
+    def __init__(self, Locations=[], ObjectTypes=[], ObjectNames=[], S=[], StateTypes=[], StateNames=[], A=[], ActionNames=[], diagonal=None, T=[], ExitState=None, StartingPoint=None):
         """
-        Create New map
 
         This class stores the environments states (S) and the terrain type (StateTypes), the possible actions (A), the transition matrix (T), and reward locations (Locations).
         It also stores human-readable information: StateNames, ActionNames, and LocationNames.
@@ -27,7 +27,7 @@ class Map(object):
 
         Args:
             Locations (list): List of object locations.
-            LocationTypes (list): List indicating the object type in each location.
+            ObjectTypes (list): List indicating the object type in each location.
             ObjectNames (list): List with object names.
             S (list): List of states.
             StateTypes (list): List indicating the terrain type of each state.
@@ -45,61 +45,70 @@ class Map(object):
         self.T = T
         self.ActionNames = ActionNames
         self.Locations = Locations
-        self.LocationTypes = LocationTypes
+        self.ObjectTypes = ObjectTypes
         self.ObjectNames = ObjectNames
         self.StateNames = StateNames
         self.StateTypes = StateTypes
         self.ExitState = ExitState
         self.StartingPoint = StartingPoint
-        # Ensure rest of code breaks if BuildGridWorld wasn't called.
-        self.x = -1
-        self.y = -1
+        # Helps detect errors if other functions are called when Map isn't
+        # ready.
+        self.mapwidth = -1
+        self.mapheight = -1
 
     def Validate(self):
         """
         Check if Map object has everything it needs.
         """
-        # Test 1. Check transition matrix has correct size.
         Tshape = self.T.shape
         if Tshape[0] != Tshape[2]:
-            print "ERROR: Transition matrix has wrong dimensions"
+            print "ERROR: Transition matrix has wrong dimensions. MAP-001"
             return 0
         if Tshape[0] != len(self.S):
-            print "ERROR: Transition matrix does not match number of states"
+            print "ERROR: Transition matrix does not match number of states. MAP-002"
             return 0
         if Tshape[1] != len(self.A):
-            print "ERROR: Transition matrix does not match number of actions"
+            print "ERROR: Transition matrix does not match number of actions. MAP-003"
             return 0
         # Check that location and locationtype match
-        if len(self.Locations) == 0 or len(self.LocationTypes) == 0:
-            print "ERROR: Missing object locations"
+        if len(self.Locations) == 0 or len(self.ObjectTypes) == 0:
+            print "ERROR: Missing object locations. MAP-004"
             return 0
-        if len(self.Locations) != len(self.LocationTypes):
-            print "ERROR: List of locations and list of location types are of different length"
+        if len(self.Locations) != len(self.ObjectTypes):
+            print "ERROR: List of locations and list of location types are of different length. MAP-005"
+            return 0
+        # Check that location types are ordered
+        #  from 0 to len(self.ObjectTypes).
+        LocTypes = list(set(self.ObjectTypes))
+        if range(max(LocTypes) + 1) != LocTypes:
+            print "ERROR: Location types are not ordered correctly (They should be ordered from 0 to N, consecutively). MAP-018"
             return 0
         # Check that objectnames match number of objects
         if self.ObjectNames is not None:
-            if len(self.ObjectNames) != len(set(self.Locations)):
-                print "ERROR: Object names does not match number of objects"
+            if len(self.ObjectNames) != len(set(self.ObjectTypes)):
+                print "ERROR: Object names do not match number of objects. MAP-006"
                 return 0
         # Check that starting point and exit state are in map
         if self.StartingPoint is not None:
             if self.StartingPoint < 0 or self.StartingPoint >= len(self.S):
-                print "ERROR: Starting point is not a state number"
+                print "ERROR: Starting point is not a state number. MAP-007"
                 return 0
         else:
-            print "ERROR: Missing starting point."
+            print "ERROR: Missing starting point. MAP-008"
             return 0
         if self.ExitState is not None:
             if self.ExitState < 0 or self.ExitState >= len(self.S):
-                print "ERROR: Exit state is not a state number"
+                print "ERROR: Exit state is not a state number. MAP-009"
                 return 0
         else:
-            print "ERROR: Missing exit states."
+            print "ERROR: Missing exit states. MAP-010"
             return 0
+        # Check that there are no object in exit state.
+        if self.ExitState in self.Locations:
+            print "ERROR: Cannot have object on exit state. MAP-022"
         # Check that transition matrix makes sense
         if sum([np.all(np.sum(self.T[:, i, :], axis=1) == 1) for i in range(len(self.A))]) != len(self.A):
-            print "ERROR: Transition matrix is not well formed"
+            print "ERROR: Transition matrix is not well formed. MAP-011"
             return 0
         return 1
 
@@ -112,8 +121,8 @@ class Map(object):
             y (int): Map's height
             diagonal (bool): Can the agent travel diagonally?
         """
-        self.x = x
-        self.y = y
+        self.mapwidth = x
+        self.mapheight = y
         self.diagonal = diagonal
         WorldSize = x * y
         self.S = range(WorldSize)
@@ -172,7 +181,8 @@ class Map(object):
 
     def InsertSquare(self, topleftx, toplefty, width, height, value):
         """
-        Insert a square of some type of terrain. This function rewrites old terrains
+        Insert a square of some type of terrain. This function rewrites old terrains.
+        MAPS are numbered from left to right and from top to bottom, with the first state numbered 1 (not 0).
 
         Args:
             topleftx (int): x coordinate of top left corner of square (counting from left to right)
@@ -181,12 +191,12 @@ class Map(object):
             height (int): Square's height
         """
 
-        if ((topleftx + width - 1) > self.x) or ((toplefty + height - 1) > self.y):
-            print "ERROR: Square doesn't fit in map."
+        if ((topleftx + width - 1) > self.mapwidth) or ((toplefty + height - 1) > self.mapheight):
+            print "ERROR: Square doesn't fit in map. MAP-012"
             return None
-        TopLeftState = (toplefty - 1) * self.x + (topleftx) - 1
+        TopLeftState = (toplefty - 1) * self.mapwidth + (topleftx) - 1
         for i in range(height):
-            initial = TopLeftState + self.x * i
+            initial = TopLeftState + self.mapwidth * i
             end = TopLeftState + width + 1
             self.StateTypes[initial:end] = [value] * width
 
@@ -257,7 +267,12 @@ class Map(object):
         # Transform coordinates to raw state numbers.
         xval = Coordinates[0]
         yval = Coordinates[1]
-        return (yval - 1) * self.x + xval - 1
+        if (xval <= 0) or (xval > self.mapwidth):
+            print "ERROR: x-coordinate out of bounds (Numbering starts at 1). MAP-013"
+            return None
+        if (yval <= 0) or (yval > self.mapheight):
+            print "EROOR: y-coordinate out of bounds (Numbering starts at 1). MAP-014"
+        return (yval - 1) * self.mapwidth + xval - 1
 
     def GetCoordinates(self, State):
         """
@@ -269,17 +284,20 @@ class Map(object):
         Returns
             Coordinates (list): x and y coordinates ([x,y])
         """
-        yval = int(math.floor(State / self.x)) + 1
-        xval = State - self.x * (yval - 1) + 1
+        if (State >= len(self.S)):
+            print "ERROR: State out of bound. MAP-015"
+            return None
+        yval = int(math.floor(State * 1.0 / self.mapwidth)) + 1
+        xval = State - self.mapwidth * (yval - 1) + 1
         return [xval, yval]
 
-    def InsertTargets(self, Locations, LocationTypes, ObjectNames=None):
+    def InsertObjects(self, Locations, ObjectTypes, ObjectNames=None):
         """
         Add objects to map.
 
         Args:
             Locations (list): List of state numbers where objects should be placed
-            LocationTypes (list): List of identifiers about object id
+            ObjectTypes (list): List of identifiers about object id
             ObjectNames (list): List of names for the objects
 
         Returns:
@@ -289,31 +307,31 @@ class Map(object):
         >> InsertTargets([0,1,2,3,4],[0,0,1,1,1],["Object A","Object B"])
         """
         # Check that location and locationtype match
-        if len(Locations) != len(LocationTypes):
-            print "ERROR: List of locations and list of location types are of different length"
+        if len(Locations) != len(ObjectTypes):
+            print "ERROR: List of locations and list of location types are of different length. MAP-016"
             return None
-        # Check that objectnames match number of objects
+        # Check that object names match number of objects
         if ObjectNames is not None:
-            if len(ObjectNames) != len(set(Locations)):
-                print "ERROR: Object names does not match number of objects"
+            if len(ObjectNames) != len(set(ObjectTypes)):
+                print "ERROR: Object names do not match number of objects. MAP-017"
                 return None
+        # Not useful to validate object types because user might add targets in more than one step.
+        # That can be checked later through the validate() method
         self.Locations = Locations
-        self.LocationTypes = LocationTypes
+        self.ObjectTypes = ObjectTypes
         self.ObjectNames = ObjectNames
 
-    def PullTargetStates(self, Coordinates=True):
+    def PullObjectStates(self, Coordinates=True):
         """
-        PullTargetSTates(AddTerminalState=True)
         Returns a list of states that have an object in them.
-        When Coordinates is set to false the function returns the raw state numbers
+
+        Args:
+            Coordinates (bool): Return raw state numbers or coordinates?
         """
-        TargetStates = []
-        for i in range(len(self.Locations)):
-            discard = [TargetStates.append(j) for j in self.Locations[i]]
         if not Coordinates:
-            return TargetStates
+            return self.Locations
         else:
-            return [self.GetCoordinates(item) for item in TargetStates]
+            return [self.GetCoordinates(item) for item in self.Locations]
 
     def AddStateNames(self, StateNames):
         """
@@ -322,6 +340,9 @@ class Map(object):
         Args:
             StateNames (list): List of strings with state names
         """
+        if len(StateNames) != len(set(self.StateTypes)):
+            print "ERROR: List of state names does not match number of state types. MAP-018"
+            return None
         self.StateNames = StateNames
 
     def AddExitState(self, ExitState):
@@ -329,16 +350,16 @@ class Map(object):
         Add exit state to map
         """
         if ExitState < 0 or ExitState >= len(self.S):
-            print "ERROR: Exit state is not a state in the map."
+            print "ERROR: Exit state is not a state in the map. MAP-019"
             return None
-        self.ExistState = ExitState
+        self.ExitState = ExitState
 
     def AddStartingPoint(self, StartingPoint):
         """
         Add starting point to map
         """
         if StartingPoint < 0 or StartingPoint >= len(self.S):
-            print "ERROR: Starting point is not a state in the map."
+            print "ERROR: Starting point is not a state in the map. MAP-020"
             return None
         self.StartingPoint = StartingPoint
 
@@ -351,17 +372,43 @@ class Map(object):
 
         >> MyMap.PrintMap()
         """
+        if not self.Validate():
+            print "WARNING: Map isn't well formed. May fail to print. MAP-021"
+        colors = ['\033[94m', '\033[92m', '\033[93m',
+                  '\033[91m', '\033[1m', '\033[4m', '\033[95m']
+        endcolor = '\033[0m'
         sys.stdout.write("Possible actions: " + str(self.ActionNames) + "\n")
         sys.stdout.write("Diagonal travel: " + str(self.diagonal) + "\n")
         sys.stdout.write("Targets: ")
-        sys.stdout.write(str(self.PullTargetStates(True)) + "\n\n")
-        print "Terrain types"
+        if self.Locations != []:
+            sys.stdout.write(str(self.PullObjectStates(True)) + "\n")
+        else:
+            sys.stdout.write("None\n")
+        sys.stdout.write("Exit state: ")
+        if self.ExitState is not None:
+            sys.stdout.write(str(self.GetCoordinates(self.ExitState)) + "\n\n")
+        else:
+            sys.stdout.write("None\n\n")
+        print "Map"
+        print "(Terrain type is coded by color. Objects are numbered, and exit state is marked with an E)"
         for i in range(len(self.StateNames)):
             sys.stdout.write(self.StateNames[i] + ": " + str(i) + "\n")
         sys.stdout.write("\n")
-        for i in range(self.y):
-            for j in range(self.x):
-                sys.stdout.write(str(self.StateTypes[self.x * i + j]))
+        ObjectStates = self.PullObjectStates(False)  # Get raw object states
+        currstate = 0
+        begincolor = endcolor
+        for i in range(self.mapheight):
+            for j in range(self.mapwidth):
+                # Check if state being printed has an object
+                character = 'X'
+                if currstate == self.ExitState:
+                    character = 'E'
+                if currstate in ObjectStates:
+                    index = ObjectStates.index(currstate)
+                    character = self.ObjectTypes[index]
+                begincolor = colors[self.StateTypes[self.mapwidth * i + j]]
+                sys.stdout.write(begincolor + str(character) + endcolor)
+                currstate += 1
             sys.stdout.write("\n")
 
     def Display(self, Full=False):
