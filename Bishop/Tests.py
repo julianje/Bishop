@@ -61,3 +61,29 @@ Test.InsertObjects([S1, S2, S3], [0, 0, 1], ["A", "B"])
 Test.AddStartingPoint(10)
 Test.AddExitState(0)
 Test.Validate()  # Success!
+
+##############
+# Test Agent #
+##############
+
+MyMap = Map()
+MyMap.BuildGridWorld(1, 3, diagonal=True)
+MyMap.InsertObjects([0], [0], ["A"])
+MyMap.AddStartingPoint(1)
+MyMap.AddExitState(2)
+MyMap.PrintMap()
+MyAgent = Agent(MyMap, "ScaledUniform", 1, 30)
+
+################
+# Test Planner #
+################
+
+MyMap = Map()
+MyMap.BuildGridWorld(1, 3, diagonal=True)
+MyMap.InsertObjects([0], [0], ["A"])
+MyMap.AddStartingPoint(1)
+MyMap.AddExitState(2)
+MyAgent = Agent(MyMap, "ScaledUniform", 1, 30)
+MyPlanner = Planner.Planner()
+MyPlanner.BuildPlanner(MyMap, MyAgent)
+
