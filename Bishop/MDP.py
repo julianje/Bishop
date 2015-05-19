@@ -14,7 +14,7 @@ import random
 
 class MDP(object):
 
-    def __init__(self, S=[], A=[], T=[], R=[], gamma=0.9999, tau=0.01):
+    def __init__(self, S=[], A=[], T=[], R=[], gamma=0.95, tau=10):
         """
         Markov Decision Process (MDP) class.
 
@@ -86,7 +86,7 @@ class MDP(object):
         if (self.gamma >= 1) or (self.gamma <= 0):
             print "ERROR: Invalida value of gamma. MDP-006"
             return 0
-        if (self.tau >= 1) or (self.tau <= 0):
+        if (self.tau <= 0):
             print "ERROR: Invalida value of tau. MDP-006"
             return 0
         # Check that every vector adds up to 1
@@ -153,32 +153,41 @@ class MDP(object):
                 self.T[StateSequence[i], ActionSequence[i], :]).argmax()
         return StateSequence
 
-    def Run(self, State, Simple=False):
+    def Run(self, State, Softmax=False, Simple=False):
         """
-        Sample an action from the optimal policy given the state
+        Sample an action from the optimal policy given the state.
+        Note that if softmax is set to true then Simple is ignored (see below).
 
         Args:
             State (int): State number where agent begins.
+            Softmax (bool): Simulate with softmaxed policy?
             Simple (bool): Some states have various actions all with an equally high value.
-                           when this happens, Run will randomly select one of these actions.
-                           if Simple is set to True, it will instead select the first highest-value action.
+                           when this happens, Run() randomly selects one of these actions.
+                           if Simple is set to True, it selects the first highest-value action.
 
         Returns:
             List of state numbers
         """
-        if Simple:
-            ActSample = 0
-        else:
+        if Softmax:
+            # If softmaxing then select a random sample
             ActSample = random.uniform(0, 1)
-        ActionProbs = self.policy[:, State]
-        ActionChoice = -1
-        for j in range(len(ActionProbs)):
-            if ActSample < ActionProbs[j]:
-                ActionChoice = j
-                break
+            ActionProbs = self.policy[:, State]
+            ActionChoice = -1
+            for j in range(len(ActionProbs)):
+                if ActSample < ActionProbs[j]:
+                    ActionChoice = j
+                    break
+                else:
+                    ActSample -= ActionProbs[j]
+        else:
+            maxval = max(self.policy[:, State])
+            maxindices = [
+                i for i, j in enumerate(self.policy[:, State]) if j == maxval]
+            if Simple:
+                ActionChoice = maxindices[0]
             else:
-                ActSample -= ActionProbs[j]
-        # Get next state
+                ActionChoice = random.choice(maxindices)
+        # Now find the next state
         EndStates = self.T[State, ActionChoice, :]
         StateSample = random.uniform(0, 1)
         for j in range(len(EndStates)):
