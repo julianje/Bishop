@@ -111,7 +111,7 @@ class Agent(object):
             sample = -np.log(np.random.rand(dimensions))
             return sample / sum(sample)
         if (Kind == "ScaledUniform"):
-            return np.round(np.random.rand(dimensions)) * SamplingParam[0]
+            return np.random.rand(dimensions) * SamplingParam[0]
         if (Kind == "Gaussian"):
             return np.random.normal(SamplingParam[0], SamplingParam[1], dimensions)
         if (Kind == "Exponential"):
@@ -129,7 +129,7 @@ class Agent(object):
         """
         Print object attributes.
 
-        .. Internal function::
+        .. Warning::
 
            This function is for internal use only.
 
