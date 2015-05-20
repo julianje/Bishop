@@ -294,25 +294,69 @@ class Planner(object):
             States.extend(subS[1:])
         return [Actions, States]
 
-    def Likelihood(self, StartingPoint, ActionSequence):
+    def Likelihood(self, ActionSequence):
         """
         Calculate the likelihood of a sequence of actions
 
         Args:
-            StartingPoint (int): Starting state
             ActionSequence (list): List of observed actions
         """
+        LogLikelihood = 0
         # Part 1. Decompose action sequence into sub-goals.
+        ###################################################
+        # Get list of states
+        StateSequence = self.MDP.GetStates(
+            self.Map.StartingPoint, ActionSequence)
+        # Get the index of the critical states the agent visited.
+        Visitedindices = [
+            self.CriticalStates.index(i) if i in self.CriticalStates else -1 for i in StateSequence]
+        Visitedindices = filter(lambda a: a != -1, Visitedindices)
+        # Sanity check, first visited index should correspond to starting state
+        if self.CriticalStates[Visitedindices[0]] != self.Map.StartingPoint:
+            print "ERROR: First critical state does not match starting point. PLANNER-009"
         # Part 2. Compute likelihoods of each sub-sequence.
-
-        # This function retrieves the optimistic state sequence where no
-        # objects disappear.
-        #StateSequence = self.MDP.GetStates(StartingPoint, ActionSequence)
-        # p = 1  # probability taking the action sequence
-        # for i in range(len(ActionSequence)):
-        #    p *= (self.MDP.policy[ActionSequence[i], StateSequence[i]])
-        # return p
-        return None
+        ###################################################
+        # Now switch back to the indices you'll use to call the policies.
+        objectscollected = copy.deepcopy(Visitedindices)
+        if self.CriticalStates[Visitedindices[-1]] != self.Map.ExitState:
+            print "ERROR: Planner.Likelihood does not support incomplete paths yet. PLANNER-010"
+        for i in range(1, len(objectscollected)):
+            tempPolicy = self.Policies[objectscollected[i]]
+            beginstate = StateSequence.index(self.CriticalStates[objectscollected[i-1]])
+            endstate = StateSequence.index(self.CriticalStates[objectscollected[i]])
+            for j in range(beginstate, endstate):
+                LogLikelihood += np.log(tempPolicy[ActionSequence[j]][StateSequence[j]])
+        # Part 3. Compute likelihood of selecting that goal.
+        ####################################################
+        # Get objects the agent has collected
+        objectscollected = objectscollected[1:]  # Remove starting point
+        objectscollected.pop()  # Remove exit state
+        # objects collected right now contains the indices for the Cost Matrix.
+        # Now we want to compare them to the goal indices so we need to
+        # subtract one.
+        objectscollected = [i - 1 for i in objectscollected]
+        # Goal pursued.
+        ###################################################################
+        ## YOU CAN ONLY DO THIS IF YOU ASSUME THAT THE PATH IS COMPLETE. ##
+        ## OTHERWISE YOU NEED TO FIND ALL ENTRIES IN THE LIST WHERE THE  ##
+        ## BEGINNING MATCHES OBJECTSCOLLECTED                            ##
+        ###################################################################
+        goalindex = self.goalindices.index(objectscollected)
+        # Calculate the probability of selecting that goal
+        options = self.utility
+        options = options - abs(max(options))
+        try:
+            options = [math.exp(options[j] / self.Agent.choicesoftmax)
+                       for j in range(len(options))]
+        except OverflowError:
+            print "ERROR: Failed to softmax utility function. PLANNER-011"
+        if sum(options) == 0:
+            LogLikelihood += np.log(1.0 / len(options))
+        else:
+            softutilities = [
+                options[j] / sum(options) for j in range(len(options))]
+            LogLikelihood += np.log(softutilities[goalindex])
+        return LogLikelihood
 
     def Display(self, Full=False):
         """
