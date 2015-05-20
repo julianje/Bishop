@@ -84,6 +84,36 @@ MyMap.InsertObjects([0], [0], ["A"])
 MyMap.AddStartingPoint(1)
 MyMap.AddExitState(2)
 MyAgent = Agent(MyMap, "ScaledUniform", 1, 30)
-MyPlanner = Planner.Planner()
-MyPlanner.BuildPlanner(MyMap, MyAgent)
+MyPlanner = Planner.Planner(MyAgent, MyMap)
+MyPlanner.Simulate()
+
+#########################
+# Test more complex map #
+#########################
+
+MyMap = Map()
+MyMap.BuildGridWorld(4, 5, diagonal=True)
+MyMap.InsertObjects([3, 16], [0, 1], ["A", "B"])
+MyMap.InsertSquare(1, 1, 3, 3, 1)
+MyMap.AddStartingPoint(19)
+MyMap.AddExitState(0)
+MyAgent = Agent(MyMap, "ScaledUniform", 1, 30)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -13,7 +13,7 @@ import numpy as np
 
 class Agent(object):
 
-    def __init__(self, Map, Prior, CostParams, RewardParams):
+    def __init__(self, Map, Prior, CostParams, RewardParams, actionsoftmax=0.01, choicesoftmax=8):
         """
         Agent class.
 
@@ -23,13 +23,17 @@ class Agent(object):
         Args:
             Map (Map): A map object.
             Prior (str): String indicating prior's name. Run Agent.Priors() to see list
-            CostParams (list): List of parameters for sampling costs
-            RewardParams (list): List of parameters for sampling rewards
+            CostParams (list): List of parameters for sampling costs.
+            RewardParams (list): List of parameters for sampling rewards.
+            actionsoftmax (float): Softmax parameter for action planning.
+            choicesoftmax (float): Softmax parameter for goal selection.
         """
         self.Prior = Prior
         self.CostDimensions = len(np.unique(Map.StateTypes))
         # Get dimensions over which you'll build your simplex
         self.RewardDimensions = len(set(Map.ObjectTypes))
+        self.actionsoftmax = actionsoftmax
+        self.choicesoftmax = choicesoftmax
         if self.RewardDimensions == 0:
             print "WARNING: No rewards on map. AGENT-001"
         if isinstance(CostParams, list):

@@ -14,7 +14,7 @@ import random
 
 class MDP(object):
 
-    def __init__(self, S=[], A=[], T=[], R=[], gamma=0.95, tau=10):
+    def __init__(self, S=[], A=[], T=[], R=[], gamma=0.95, tau=0.01):
         """
         Markov Decision Process (MDP) class.
 
@@ -112,8 +112,12 @@ class MDP(object):
         for i in range(0, len(self.S)):
             options = np.mat(
                 self.T[i, :, :]) * np.mat(self.values.transpose())
+            options = options.tolist()
+            # Include cost of immediate action
+            options = [options[j][0]+self.R[:, i].tolist()[j] for j in range(len(options))]
             # Prevent softmax from overflowing
-            options = options - abs(max(options))
+            maxval = abs(max(options))
+            options = [j - maxval for j in options]
             # Softmax the policy
             if Softmax:
                 try:
