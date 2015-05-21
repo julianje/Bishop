@@ -78,7 +78,8 @@ class PosteriorContainer(object):
 
     def LongSummary(self):
         """
-        NEEDS UPDATE
+        LongSummary prints a summary of the samples, the convergence analysis,
+        and it plots the posterior distributions.
         """
         self.Summary()
         self.AnalyzeConvergence()
@@ -91,14 +92,17 @@ class PosteriorContainer(object):
         Create a matrix where (i,j) is the probability that object i has a
         higher or equal reward than object j.
         """
-        RewardComparison = np.zeros((self.RewardDimensions, self.RewardDimensions))
+        RewardComparison = np.zeros(
+            (self.RewardDimensions, self.RewardDimensions))
         for i in range(self.RewardDimensions):
             for j in range(i, self.RewardDimensions):
                 for s in range(self.Samples):
                     if (self.RewardSamples[s, i] >= self.RewardSamples[s, j]):
-                        RewardComparison[i][j] += np.exp(self.LogLikelihoods[s])
+                        RewardComparison[i][
+                            j] += np.exp(self.LogLikelihoods[s])
                     else:
-                        RewardComparison[j][i] += np.exp(self.LogLikelihoods[s])
+                        RewardComparison[j][
+                            i] += np.exp(self.LogLikelihoods[s])
         return RewardComparison
 
     def CompareCosts(self):
@@ -135,7 +139,7 @@ class PosteriorContainer(object):
                 NL = NL / sum(NL)
             a = self.CostSamples[0:(limit + 1), i]
             b = NL
-            res = sum([float(a[i])*float(b[i]) for i in range(limit + 1)])
+            res = sum([float(a[i]) * float(b[i]) for i in range(limit + 1)])
             ExpectedCosts.append(res)
         return ExpectedCosts
 
@@ -158,7 +162,7 @@ class PosteriorContainer(object):
                 NL = NL / sum(NL)
             a = self.RewardSamples[0:(limit + 1), i]
             b = NL
-            res = sum([float(a[i])*float(b[i]) for i in range(limit + 1)])
+            res = sum([float(a[i]) * float(b[i]) for i in range(limit + 1)])
             ExpectedRewards.append(res)
         return ExpectedRewards
 
@@ -214,12 +218,14 @@ class PosteriorContainer(object):
 
     def Summary(self, human=True):
         """
-        NEEDS UPDATE
+        Print summary of samples.
+
+        Args:
+            human (bool): When true function prints a human-readable format.
+                          When false it prints a compressed csv format (suitable for merging many runs)
         """
         ExpectedRewards = self.GetExpectedRewards()
-        RewardComp = self.CompareRewards()
-        ObjAPred = self.ObjectAPrediction()
-        ObjBPred = self.ObjectBPrediction()
+        RewardMatrix = self.CompareRewards()
         ExpectedCosts = self.GetExpectedCosts()
         CostMatrix = self.CompareCosts()
         # Combine all function to print summary here
@@ -227,31 +233,36 @@ class PosteriorContainer(object):
             sys.stdout.write("Map: " + str(self.MapFile) + "\n")
             sys.stdout.write(
                 "To see map details run Bishop.LoadObserver(self).\n")
-            sys.stdout.write("Targets: " + str(self.Targets) + "\n")
+            sys.stdout.write(
+                "Object locations: " + str(self.ObjectLocations) + "\n")
             sys.stdout.write(
                 "Results using " + str(self.Samples) + " samples.\n")
             sys.stdout.write("\nPATH INFORMATION\n\n")
             sys.stdout.write(
-                "Starting position: " + str(self.StartingCoordinates) + "\n")
+                "Starting position: " + str(self.StartingPoint) + "\n")
             sys.stdout.write("Actions: " +
-                             str(self.ActionNames) + " with")
-            if self.Softmax:
-                sys.stdout.write("out")
-            sys.stdout.write(" softmaxed inference.\n")
-            sys.stdout.write
-
-            sys.stdout.write("\nGOAL PREDICTIONS\n\n")
-            sys.stdout.write(
-                "Probability that agent will get target A: " + str(ObjAPred) + "\n")
-            sys.stdout.write(
-                "Probability that agent will get target B: " + str(ObjBPred) + "\n")
+                             str(self.ActionNames) + ".\n")
+            if self.SoftChoice:
+                sys.stdout.write("Softmaxed choices.\n")
+            else:
+                sys.stdout.write("Optimal choices.\n")
+            if self.SoftAction:
+                sys.stdout.write("Softmaxed actions.\n")
+            else:
+                sys.stdout.write("Optimal actions.\n")
             sys.stdout.write("\nINFERRED REWARDS\n\n")
-            sys.stdout.write("Target A: " + str(ExpectedRewards[0]) + "\n")
-            sys.stdout.write("Target B: " + str(ExpectedRewards[1]) + "\n")
+            if (self.ObjectNames is not None):
+                for i in range(self.RewardDimensions):
+                    sys.stdout.write(
+                        str(self.ObjectNames[i]) + ": " + str(ExpectedRewards[i]) + "\n")
+                sys.stdout.write(str(self.ObjectNames) + "\n")
+            else:
+                sys.stdout.write(str(ExpectedRewards) + "\n")
             sys.stdout.write(
-                "Probability that R(A)>R(B): " + str(RewardComp) + "\n")
+                "Reward comparison matrix: i, j = p( R(i)>=R(j) )\n")
+            sys.stdout.write(str(RewardMatrix) + "\n")
             sys.stdout.write("\nINFERRED COSTS\n\n")
-            if (self.CostNames != None):
+            if (self.CostNames is not None):
                 for i in range(self.CostDimensions):
                     sys.stdout.write(
                         str(self.CostNames[i]) + ": " + str(ExpectedCosts[i]) + "\n")
@@ -262,17 +273,40 @@ class PosteriorContainer(object):
                 "Cost comparison matrix: i, j = p( C(i)>=C(j) )\n")
             sys.stdout.write(str(CostMatrix) + "\n")
         else:
-            sys.stdout.write("WARNING: Printed limited version\n")
             sys.stdout.write(
-                "Samples,StartingCoordinates,Actions,ObjectA,ObjectB,AvsB,PredictionA,PredictionB\n")
-            sys.stdout.write(str(self.Samples) + "," + str(self.StartingCoordinates) +
-                             "," + str(self.Actions) + "," +
-                             str(ExpectedRewards[0]) + "," +
-                             str(ExpectedRewards[1]) + "," + str(RewardComp) + "," + str(ObjAPred) + "," + str(ObjBPred) + "\n")
+                "Samples,StartingPoint,Actions")
+            if self.ObjectNames is not None:
+                for i in range(self.RewardDimensions):
+                    sys.stdout.write("," + str(self.ObjectNames[i]))
+            else:
+                for i in range(self.RewardDimensions):
+                    sys.stdout.write(",Object" + str(i))
+            if self.CostNames is not None:
+                for i in range(self.CostDimensions):
+                    sys.stdout.write("," + str(self.CostNames[i]))
+            else:
+                for i in range(self.CostDimensions):
+                    sys.stdout.write(",Cost" + str(i))
+            sys.stdout.write("\n")
+            sys.stdout.write(
+                str(self.Samples) + "," + str(self.StartingPoint) + ",")
+            for i in range(len(self.Actions)):
+                if i < (len(self.Actions) - 1):
+                    sys.stdout.write(str(self.Actions[i]) + "-")
+                else:
+                    sys.stdout.write(str(self.Actions[i]))
+            for i in range(self.RewardDimensions):
+                sys.stdout.write(","+str(ExpectedRewards[i]))
+            for i in range(self.CostDimensions):
+                sys.stdout.write(","+str(ExpectedCosts[i]))
+            sys.stdout.write("\n")
 
     def AnalyzeConvergence(self, jump=None):
         """
-        NEEDS UPDATE
+        Plot estimates as a function of the number of samples to visually determine is samples converged.
+
+        Args:
+            jump (int): Number of skips between each sample.
         """
         # jump indicates how often to recompute the average
         if jump is None:
@@ -289,16 +323,17 @@ class PosteriorContainer(object):
         yrewardvals = np.array(yrewardvals)
         # break it into plots.
         # Costs
-        f, axarr = plt.subplots(self.CostDimensions, 2)
+        f, axarr = plt.subplots(
+            max(self.CostDimensions, self.RewardDimensions), 2)
         for i in range(self.CostDimensions):
             axarr[i, 0].plot(rangevals, ycostvals[:, i], 'b-')
             if self.CostNames is not None:
                 axarr[i, 0].set_title(self.CostNames[i])
         # Rewards
-        axarr[0, 1].plot(rangevals, yrewardvals[:, 0], 'b-')
-        axarr[0, 1].set_title("Target A")
-        axarr[1, 1].plot(rangevals, yrewardvals[:, 1], 'b-')
-        axarr[1, 1].set_title("Target B")
+        for i in range(self.RewardDimensions):
+            axarr[i, 1].plot(rangevals, yrewardvals[:, i], 'b-')
+            if self.ObjectNames is not None:
+                axarr[i, 1].set_title(self.ObjectNames[i])
         plt.show()
 
     def SaveSamples(self, Name):
