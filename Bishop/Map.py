@@ -338,9 +338,9 @@ class Map(object):
         else:
             return [self.GetCoordinates(item) for item in self.ObjectLocations]
 
-    def AddStateNames(self, StateNames):
+    def AddTerrainNames(self, StateNames):
         """
-        Add names to the states.
+        Add names to the states depending on the terrain.
 
         Args:
             StateNames (list): List of strings with state names
@@ -394,10 +394,18 @@ class Map(object):
             sys.stdout.write(str(self.GetCoordinates(self.ExitState)) + "\n\n")
         else:
             sys.stdout.write("None\n\n")
-        print "Map"
-        print "Terrain type is color-coded. Objects are numbered. E = exit state and S = starting point"
-        for i in range(len(self.StateNames)):
-            sys.stdout.write(self.StateNames[i] + ": " + str(i) + "\n")
+        # Print color keys
+        terrains = list(set(self.StateTypes))
+        if self.StateNames == []:
+            for i in range(len(terrains)):
+                sys.stdout.write(colors[i] + "Terrain " + str(i) + endcolor + "\n")
+        else:
+            for i in range(len(terrains)):
+                sys.stdout.write(colors[i] + str(self.StateNames[i]) + endcolor + "\n")
+
+        print "Objects are numbered. E = exit state and S = starting point"
+        for i in range(len(self.ObjectNames)):
+            sys.stdout.write(self.ObjectNames[i] + ": " + str(i) + "\n")
         sys.stdout.write("\n")
         ObjectStates = self.PullObjectStates(False)  # Get raw object states
         currstate = 0
