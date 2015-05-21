@@ -164,7 +164,10 @@ class PosteriorContainer(object):
 
     def PlotCostPosterior(self, bins=None):
         """
-        NEEDS UPDATE
+        Plot posterior distribution of cost samples
+
+        Args:
+            bins (int): Number of bins to use
         """
         if bins is None:
             print "Number of bins not specified. Defaulting to 10."
@@ -178,17 +181,20 @@ class PosteriorContainer(object):
             insert_indices = [int(math.floor(j / binwidth))
                               for j in self.CostSamples[:, i]]
             for j in range(self.Samples):
-                yvals[insert_indices[j]] += self.Likelihoods[j]
+                yvals[insert_indices[j]] += np.exp(self.LogLikelihoods[j])
             axarr[i].plot(xvals, yvals, 'b-')
-            if self.CostNames != None:
+            if self.CostNames is not None:
                 axarr[i].set_title(self.CostNames[i])
         plt.show()
 
     def PlotRewardPosterior(self, bins=None):
         """
-        NEEDS UPDATE
+        Plot posterior distribution of reward samples
+
+        Args:
+            bins (int): Number of bins to use
         """
-        if bins == None:
+        if bins is None:
             print "Number of bins not specified. Defaulting to 10."
             bins = 10
         maxval = np.amax(self.RewardSamples)
@@ -200,10 +206,10 @@ class PosteriorContainer(object):
             insert_indices = [int(math.floor(j / binwidth))
                               for j in self.RewardSamples[:, i]]
             for j in range(self.Samples):
-                yvals[insert_indices[j]] += self.Likelihoods[j]
+                yvals[insert_indices[j]] += np.exp(self.LogLikelihoods[j])
             axarr[i].plot(xvals, yvals, 'b-')
-        axarr[0].set_title("Target A")
-        axarr[1].set_title("Target B")
+            if self.ObjectNames is not None:
+                axarr[i].set_title(self.ObjectNames[i])
         plt.show()
 
     def Summary(self, human=True):
