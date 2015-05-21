@@ -101,8 +101,20 @@ MyAgent = Agent(MyMap, "ScaledUniform", 1, 30)
 MyPlanner = Planner.Planner(MyAgent, MyMap)
 MyPlanner.Simulate()
 
+#################
+# Test observer #
+#################
 
-
+MyMap = Map()
+MyMap.BuildGridWorld(4, 5, diagonal=True)
+MyMap.InsertObjects([3, 16], [0, 1], ["A", "B"])
+MyMap.InsertSquare(2, 1, 3, 3, 1)
+MyMap.AddStartingPoint(19)
+MyMap.AddExitState(0)
+MyAgent = Agent(MyMap, "ScaledUniform", 1, 30)
+Obs = Observer(MyAgent, MyMap)
+Obs.SimulateAgents(10)
+Obs.SimulateAgents(10,True)
 
 
 

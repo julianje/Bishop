@@ -13,7 +13,7 @@ import numpy as np
 
 class Agent(object):
 
-    def __init__(self, Map, Prior, CostParams, RewardParams, SoftmaxChoice=True, SoftmaxAction=True, choiceTau=8, actionTau=0.01):
+    def __init__(self, Map, Prior, CostParams, RewardParams, SoftmaxChoice=True, SoftmaxAction=True, choiceTau=8, actionTau=0.01, Restrict=False):
         """
         Agent class.
 
@@ -29,8 +29,11 @@ class Agent(object):
             SoftmaxAction (bool): Does the agent act upong goals optimally?
             choiceTau (float): Softmax parameter for goal selection.
             actionTau (float): Softmax parameter for action planning.
+            Restrict (bool): When set to true the cost samples make the first terrain
+                            always less costly than the rest.
         """
         self.Prior = Prior
+        self.Restrict = Restrict
         self.CostDimensions = len(np.unique(Map.StateTypes))
         # Get dimensions over which you'll build your simplex
         self.RewardDimensions = len(set(Map.ObjectTypes))
@@ -51,7 +54,7 @@ class Agent(object):
         self.ResampleCosts()  # Generate random cost of map
         self.ResampleRewards()  # Generate random rewards for objects
 
-    def ResampleAgent(self, Apathy=0, Restrict=False):
+    def ResampleAgent(self, Apathy=0):
         """
         Reset agent with random costs and rewards.
 
@@ -64,7 +67,7 @@ class Agent(object):
         """
         self.ResampleCosts(Apathy)
         self.ResampleRewards(Apathy)
-        if Restrict:
+        if self.Restrict:
             temp = self.costs[0]
             new = self.costs.argmin()
             minval = self.costs[new]
