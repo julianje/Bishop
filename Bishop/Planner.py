@@ -75,7 +75,7 @@ class Planner(object):
         [Policies, CostMatrix] = self.Plan()
         self.Policies = Policies
         self.CostMatrix = CostMatrix
-        self.utility = None
+        self.Utilities = None
         self.goalindices = None
 
     def Plan(self, Validate=True):
@@ -231,7 +231,7 @@ class Planner(object):
             rewards = sum([self.Agent.rewards[j] for j in goalindices[i]])
             # Costs are already negative here!
             utility[i] = rewards + costs
-        self.utility = utility
+        self.Utilities = utility
         self.goalindices = goalindices
 
     def Simulate(self, Simple=True):
@@ -243,14 +243,14 @@ class Planner(object):
         Args:
             Simple (bool): When more than one action is highest value, take the first one?
         """
-        if self.utility is None:
+        if self.Utilities is None:
             print "ERROR: Missing utilities. PLANNER-006"
             return None
         if self.goalindices is None:
             print "ERROR: Missing goal space. PLANNER-007"
             return None
         if self.Agent.SoftmaxChoice:
-            options = self.utility
+            options = self.Utilities
             options = options - abs(max(options))
             try:
                 options = [
@@ -276,7 +276,7 @@ class Planner(object):
                     else:
                         ChoiceSample -= softutilities[j]
         else:
-            choiceindex = self.utility.index(max(self.utility))
+            choiceindex = self.Utilities.index(max(self.Utilities))
         planindices = [0] + [j + 1 for j in self.goalindices[choiceindex]] + \
             [len(self.CriticalStates) - 1]
         # Simulate each sub-plan
@@ -340,7 +340,7 @@ class Planner(object):
         ###################################################################
         goalindex = self.goalindices.index(objectscollected)
         # Calculate the probability of selecting that goal
-        options = self.utility
+        options = self.Utilities
         options = options - abs(max(options))
         try:
             options = [math.exp(options[j] / self.Agent.choiceTau)
