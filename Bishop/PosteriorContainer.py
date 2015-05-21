@@ -1,3 +1,13 @@
+# -*- coding: utf-8 -*-
+
+"""
+PosteriorContainer wraps samples from the planner
+and comes with supporting functions to analyze
+"""
+
+__author__ = "Julian Jara-Ettinger"
+__license__ = "MIT"
+
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
@@ -12,103 +22,151 @@ class PosteriorContainer(object):
     Class to handle posterior samples.
     """
 
-    def __init__(self, C, R, L, A, B):
+    def __init__(self, C, R, L, ActionSequence, Planner=[]):
+        """
+        Create an object that stores sampling results.
+
+        Args:
+            C (list): List of cost samples
+            R (list): List of reward samples
+            L (list): List of log-likelihoods
+            ActionSequence (list): List of actions
+            Planner (Planner): (optional) Planner object
+        """
         self.CostSamples = C
         self.RewardSamples = R
-        self.Likelihoods = L
-        self.ObjectAOutcome = A
-        self.ObjectBOutcome = B
+        self.LogLikelihoods = L
         self.CostDimensions = self.CostSamples.shape[1]
         self.RewardDimensions = self.RewardSamples.shape[1]
         self.Samples = self.RewardSamples.shape[0]
-        self.CostNames = None
+        self.Actions = ActionSequence
         self.MapFile = None
-        self.StartingCoordinates = None
-        self.Actions = None
-        self.ActionNames = None
-        self.Softmax = None
-        self.TargetStates = None
-
-    def AddExtraInfo(self, StartingCoordinates, Targets, Actions, ActionNames, Softmax):
-        # Save starting coordinate, numeric action vector,
-        # action names, and softmax
-        # This function is for internal use only.
-        self.StartingCoordinates = StartingCoordinates
-        self.Targets = Targets
-        self.Actions = Actions
-        self.ActionNames = ActionNames
-        self.Softmax = Softmax
+        if Planner is not None:
+            self.CostNames = Planner.Map.StateNames
+            self.StartingPoint = Planner.Map.StartingPoint
+            self.ActionNames = Planner.Map.ActionNames
+            self.ObjectLocations = Planner.Map.ObjectLocations
+            self.ObjectTypes = Planner.Map.ObjectTypes
+            self.ObjectNames = Planner.Map.ObjectNames
+            self.SoftChoice = Planner.Agent.SoftmaxChoice
+            self.SoftAction = Planner.Agent.SoftmaxAction
+            self.actionTau = Planner.Agent.actionTau
+            self.choiceTau = Planner.Agent.choiceTau
+        else:
+            self.CostNames = None
+            self.StartingPoint = None
+            self.ActionNames = None
+            self.ObjectLocations = None
+            self.ObjectTypes = None
+            self.ObjectNames = None
+            self.SoftChoice = None
+            self.SoftAction = None
+            self.actionTau = None
+            self.choiceTau = None
 
     def AssociateMap(self, MapName):
+        """
+        Add a map name of Posterior PosteriorContainer. Function also checks if Map exists in library.
+
+        Args:
+            MapName (string): Name of map to use.
+        """
         self.MapFile = MapName
         FilePath = os.path.dirname(__file__) + "/Maps/" + MapName + ".ini"
         if not os.path.isfile(FilePath):
             print "WARNING: PosteriorContainer is linked with a map that doesn't exist in Bishop's library."
 
     def LongSummary(self):
+        """
+        NEEDS UPDATE
+        """
         self.Summary()
         self.AnalyzeConvergence()
         # 10 is the default input. Just sending it to avoid the print message
         self.PlotCostPosterior(10)
         self.PlotRewardPosterior(10)
 
-    def ObjectAPrediction(self):
-        return sum(self.ObjectAOutcome * self.Likelihoods)
-
-    def AddCostNames(self, CostNames):
-        self.CostNames = CostNames
-
-    def ObjectBPrediction(self):
-        return sum(self.ObjectBOutcome * self.Likelihoods)
-
     def CompareRewards(self):
-        probrws = 0
-        for i in range(self.Samples):
-            if (self.RewardSamples[i, 0] >= self.RewardSamples[i, 1]):
-                probrws += self.Likelihoods[i]
-        return probrws
+        """
+        Create a matrix where (i,j) is the probability that object i has a
+        higher or equal reward than object j.
+        """
+        RewardComparison = np.zeros((self.RewardDimensions, self.RewardDimensions))
+        for i in range(self.RewardDimensions):
+            for j in range(i, self.RewardDimensions):
+                for s in range(self.Samples):
+                    if (self.RewardSamples[s, i] >= self.RewardSamples[s, j]):
+                        RewardComparison[i][j] += np.exp(self.LogLikelihoods[s])
+                    else:
+                        RewardComparison[j][i] += np.exp(self.LogLikelihoods[s])
+        return RewardComparison
 
     def CompareCosts(self):
+        """
+        Create a matrix where (i,j) is the probability that terrain i has a
+        higher or equal cost than terrain j.
+        """
         CostComparison = np.zeros((self.CostDimensions, self.CostDimensions))
         for i in range(self.CostDimensions):
             for j in range(i, self.CostDimensions):
                 for s in range(self.Samples):
                     if (self.CostSamples[s, i] >= self.CostSamples[s, j]):
-                        CostComparison[i][j] += self.Likelihoods[s]
+                        CostComparison[i][j] += np.exp(self.LogLikelihoods[s])
                     else:
-                        CostComparison[j][i] += self.Likelihoods[s]
+                        CostComparison[j][i] += np.exp(self.LogLikelihoods[s])
         return CostComparison
 
     def GetExpectedCosts(self, limit=None):
+        """
+        Calculate the expected costs using the first N samples.
+
+        Args:
+            limit (int): Number of samples to use
+        """
         ExpectedCosts = []
-        if limit == None:
+        if limit is None:
             limit = self.Samples - 1
         for i in range(self.CostDimensions):
-            NL = self.Likelihoods[0:(limit + 1)]
+            NL = np.exp(self.LogLikelihoods[0:(limit + 1)])
             if sum(NL) == 0:
-                NL = [1.0 / NL.shape[0]] * NL.shape[0]
+                print "WARNING: All likelihoods are zero up to this point. POSTERIORCONTAINER-001"
+                NL = [1.0 / NL.shape[0]]
             else:
                 NL = NL / sum(NL)
-            ExpectedCosts.append(
-                np.dot(self.CostSamples[0:(limit + 1), i], NL))
+            a = self.CostSamples[0:(limit + 1), i]
+            b = NL
+            res = sum([float(a[i])*float(b[i]) for i in range(limit + 1)])
+            ExpectedCosts.append(res)
         return ExpectedCosts
 
     def GetExpectedRewards(self, limit=None):
+        """
+        Calculate the expected rewards using the first N samples.
+
+        Args:
+            limit (int): Number of samples to use
+        """
         ExpectedRewards = []
-        if limit == None:
+        if limit is None:
             limit = self.Samples - 1
         for i in range(self.RewardDimensions):
-            NL = self.Likelihoods[0:(limit + 1)]
+            NL = np.exp(self.LogLikelihoods[0:(limit + 1)])
             if sum(NL) == 0:
-                NL = [1.0 / NL.shape[0]] * NL.shape[0]
+                print "WARNING: All likelihoods are zero up to this point. POSTERIORCONTAINER-001"
+                NL = [1.0 / NL.shape[0]]
             else:
                 NL = NL / sum(NL)
-            ExpectedRewards.append(
-                np.dot(self.RewardSamples[0:(limit + 1), i], NL))
+            a = self.RewardSamples[0:(limit + 1), i]
+            b = NL
+            res = sum([float(a[i])*float(b[i]) for i in range(limit + 1)])
+            ExpectedRewards.append(res)
         return ExpectedRewards
 
     def PlotCostPosterior(self, bins=None):
-        if bins == None:
+        """
+        NEEDS UPDATE
+        """
+        if bins is None:
             print "Number of bins not specified. Defaulting to 10."
             bins = 10
         maxval = np.amax(self.CostSamples)
@@ -127,6 +185,9 @@ class PosteriorContainer(object):
         plt.show()
 
     def PlotRewardPosterior(self, bins=None):
+        """
+        NEEDS UPDATE
+        """
         if bins == None:
             print "Number of bins not specified. Defaulting to 10."
             bins = 10
@@ -146,6 +207,9 @@ class PosteriorContainer(object):
         plt.show()
 
     def Summary(self, human=True):
+        """
+        NEEDS UPDATE
+        """
         ExpectedRewards = self.GetExpectedRewards()
         RewardComp = self.CompareRewards()
         ObjAPred = self.ObjectAPrediction()
@@ -201,8 +265,11 @@ class PosteriorContainer(object):
                              str(ExpectedRewards[1]) + "," + str(RewardComp) + "," + str(ObjAPred) + "," + str(ObjBPred) + "\n")
 
     def AnalyzeConvergence(self, jump=None):
+        """
+        NEEDS UPDATE
+        """
         # jump indicates how often to recompute the average
-        if jump == None:
+        if jump is None:
             if self.Samples > 100:
                 print "Recomputing average after every 20 samples"
                 jump = int(round(self.Samples * 1.0 / 20))
@@ -219,7 +286,7 @@ class PosteriorContainer(object):
         f, axarr = plt.subplots(self.CostDimensions, 2)
         for i in range(self.CostDimensions):
             axarr[i, 0].plot(rangevals, ycostvals[:, i], 'b-')
-            if self.CostNames != None:
+            if self.CostNames is not None:
                 axarr[i, 0].set_title(self.CostNames[i])
         # Rewards
         axarr[0, 1].plot(rangevals, yrewardvals[:, 0], 'b-')
@@ -229,11 +296,30 @@ class PosteriorContainer(object):
         plt.show()
 
     def SaveSamples(self, Name):
-        FileName = Name + ".p"
-        pickle.dump(self, open(FileName, "wb"))
+        """
+        Save object as a pickle file.
+
+        Args:
+            Name (string): Filename. Function adds ".p" extension if it's not provided
+        """
+        if Name[-2:] != ".p":
+            Name = Name + ".p"
+        pickle.dump(self, open(Name, "wb"))
 
     def Display(self, Full=False):
-        # Print class properties
+        """
+        Print object attributes.
+
+        .. Warning::
+
+           This function is for internal use only.
+
+        Args:
+            Full (bool): When set to False, function only prints attribute names. Otherwise, it also prints its values.
+
+        Returns:
+            standard output summary
+        """
         if Full:
             for (property, value) in vars(self).iteritems():
                 print property, ': ', value
