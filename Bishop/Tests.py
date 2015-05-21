@@ -121,9 +121,10 @@ MyMap = Map()
 MyMap.BuildGridWorld(4, 5, diagonal=True)
 MyMap.InsertObjects([3, 16], [0, 1], ["A", "B"])
 MyMap.InsertSquare(2, 1, 3, 3, 1)
-MyMap.AddTerrainNames("Mud", "Water")
+MyMap.AddTerrainNames(["Mud", "Water"])
 MyMap.AddStartingPoint(19)
 MyMap.AddExitState(0)
+MyMap.PrintMap()
 # Softmax choices but not actions
 MyAgent = Agent(MyMap, "ScaledUniform", 1, 30, True, False)
 Obs = Observer(MyAgent, MyMap)
@@ -133,14 +134,16 @@ Obs = Observer(MyAgent, MyMap)
 Obs.SimulateAgents(100, False, False)
 
 
-
-
-
-
-
-
-
-
-
-
-
+# Test Inference
+MyMap = Map()
+MyMap.BuildGridWorld(4, 5, diagonal=True)
+MyMap.InsertObjects([3, 16], [0, 1], ["A", "B"])
+MyMap.InsertSquare(2, 1, 3, 3, 1)
+MyMap.AddTerrainNames(["Mud", "Water"])
+MyMap.AddStartingPoint(19)
+MyMap.AddExitState(0)
+# Softmax choices but not actions
+MyAgent = Agent(MyMap, "ScaledUniform", 1, 30)
+Obs = Observer(MyAgent, MyMap)
+# Use 10 samples to infer agent
+Res = Obs.InferAgent([2, 2, 2, 2, 3, 6, 6, 6, 2, 2, 2, 2], 10)

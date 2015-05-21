@@ -21,7 +21,8 @@ setup(name='Bishop',
           'math',
           'random',
           'itertools',
-          'copy'
+          'copy',
+          'scipy'
       ],
       include_package_data=True,
       zip_safe=False)
