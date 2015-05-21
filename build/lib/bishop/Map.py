@@ -1,75 +1,130 @@
-# Built for Planner class to manage.
-# Map has a simpler representation of the environment (no exit states),
-# allowing Planner to build the deep transition matrix.
+# -*- coding: utf-8 -*-
 
-# Structure is a little different. Planner handles how to build
-# the MDP.
+"""
+Map class. Maps are a essentially an abstraction on top of MDPs that make it move intuitive to interact with the planner.
+"""
+
+__author__ = "Julian Jara-Ettinger"
+__license__ = "MIT"
 
 import numpy as np
 import sys
 import math
 
+
 class Map(object):
 
-    """
-    Map class.
-
-    This class stores the environments states (S) and the terrain type (StateTypes), the possible actions (A), the transition matrix (T), and reward locations (Locations).
-    It also stores human-readable information: StateNames, ActionNames, and LocationNames.
-
-    Map comes with functions that help you build the transition matrix (BuildGridWorld).
-    The Map specification is not the map we do planning on. Planner takes the Map description and uses it to build the true MDP (where objects can be removed).
-    """
-
-    def __init__(self, Locations=[[], [], [], []], S=[], StateTypes=[], StateNames=[], A=[], diagonal=None, ActionNames=[], LocationNames=[], T=[]):
+    def __init__(self, ObjectLocations=[], ObjectTypes=[], ObjectNames=[], S=[], StateTypes=[], StateNames=[], A=[], ActionNames=[], diagonal=None, T=[], ExitState=None, StartingPoint=None):
         """
-        Create New map
 
+        This class stores the environments states (S) and the terrain type (StateTypes), the possible actions (A), the transition matrix (T), and reward locations (ObjectLocations).
+        It also stores human-readable information: StateNames, ActionNames, and LocationNames.
         If no arguments are provided the structures are just initialized.
 
-        ARGUMENTS:
-        Locations[]      An array marking the locations of the targets.
-                         There are four possible types of objects. Each entry
-                         marks the locations of object 1, object 2, agent 1, and
-                         agent 2, respectively.
-        S                Set of states in the world.
-        StateTypes[]     A set that matches in length the set of states and marks their
-                         terrain type (As a discrete number).
-        StateNames       A list containing names for each possible state type.
-        A                Set of actions the world allows for
-        diagonal         [boolean] determines if agents can travel diagonally.
-        ActionNames      Names of the actions
-        LocationNames    List containing names of the objects taht are placed on the map.
-                         LocationNames[i] contains the names of objects in Locations[i]
-        T                Transition matrix. T[so,a,sf] contains the probability of switching
-                         to state sf when taking action a in state so.
+        .. Warning::
+
+           The constructor is designed to only initialize variables. Objects should be build through BuildGridWorld method.
+
+        Args:
+            ObjectLocations (list): List of object locations.
+            ObjectTypes (list): List indicating the object type in each location.
+            ObjectNames (list): List with object names.
+            S (list): List of states.
+            StateTypes (list): List indicating the terrain type of each state.
+            StateNames (list): List of strings indicating the names of states.
+            A (list): List of actions available.
+            ActionNames (list): List of action names.
+            diagonal (boolean): Determines if agents can travel diagonally.
+            T (matrix): Transition matrix. T[SO,A,SF] contains the probability that agent will go from SO to SF after taking action A.
+            ExitState (int): Exit state
+            StartingPoint (int): Map's starting point
         """
         self.diagonal = diagonal
         self.S = S
         self.A = A
         self.T = T
         self.ActionNames = ActionNames
-        self.Locations = Locations
-        self.LocationNames = LocationNames
+        self.ObjectLocations = ObjectLocations
+        self.ObjectTypes = ObjectTypes
+        self.ObjectNames = ObjectNames
         self.StateNames = StateNames
         self.StateTypes = StateTypes
-        # Ensure rest of code breaks if BuildGridWorld wasn't called.
-        self.x = -1
-        self.y = -1
+        self.ExitState = ExitState
+        self.StartingPoint = StartingPoint
+        # Helps detect errors if other functions are called when Map isn't
+        # ready.
+        self.mapwidth = -1
+        self.mapheight = -1
+
+    def Validate(self):
+        """
+        Check if Map object has everything it needs.
+        """
+        Tshape = self.T.shape
+        if Tshape[0] != Tshape[2]:
+            print "ERROR: Transition matrix has wrong dimensions. MAP-001"
+            return 0
+        if Tshape[0] != len(self.S)+1:  # 1 for the dead state!
+            print "ERROR: Transition matrix does not match number of states. MAP-002"
+            return 0
+        if Tshape[1] != len(self.A):
+            print "ERROR: Transition matrix does not match number of actions. MAP-003"
+            return 0
+        # Check that location and locationtype match
+        if len(self.ObjectLocations) == 0 or len(self.ObjectTypes) == 0:
+            print "ERROR: Missing object locations. MAP-004"
+            return 0
+        if len(self.ObjectLocations) != len(self.ObjectTypes):
+            print "ERROR: List of locations and list of location types are of different length. MAP-005"
+            return 0
+        # Check that location types are ordered
+        #  from 0 to len(self.ObjectTypes).
+        LocTypes = list(set(self.ObjectTypes))
+        if range(max(LocTypes) + 1) != LocTypes:
+            print "ERROR: Location types are not ordered correctly (They should be ordered from 0 to N, consecutively). MAP-018"
+            return 0
+        # Check that objectnames match number of objects
+        if self.ObjectNames is not None:
+            if len(self.ObjectNames) != len(set(self.ObjectTypes)):
+                print "ERROR: Object names do not match number of objects. MAP-006"
+                return 0
+        # Check that starting point and exit state are in map
+        if self.StartingPoint is not None:
+            if self.StartingPoint < 0 or self.StartingPoint >= len(self.S):
+                print "ERROR: Starting point is not a state number. MAP-007"
+                return 0
+        else:
+            print "ERROR: Missing starting point. MAP-008"
+            return 0
+        if self.ExitState is not None:
+            if self.ExitState < 0 or self.ExitState >= len(self.S):
+                print "ERROR: Exit state is not a state number. MAP-009"
+                return 0
+        else:
+            print "ERROR: Missing exit states. MAP-010"
+            return 0
+        # Check that there are no object in exit state.
+        if self.ExitState in self.ObjectLocations:
+            print "ERROR: Cannot have object on exit state. MAP-022"
+        # Check that transition matrix makes sense
+        if sum([np.all(np.sum(self.T[:, i, :], axis=1) == 1) for i in range(len(self.A))]) != len(self.A):
+            print "ERROR: Transition matrix is not well formed. MAP-011"
+            return 0
+        return 1
 
     def BuildGridWorld(self, x, y, diagonal=True):
         """
-        Build a simple grid world with a noiseless transition matrix.
-        This gives the basic structure that can then be used to build the MDPs real transition matrix.
+        Build a simple grid world with a noiseless transition matrix and an unreachable dead.
+        Planner objects take advantage of the dead state to build MDPs that converge faster.
 
-        ARGUMENTS
-        x [integer]     Map's length
-        y [integer]     Map's height
-        diagonal [boolean] Can agent move diagonally?
+        Args:
+            x (int): Map's length
+            y (int): Map's height
+            diagonal (bool): Can the agent travel diagonally?
         """
-        self.x = x
-        self.y = y
-        self.diagonal=diagonal
+        self.mapwidth = x
+        self.mapheight = y
+        self.diagonal = diagonal
         WorldSize = x * y
         self.S = range(WorldSize)
         self.StateTypes = [0] * len(self.S)
@@ -79,9 +134,13 @@ class Map(object):
         else:
             self.A = range(4)
             self.ActionNames = ["L", "R", "U", "D"]
-        self.LocationNames = ["Object A", "Object B", "Agent A", "Agent B"]
-        #From, With, To
-        self.T = np.zeros((len(self.S), len(self.A), len(self.S)))
+        if self.ObjectNames == []:
+            self.ObjectNames = [
+                "Object " + str(i) for i in set(self.ObjectTypes)]
+        # From, With, To. Add one for the dead state
+        self.T = np.zeros((len(self.S) + 1, len(self.A), len(self.S) + 1))
+        # First create dead state structure. All actions leave agent in same place.
+        self.T[len(self.S), :, len(self.S)] = 1
         # Make all states of the same type
         self.StateTypes = [0] * (len(self.S))
         for i in range(len(self.S)):
@@ -106,48 +165,55 @@ class Map(object):
             else:
                 self.T[i, 3, i + x] = 1
             if diagonal:  # Add diagonal transitions.
-	            if ((i % x == 0) or (i < x)):  # Left and top edges
-	                self.T[i, 4, i] = 1
-	            else:
-	                self.T[i, 4, i - x - 1] = 1
-	            if ((i < x) or (i % x == x - 1)):  # Top and right edges
-	                self.T[i, 5, i] = 1
-	            else:
-	                self.T[i, 5, i - x + 1] = 1
-	            if ((i % x == 0) or (i + x >= WorldSize)):  # Bottom and left edges
-	                self.T[i, 6, i] = 1
-	            else:
-	                self.T[i, 6, i + x - 1] = 1
-	            # Bottom and right edges
-	            if ((i % x == x - 1) or (i + x >= WorldSize)):
-	                self.T[i, 7, i] = 1
-	            else:
-	                self.T[i, 7, i + x + 1] = 1
+                if ((i % x == 0) or (i < x)):  # Left and top edges
+                    self.T[i, 4, i] = 1
+                else:
+                    self.T[i, 4, i - x - 1] = 1
+                if ((i < x) or (i % x == x - 1)):  # Top and right edges
+                    self.T[i, 5, i] = 1
+                else:
+                    self.T[i, 5, i - x + 1] = 1
+                # Bottom and left edges
+                if ((i % x == 0) or (i + x >= WorldSize)):
+                    self.T[i, 6, i] = 1
+                else:
+                    self.T[i, 6, i + x - 1] = 1
+                # Bottom and right edges
+                if ((i % x == x - 1) or (i + x >= WorldSize)):
+                    self.T[i, 7, i] = 1
+                else:
+                    self.T[i, 7, i + x + 1] = 1
 
     def InsertSquare(self, topleftx, toplefty, width, height, value):
         """
-        InsertSquare(lowerleftx,lowerlefty,width,heigh,value)
-        Replace a map square with the given value
+        Insert a square of some type of terrain. This function rewrites old terrains.
+        MAPS are numbered from left to right and from top to bottom, with the first state numbered 1 (not 0).
 
-        topleftx: x-value of the top left spot of the square, from left to right.
-        toplefty: y-value of the top left spot of the square, from top to bottom.
-        width: number of squares in width
-        height: number of squares in height
+        Args:
+            topleftx (int): x coordinate of top left corner of square (counting from left to right)
+            toplefty (int): y coordinate of top left corner of square (counting from top to bottom)
+            width (int): Square's width
+            height (int): Square's height
         """
-        if ((topleftx+width-1)>self.x) or ((toplefty+height-1)>self.y):
-            print "ERROR: Square doesn't fit in map."
+
+        if ((topleftx + width - 1) > self.mapwidth) or ((toplefty + height - 1) > self.mapheight):
+            print "ERROR: Square doesn't fit in map. MAP-012"
             return None
-        TopLeftState=(toplefty-1)*self.x+(topleftx)-1
+        TopLeftState = (toplefty - 1) * self.mapwidth + (topleftx) - 1
         for i in range(height):
-            initial=TopLeftState+self.x*i
-            end=TopLeftState+width+1
+            initial = TopLeftState + self.mapwidth * i
+            end = TopLeftState + width + 1
             self.StateTypes[initial:end] = [value] * width
-        
+
     def GetActionList(self, Actions):
         """
-        GetActionList(ActionList)
-        Transform a list of action names into the corresponding action numbers in the Map.
-        This function helps make inference code human-readable
+        Transform a list of action names into a list of action indices.
+
+        Args:
+            Actions (list): List of action names
+
+        Returns
+            Actions (list): List of actions in numerical value
         """
         ActionList = [0] * len(Actions)
         for i in range(len(Actions)):
@@ -156,22 +222,37 @@ class Map(object):
 
     def GetWorldSize(self):
         """
-        GetWorldSize()
-        returns number of states.
+        Get size of world
+
+        Args:
+            None
+
+        Returns:
+            Size (int)
         """
         return len(self.S)
 
     def NumberOfActions(self):
         """
-        NumberOfActions()
-        returns number of actions.
+        Get number of actions
+
+        Args:
+            None
+
+        Returns:
+            Number of actions (int)
         """
         return len(self.A)
 
     def GetActionNames(self, Actions):
         """
-        GetActionNames(Actions)
-        Receives a list of action numbers and returns the names for the actions.
+        Get names of actions
+
+        Args:
+            Actions (list): List of actions in numerical value
+
+        Returns
+            Actions (list): List of action names
         """
         ActionNames = [0] * len(Actions)
         for i in range(len(Actions)):
@@ -179,77 +260,185 @@ class Map(object):
         return ActionNames
 
     def GetRawStateNumber(self, Coordinates):
+        """
+        Transform coordinate into raw state number
+
+        Args:
+            Coordinates (list): with the x and y coordinate.
+
+        Returns
+            State (int)
+        """
         # Transform coordinates to raw state numbers.
-        xval=Coordinates[0]
-        yval=Coordinates[1]
-        return (yval-1)*self.x+xval-1
+        xval = Coordinates[0]
+        yval = Coordinates[1]
+        if (xval <= 0) or (xval > self.mapwidth):
+            print "ERROR: x-coordinate out of bounds (Numbering starts at 1). MAP-013"
+            return None
+        if (yval <= 0) or (yval > self.mapheight):
+            print "EROOR: y-coordinate out of bounds (Numbering starts at 1). MAP-014"
+        return (yval - 1) * self.mapwidth + xval - 1
 
     def GetCoordinates(self, State):
-        yval = int(math.floor(State/self.x))+1
-        xval = State - self.x*(yval-1)+1
-        return [xval,yval]
-
-    def InsertTargets(self, Locations):
         """
-        InsertTargets(Locations)
-        Adds objects to the map. Locations must be of the form [[],[],[],[]], with a total of two states.
-        State numbers in the first list are objects of type 1. State numbers in the second list are objects of type 2.
-        State numbers in the third and fourth lists are agents.
+        Transform raw state number into coordinates
 
-        Example:
-        InsertTargets([0,1],[],[],[]) # Insert two objects of the same kind on states 0 and 1
-        InsertTargets([0],[1],[],[]) # Insert two different objects on states 0 and 1
-        InsertTargets([0],[],[1],[]) # Insert an object in state 0 and an agent who needs help in state 1
-        InsertTargets([],[],[0,1],[]) # Insert two agents of the same kind on states 0 and 1. This means the algorithm will assume the motivation to save both agents is the same.
-        InsertTargets([],[],[0],[1]) # Insert two different agents in states 0 and 1. This way, the agent might have different motivation for saving the different agents.
-        """
-        # Store the state position of the objects in the world.
-        if sum(map(len, Locations)) > 2:
-            print "Warning: More than two rewards on Map. Code will work, but this is a deviation from the experimental design."
-        self.Locations = Locations
+        Args:
+            State (int): State id
 
-    def PullTargetStates(self, Coordinates=True):
+        Returns
+            Coordinates (list): x and y coordinates ([x,y])
         """
-        PullTargetSTates(AddTerminalState=True)
+        if (State >= len(self.S)):
+            print "ERROR: State out of bound. MAP-015"
+            return None
+        yval = int(math.floor(State * 1.0 / self.mapwidth)) + 1
+        xval = State - self.mapwidth * (yval - 1) + 1
+        return [xval, yval]
+
+    def InsertObjects(self, Locations, ObjectTypes, ObjectNames=None):
+        """
+        Add objects to map.
+
+        Args:
+            Locations (list): List of state numbers where objects should be placed
+            ObjectTypes (list): List of identifiers about object id
+            ObjectNames (list): List of names for the objects
+
+        Returns:
+            None
+
+        Example: Add five objects on first five states. First two and last three objects are of the same kind, respectively.
+        >> InsertTargets([0,1,2,3,4],[0,0,1,1,1],["Object A","Object B"])
+        """
+        # Check that location and locationtype match
+        if len(Locations) != len(ObjectTypes):
+            print "ERROR: List of locations and list of location types are of different length. MAP-016"
+            return None
+        # Check that object names match number of objects
+        if ObjectNames is not None:
+            if len(ObjectNames) != len(set(ObjectTypes)):
+                print "ERROR: Object names do not match number of objects. MAP-017"
+                return None
+        # Not useful to validate object types because user might add targets in more than one step.
+        # That can be checked later through the validate() method
+        self.ObjectLocations = Locations
+        self.ObjectTypes = ObjectTypes
+        self.ObjectNames = ObjectNames
+
+    def PullObjectStates(self, Coordinates=True):
+        """
         Returns a list of states that have an object in them.
-        When Coordinates is set to false the function returns the raw state numbers
-        """
-        TargetStates = []
-        for i in range(len(self.Locations)):
-            discard = [TargetStates.append(j) for j in self.Locations[i]]
-        if not Coordinates:
-            return TargetStates
-        else:
-            return [self.GetCoordinates(item) for item in TargetStates]
 
-    def AddStateNames(self, StateNames):
+        Args:
+            Coordinates (bool): Return raw state numbers or coordinates?
         """
-        AddStateNames(StateNames) takes a list of the length of the terrain types giving them names.
+        if not Coordinates:
+            return self.ObjectLocations
+        else:
+            return [self.GetCoordinates(item) for item in self.ObjectLocations]
+
+    def AddTerrainNames(self, StateNames):
         """
+        Add names to the states depending on the terrain.
+
+        Args:
+            StateNames (list): List of strings with state names
+        """
+        if len(StateNames) != len(set(self.StateTypes)):
+            print "ERROR: List of state names does not match number of state types. MAP-018"
+            return None
         self.StateNames = StateNames
+
+    def AddExitState(self, ExitState):
+        """
+        Add exit state to map
+        """
+        if ExitState < 0 or ExitState >= len(self.S):
+            print "ERROR: Exit state is not a state in the map. MAP-019"
+            return None
+        self.ExitState = ExitState
+
+    def AddStartingPoint(self, StartingPoint):
+        """
+        Add starting point to map
+        """
+        if StartingPoint < 0 or StartingPoint >= len(self.S):
+            print "ERROR: Starting point is not a state in the map. MAP-020"
+            return None
+        self.StartingPoint = StartingPoint
 
     def PrintMap(self):
         """
-        PrintMap()
+        Print map in ascii
+
+        Args:
+            None
+
+        >> MyMap.PrintMap()
         """
-        sys.stdout.write("Possible actions: "+str(self.ActionNames)+"\n")
-        sys.stdout.write("Diagonal travel: "+str(self.diagonal)+"\n")
+        if not self.Validate():
+            print "WARNING: Map isn't well formed. May fail to print. MAP-021"
+        colors = ['\033[94m', '\033[92m', '\033[93m',
+                  '\033[91m', '\033[1m', '\033[4m', '\033[95m']
+        endcolor = '\033[0m'
+        sys.stdout.write("Possible actions: " + str(self.ActionNames) + "\n")
+        sys.stdout.write("Diagonal travel: " + str(self.diagonal) + "\n")
         sys.stdout.write("Targets: ")
-        sys.stdout.write(str(self.PullTargetStates(True))+"\n\n")
-        print "Terrain types"
-        for i in range(len(self.StateNames)):
-            sys.stdout.write(self.StateNames[i]+": "+str(i)+"\n")
+        if self.ObjectLocations != []:
+            sys.stdout.write(str(self.PullObjectStates(True)) + "\n")
+        else:
+            sys.stdout.write("None\n")
+        sys.stdout.write("Exit state: ")
+        if self.ExitState is not None:
+            sys.stdout.write(str(self.GetCoordinates(self.ExitState)) + "\n\n")
+        else:
+            sys.stdout.write("None\n\n")
+        # Print color keys
+        terrains = list(set(self.StateTypes))
+        if self.StateNames == []:
+            for i in range(len(terrains)):
+                sys.stdout.write(colors[i] + "Terrain " + str(i) + endcolor + "\n")
+        else:
+            for i in range(len(terrains)):
+                sys.stdout.write(colors[i] + str(self.StateNames[i]) + endcolor + "\n")
+
+        print "Objects are numbered. E = exit state and S = starting point"
+        for i in range(len(self.ObjectNames)):
+            sys.stdout.write(self.ObjectNames[i] + ": " + str(i) + "\n")
         sys.stdout.write("\n")
-        for i in range(self.y):
-            for j in range(self.x):
-                sys.stdout.write(str(self.StateTypes[self.x*i+j]))
+        ObjectStates = self.PullObjectStates(False)  # Get raw object states
+        currstate = 0
+        begincolor = endcolor
+        for i in range(self.mapheight):
+            for j in range(self.mapwidth):
+                # Check if state being printed has an object
+                character = 'X'
+                if currstate == self.ExitState:
+                    character = 'E'
+                if currstate == self.StartingPoint:
+                    character = 'S'
+                if currstate in ObjectStates:
+                    index = ObjectStates.index(currstate)
+                    character = self.ObjectTypes[index]
+                begincolor = colors[self.StateTypes[self.mapwidth * i + j]]
+                sys.stdout.write(begincolor + str(character) + endcolor)
+                currstate += 1
             sys.stdout.write("\n")
 
     def Display(self, Full=False):
         """
-        Print class attributes.
-        Display() prints the stored values.
-        Display(False) prints the variable names only.
+        Print object attributes.
+
+        .. Internal function::
+
+           This function is for internal use only.
+
+        Args:
+            Full (bool): When set to False, function only prints attribute names. Otherwise, it also prints its values.
+
+        Returns:
+            standard output summary
         """
         if Full:
             for (property, value) in vars(self).iteritems():

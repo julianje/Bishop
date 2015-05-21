@@ -12,7 +12,6 @@ import numpy as np
 import Planner
 import sys
 import PosteriorContainer
-import time
 import scipy.misc
 
 
@@ -30,18 +29,22 @@ class Observer(object):
         self.Plr = Planner.Planner(A, M, Validate)
         self.Validate = Validate
 
-    def InferAgent(self, ActionSequence, Samples):
+    def InferAgent(self, ActionSequence, Samples, Feedback=False):
         """
         Compute a series of samples with their likelihoods.
 
         Args:
             ActionSequence (list): Sequence of actions
             Samples (int): Number of samples to use
+            Feedback (bool): When true, function gives feedback on percentage complete.
         """
         Costs = [0] * Samples
         Rewards = [0] * Samples
         LogLikelihoods = [0] * Samples
         for i in range(Samples):
+            if Feedback:
+                sys.stdout.write("\r%"+str(round(i*100.0/Samples, 2)) + " complete")
+                sys.stdout.flush()
             # Propose a new sample
             self.Plr.Agent.ResampleAgent()
             Costs[i] = self.Plr.Agent.costs
@@ -57,6 +60,8 @@ class Observer(object):
                 return None
         # Normalize LogLikelihoods
         NormLogLikelihoods = LogLikelihoods - scipy.misc.logsumexp(LogLikelihoods)
+        if Feedback:
+            sys.stdout.write("\n")
         return PosteriorContainer.PosteriorContainer(np.matrix(Costs), np.matrix(Rewards), NormLogLikelihoods, ActionSequence, self.Plr)
 
     def SimulateAgents(self, Samples, HumanReadable=False, ResampleAgent=True, Simple=True):

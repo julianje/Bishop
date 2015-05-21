@@ -17,11 +17,6 @@ setup(name='Bishop',
       install_requires=[
           'numpy',
           'matplotlib',
-          'sys',
-          'math',
-          'random',
-          'itertools',
-          'copy',
           'scipy'
       ],
       include_package_data=True,

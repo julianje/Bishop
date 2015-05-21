@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
 """
-Markov Decision Process solver.
+Supporting functions for Bishop
 """
 
+__author__ = "Julian Jara-Ettinger"
 __license__ = "MIT"
 
 import ConfigParser
