@@ -39,8 +39,14 @@ class Agent(object):
         self.RewardDimensions = len(set(Map.ObjectTypes))
         self.SoftmaxChoice = SoftmaxChoice
         self.SoftmaxAction = SoftmaxAction
-        self.actionTau = actionTau
-        self.choiceTau = choiceTau
+        if SoftmaxAction:
+            self.actionTau = actionTau
+        else:
+            self.actionTau = None
+        if SoftmaxChoice:
+            self.choiceTau = choiceTau
+        else:
+            self.choiceTau = None
         if self.RewardDimensions == 0:
             print "WARNING: No rewards on map. AGENT-001"
         if isinstance(CostParams, list):
@@ -150,7 +156,6 @@ class Agent(object):
         Returns:
             standard output summary
         """
-        # Print class properties
         if Full:
             for (property, value) in vars(self).iteritems():
                 print property, ': ', value

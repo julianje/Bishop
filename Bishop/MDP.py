@@ -65,6 +65,7 @@ class MDP(object):
         """
         Check that MDP object is correct.
         """
+        print "Validating MDP..."
         dims = self.T.shape
         states = len(self.S)
         actions = len(self.A)
@@ -87,8 +88,9 @@ class MDP(object):
             print "ERROR: Invalida value of gamma. MDP-006"
             return 0
         if (self.tau <= 0):
-            print "ERROR: Invalida value of tau. MDP-006"
-            return 0
+            if (self.tau is not None):
+                print "ERROR: Invalida value of tau. MDP-009"
+                return 0
         # Check that every vector adds up to 1
         res = (np.ndarray.flatten(np.sum(self.T, axis=2)) == 1)
         if len(res) != sum(res):
