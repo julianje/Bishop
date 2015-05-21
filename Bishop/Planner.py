@@ -12,7 +12,6 @@ import numpy as np
 import copy
 import math
 import random
-import sys
 from itertools import product, repeat
 
 
@@ -68,7 +67,7 @@ class Planner(object):
         # This assumes that the Map object has a dead exit state.
         # Map's Validate checks this.
         self.MDP = MDP.MDP(
-            self.Map.S + [max(self.Map.S) + 1], self.Map.A, self.Map.T, self.BuildCostFunction(), self.gamma, self.Agent.actionsoftmax)
+            self.Map.S + [max(self.Map.S) + 1], self.Map.A, self.Map.T, self.BuildCostFunction(), self.gamma, self.Agent.actionTau)
         self.CriticalStates = [self.Map.StartingPoint]
         self.CriticalStates.extend(self.Map.ObjectLocations)
         self.CriticalStates.extend([self.Map.ExitState])
@@ -137,7 +136,7 @@ class Planner(object):
                 CostMatrix[TargetStateIndex][OriginalPointIndex] = TotalCost
         return [Policies, CostMatrix]
 
-    def SimulatePathUntil(self, StartingPoint, StopStates, inputMDP, Limit=300, Softmax=False, Simple=False):
+    def SimulatePathUntil(self, StartingPoint, StopStates, inputMDP, Limit=300, Simple=False):
         """
         Simulate path from StartingPoint until agent reaches a state in the StopStates list.
         Simulation ends after the agent has taken more steps than specified on Limit.
@@ -149,7 +148,6 @@ class Planner(object):
             StartingPoint (int): State where agent beings
             StopStates (int or list): State of list of states where simulationg should end
             inputMDP (MDP): MDP object to use
-            Softmax (bool): Use softmax when simulating?
             Simple (bool): When set to true the MDP selects the first highest-value action
                             (rather than sampling a random one where more than one action are equally good).
                             Note that simple parameter only makes sense when softmax is off.
@@ -162,7 +160,7 @@ class Planner(object):
         StateSequence = [StartingPoint]
         State = StartingPoint
         while State not in StopStates:
-            [State, NewAct] = inputMDP.Run(State, Softmax, Simple)
+            [State, NewAct] = inputMDP.Run(State, self.Agent.SoftmaxAction, Simple)
             Actions.append(NewAct)
             StateSequence.append(State)
             iterations += 1
@@ -236,14 +234,13 @@ class Planner(object):
         self.utility = utility
         self.goalindices = goalindices
 
-    def Simulate(self, Softmax=False, Simple=True):
+    def Simulate(self, Simple=True):
         """
         Simulate an agent until it reaches the exit state of time runs out.
         IMPORTANT: THIS FUNCTION SIMULATES THROUGH THE NAIVE UTILITY CALCULUS.
         SimulatePathUntil() USES LOCAL MDPS.
 
         Args:
-            Softmax (bool): Softmax agent?
             Simple (bool): When more than one action is highest value, take the first one?
         """
         if self.utility is None:
@@ -252,12 +249,12 @@ class Planner(object):
         if self.goalindices is None:
             print "ERROR: Missing goal space. PLANNER-007"
             return None
-        if Softmax:
+        if self.Agent.SoftmaxChoice:
             options = self.utility
             options = options - abs(max(options))
             try:
                 options = [
-                    math.exp(options[j] / self.Agent.choicesoftmax) for j in range(len(options))]
+                    math.exp(options[j] / self.Agent.choiceTau) for j in range(len(options))]
             except OverflowError:
                 print "ERROR: Failed to softmax utility function. PLANNER-008"
                 return None
@@ -346,7 +343,7 @@ class Planner(object):
         options = self.utility
         options = options - abs(max(options))
         try:
-            options = [math.exp(options[j] / self.Agent.choicesoftmax)
+            options = [math.exp(options[j] / self.Agent.choiceTau)
                        for j in range(len(options))]
         except OverflowError:
             print "ERROR: Failed to softmax utility function. PLANNER-011"
