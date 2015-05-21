@@ -13,19 +13,22 @@ import Planner
 import sys
 import PosteriorContainer
 import time
+import scipy.misc
 
 
 class Observer(object):
 
-    def __init__(self, A, M):
+    def __init__(self, A, M, Validate=False):
         """
         Build an observed object
 
         Args:
             A (Agent): Agent object
             M (Map): Map objects
+            Validate (bool): Should objects be validated?
         """
-        self.Plr = Planner.Planner(A, M)
+        self.Plr = Planner.Planner(A, M, Validate)
+        self.Validate = Validate
 
     def InferAgent(self, ActionSequence, Samples):
         """
@@ -44,11 +47,17 @@ class Observer(object):
             Costs[i] = self.Plr.Agent.costs
             Rewards[i] = self.Plr.Agent.rewards
             # Replan
-            self.Plr.BuildPlanner(False)  # use True to run validation on each object
+            self.Plr.BuildPlanner(self.Validate)
             self.Plr.ComputeUtilities()
             # Get log-likelihood
             LogLikelihoods[i] = self.Plr.Likelihood(ActionSequence)
-        return [Costs, Rewards, LogLikelihoods]
+            # If anything went wrong just stope
+            if LogLikelihoods[i] is None:
+                print "ERROR: Failed to compute likelihood. OBSERVER-001"
+                return None
+        # Normalize LogLikelihoods
+        NormLogLikelihoods = LogLikelihoods - scipy.misc.logsumexp(LogLikelihoods)
+        return PosteriorContainer.PosteriorContainer(np.matrix(Costs), np.matrix(Rewards), NormLogLikelihoods, ActionSequence, self.Plr)
 
     def SimulateAgents(self, Samples, HumanReadable=False, ResampleAgent=True, Simple=True):
         """
