@@ -12,12 +12,13 @@ import numpy as np
 import copy
 import math
 import random
+import sys
 from itertools import product, repeat
 
 
 class Planner(object):
 
-    def __init__(self, Agent, Map):
+    def __init__(self, Agent, Map, Validate=True):
         """
         Build a Planner.
 
@@ -26,6 +27,7 @@ class Planner(object):
         Args:
             Agent (Agent): Agent object
             Map (Map): Map object
+            Validate (bool): Run object validation? Helps find bugs.
         """
         self.Agent = Agent
         self.Map = Map
@@ -41,7 +43,7 @@ class Planner(object):
         # Internal reward value to plan between goals
         self.planningreward = 500
         self.gamma = 0.95  # Internal future discount to plan between goals
-        self.BuildPlanner()
+        self.BuildPlanner(Validate)
         self.ComputeUtilities()
 
     def BuildPlanner(self, Validate=True):
@@ -72,7 +74,7 @@ class Planner(object):
         self.CriticalStates.extend(self.Map.ObjectLocations)
         self.CriticalStates.extend([self.Map.ExitState])
         # build the costmatrix and store the policies
-        [Policies, CostMatrix] = self.Plan()
+        [Policies, CostMatrix] = self.Plan(Validate)
         self.Policies = Policies
         self.CostMatrix = CostMatrix
         self.Utilities = None
@@ -118,7 +120,7 @@ class Planner(object):
                 subMDP.Validate()
             # Calculate and save optimal policy
             subMDP.ValueIteration()
-            subMDP.BuildPolicy()
+            subMDP.BuildPolicy(self.Agent.SoftmaxAction)
             Policies.append(copy.deepcopy(subMDP.policy))
             # Loop over all other critical states and use them as starting
             # points
@@ -317,12 +319,18 @@ class Planner(object):
         objectscollected = copy.deepcopy(Visitedindices)
         if self.CriticalStates[Visitedindices[-1]] != self.Map.ExitState:
             print "ERROR: Planner.Likelihood does not support incomplete paths yet. PLANNER-010"
+            return None
         for i in range(1, len(objectscollected)):
             tempPolicy = self.Policies[objectscollected[i]]
             beginstate = StateSequence.index(self.CriticalStates[objectscollected[i-1]])
             endstate = StateSequence.index(self.CriticalStates[objectscollected[i]])
             for j in range(beginstate, endstate):
-                LogLikelihood += np.log(tempPolicy[ActionSequence[j]][StateSequence[j]])
+                prob = tempPolicy[ActionSequence[j]][StateSequence[j]]
+                if prob > 0:
+                    LogLikelihood += np.log(prob)
+                else:
+                    # Add the smallest possible value
+                    LogLikelihood += (-sys.maxint-1)
         # Part 3. Compute likelihood of selecting that goal.
         ####################################################
         # Get objects the agent has collected
