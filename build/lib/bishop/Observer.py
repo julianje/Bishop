@@ -70,9 +70,12 @@ class Observer(object):
                 return None
         # Normalize LogLikelihoods
         NormLogLikelihoods = LogLikelihoods - scipy.misc.logsumexp(LogLikelihoods)
+        Results = PosteriorContainer.PosteriorContainer(np.matrix(Costs), np.matrix(Rewards), NormLogLikelihoods, ActionSequence, self.Plr)
         if Feedback:
+            sys.stdout.write("\n\n")
+            Results.Summary()
             sys.stdout.write("\n")
-        return PosteriorContainer.PosteriorContainer(np.matrix(Costs), np.matrix(Rewards), NormLogLikelihoods, ActionSequence, self.Plr)
+        return Results
 
     def SimulateAgents(self, Samples, HumanReadable=False, ResampleAgent=True, Simple=True):
         """
