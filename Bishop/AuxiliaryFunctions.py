@@ -80,13 +80,14 @@ def ShowAvailableMaps():
             print file[:-4]
 
 
-def LoadEnvironment(MapName):
+def LoadEnvironment(MapName, Silent=False):
     """
     Load a map. If map isn't found in Bishop's library the
     function searches for the map in your working directory.
 
     Args:
         MapName (str): Name of map to load
+        Silent (bool): If false then function doesn't print map.
 
     Returns:
         Observer object
@@ -240,6 +241,7 @@ def LoadEnvironment(MapName):
     MyMap.StateNames = StateNames
     MyMap.AddStartingPoint(StartingPoint)
     MyMap.AddExitState(ExitState)
-    MyMap.PrintMap()
+    if not Silent:
+        MyMap.PrintMap()
     MyAgent = Agent(MyMap, Prior, CostParameters, RewardParameters, SoftmaxChoice, SoftmaxAction, choiceTau, actionTau, Restrict)
     return Observer(MyAgent, MyMap)
