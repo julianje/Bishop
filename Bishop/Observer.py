@@ -11,6 +11,7 @@ __license__ = "MIT"
 import numpy as np
 import Planner
 import sys
+import math
 import PosteriorContainer
 import scipy.misc
 
@@ -43,7 +44,16 @@ class Observer(object):
         LogLikelihoods = [0] * Samples
         for i in range(Samples):
             if Feedback:
-                sys.stdout.write("\r"+str(round(i*100.0/Samples, 2)) + "% complete")
+                begincolor = '\033[91m'
+                endcolor = '\033[0m'
+                block = u'\u2588'
+                space = " "
+                Percentage = round((i+1)*100.0/Samples, 2)
+                sys.stdout.write("\rProgress |")
+                roundper = int(math.floor(Percentage/5))
+                sys.stdout.write(begincolor + block*roundper + endcolor)
+                sys.stdout.write(space*(20-roundper))
+                sys.stdout.write("| "+str(Percentage) + "%")
                 sys.stdout.flush()
             # Propose a new sample
             self.Plr.Agent.ResampleAgent()
@@ -102,11 +112,11 @@ class Observer(object):
             Complete (bool): If true, function calls Map's print map function instead
         """
         if Complete:
-            self.M.PrintMap()
+            self.Plr.Map.PrintMap()
         else:
-            sys.stdout.write("Action names: "+str(self.M.ActionNames)+"\n")
-            sys.stdout.write("Object names: "+str(self.M.ObjectNames)+"\n")
-            sys.stdout.write("Terrain Names: "+str(self.M.StateNames)+"\n")
+            sys.stdout.write("Action names: "+str(self.Plr.Map.ActionNames)+"\n")
+            sys.stdout.write("Object names: "+str(self.Plr.Map.ObjectNames)+"\n")
+            sys.stdout.write("Terrain Names: "+str(self.Plr.Map.StateNames)+"\n")
 
     def Display(self, Full=False):
         """

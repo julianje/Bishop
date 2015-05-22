@@ -426,6 +426,7 @@ class Map(object):
                 sys.stdout.write(begincolor + str(character) + endcolor)
                 currstate += 1
             sys.stdout.write("\n")
+        sys.stdout.write("\n")
 
     def Display(self, Full=False):
         """
