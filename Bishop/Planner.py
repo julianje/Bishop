@@ -13,7 +13,7 @@ import copy
 import math
 import random
 import sys
-from itertools import product, repeat
+from itertools import product, repeat, permutations
 
 
 class Planner(object):
@@ -217,7 +217,12 @@ class Planner(object):
         # Get all possible combinations of the objects
         noneset = zip(range(len(Targets)), repeat(None))
         res = list(product(*noneset))
-        goalindices = [[x for x in list(i) if x is not None] for i in res]
+        subsets = [[x for x in list(i) if x is not None] for i in res]
+        # Now add permutations
+        goalindices = []
+        for i in range(len(subsets)):
+            for j in permutations(subsets[i]):
+                goalindices.append(list(j))
         utility = [0] * len(goalindices)
         # For each sequence of goals
         for i in range(len(goalindices)):
