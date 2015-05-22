@@ -312,9 +312,15 @@ class Planner(object):
         StateSequence = self.MDP.GetStates(
             self.Map.StartingPoint, ActionSequence)
         # Get the index of the critical states the agent visited.
-        Visitedindices = [
+        VisitedindicesFull = [
             self.CriticalStates.index(i) if i in self.CriticalStates else -1 for i in StateSequence]
-        Visitedindices = filter(lambda a: a != -1, Visitedindices)
+        VisitedindicesFull = filter(lambda a: a != -1, VisitedindicesFull)
+        # If agent crosses same spot more than once then
+        # only the first pass matters.
+        Visitedindices = []
+        for i in VisitedindicesFull:
+            if not i in Visitedindices:
+                Visitedindices.append(i)
         # Sanity check, first visited index should correspond to starting state
         if self.CriticalStates[Visitedindices[0]] != self.Map.StartingPoint:
             print "ERROR: First critical state does not match starting point. PLANNER-009"
