@@ -23,7 +23,7 @@ class Map(object):
 
         .. Warning::
 
-           The constructor is designed to only initialize variables. Objects should be build through BuildGridWorld method.
+           The constructor is designed to only initialize variables. Objects should be built through BuildGridWorld method.
 
         Args:
             ObjectLocations (list): List of object locations.
@@ -60,57 +60,58 @@ class Map(object):
         """
         Check if Map object has everything it needs.
         """
+        Success = True
         Tshape = self.T.shape
         if Tshape[0] != Tshape[2]:
             print "ERROR: Transition matrix has wrong dimensions. MAP-001"
-            return 0
+            Success = False
         if Tshape[0] != len(self.S)+1:  # 1 for the dead state!
             print "ERROR: Transition matrix does not match number of states. MAP-002"
-            return 0
+            Success = False
         if Tshape[1] != len(self.A):
             print "ERROR: Transition matrix does not match number of actions. MAP-003"
-            return 0
+            Success = False
         # Check that location and locationtype match
         if len(self.ObjectLocations) == 0 or len(self.ObjectTypes) == 0:
             print "ERROR: Missing object locations. MAP-004"
-            return 0
+            Success = False
         if len(self.ObjectLocations) != len(self.ObjectTypes):
             print "ERROR: List of locations and list of location types are of different length. MAP-005"
-            return 0
+            Success = False
         # Check that location types are ordered
         #  from 0 to len(self.ObjectTypes).
         LocTypes = list(set(self.ObjectTypes))
         if range(max(LocTypes) + 1) != LocTypes:
             print "ERROR: Location types are not ordered correctly (They should be ordered from 0 to N, consecutively). MAP-018"
-            return 0
+            Success = False
         # Check that objectnames match number of objects
         if self.ObjectNames is not None:
             if len(self.ObjectNames) != len(set(self.ObjectTypes)):
                 print "ERROR: Object names do not match number of objects. MAP-006"
-                return 0
+                Success = False
         # Check that starting point and exit state are in map
         if self.StartingPoint is not None:
             if self.StartingPoint < 0 or self.StartingPoint >= len(self.S):
                 print "ERROR: Starting point is not a state number. MAP-007"
-                return 0
+                Success = False
         else:
             print "ERROR: Missing starting point. MAP-008"
-            return 0
+            Success = False
         if self.ExitState is not None:
             if self.ExitState < 0 or self.ExitState >= len(self.S):
                 print "ERROR: Exit state is not a state number. MAP-009"
-                return 0
+                Success = False
         else:
             print "ERROR: Missing exit states. MAP-010"
-            return 0
+            Success = False
         # Check that there are no object in exit state.
         if self.ExitState in self.ObjectLocations:
             print "ERROR: Cannot have object on exit state. MAP-022"
         # Check that transition matrix makes sense
         if sum([np.all(np.sum(self.T[:, i, :], axis=1) == 1) for i in range(len(self.A))]) != len(self.A):
             print "ERROR: Transition matrix is not well formed. MAP-011"
-            return 0
-        return 1
+            Success = False
+        return Success
 
     def BuildGridWorld(self, x, y, diagonal=True):
         """

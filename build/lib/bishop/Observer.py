@@ -43,7 +43,7 @@ class Observer(object):
         LogLikelihoods = [0] * Samples
         for i in range(Samples):
             if Feedback:
-                sys.stdout.write("\r%"+str(round(i*100.0/Samples, 2)) + " complete")
+                sys.stdout.write("\r"+str(round(i*100.0/Samples, 2)) + "% complete")
                 sys.stdout.flush()
             # Propose a new sample
             self.Plr.Agent.ResampleAgent()

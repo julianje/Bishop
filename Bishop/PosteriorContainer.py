@@ -290,7 +290,7 @@ class PosteriorContainer(object):
             sys.stdout.write("\n")
             # Print results
             sys.stdout.write(
-                str(self.Samples) + "," + str(self.StartingPoint) + "," + str(self.SoftAction) + "," + str(self.actionTau) + "," + str(self.SoftChoice) + "," + str(self.choiceTau))
+                str(self.Samples) + "," + str(self.StartingPoint) + "," + str(self.SoftAction) + "," + str(self.actionTau) + "," + str(self.SoftChoice) + "," + str(self.choiceTau) + ",")
             for i in range(len(self.Actions)):
                 if i < (len(self.Actions) - 1):
                     sys.stdout.write(str(self.Actions[i]) + "-")

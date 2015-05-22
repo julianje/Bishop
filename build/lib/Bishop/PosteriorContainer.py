@@ -11,7 +11,6 @@ __license__ = "MIT"
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
-import pickle
 import os.path
 import math
 
@@ -273,8 +272,9 @@ class PosteriorContainer(object):
                 "Cost comparison matrix: i, j = p( C(i)>=C(j) )\n")
             sys.stdout.write(str(CostMatrix) + "\n")
         else:
+            # Print header
             sys.stdout.write(
-                "Samples,StartingPoint,Actions")
+                "Samples,StartingPoint,Actions,SoftmaxAction,ActionTau,SoftmaxChoice,ChoiceTau,")
             if self.ObjectNames is not None:
                 for i in range(self.RewardDimensions):
                     sys.stdout.write("," + str(self.ObjectNames[i]))
@@ -288,17 +288,18 @@ class PosteriorContainer(object):
                 for i in range(self.CostDimensions):
                     sys.stdout.write(",Cost" + str(i))
             sys.stdout.write("\n")
+            # Print results
             sys.stdout.write(
-                str(self.Samples) + "," + str(self.StartingPoint) + ",")
+                str(self.Samples) + "," + str(self.StartingPoint) + "," + str(self.SoftAction) + "," + str(self.actionTau) + "," + str(self.SoftChoice) + "," + str(self.choiceTau) + ",")
             for i in range(len(self.Actions)):
                 if i < (len(self.Actions) - 1):
                     sys.stdout.write(str(self.Actions[i]) + "-")
                 else:
                     sys.stdout.write(str(self.Actions[i]))
             for i in range(self.RewardDimensions):
-                sys.stdout.write(","+str(ExpectedRewards[i]))
+                sys.stdout.write("," + str(ExpectedRewards[i]))
             for i in range(self.CostDimensions):
-                sys.stdout.write(","+str(ExpectedCosts[i]))
+                sys.stdout.write("," + str(ExpectedCosts[i]))
             sys.stdout.write("\n")
 
     def AnalyzeConvergence(self, jump=None):
@@ -335,17 +336,6 @@ class PosteriorContainer(object):
             if self.ObjectNames is not None:
                 axarr[i, 1].set_title(self.ObjectNames[i])
         plt.show()
-
-    def SaveSamples(self, Name):
-        """
-        Save object as a pickle file.
-
-        Args:
-            Name (string): Filename. Function adds ".p" extension if it's not provided
-        """
-        if Name[-2:] != ".p":
-            Name = Name + ".p"
-        pickle.dump(self, open(Name, "wb"))
 
     def Display(self, Full=False):
         """
