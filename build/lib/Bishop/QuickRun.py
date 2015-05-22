@@ -22,3 +22,4 @@ ActionSequence = [int(s) for s in sys.argv[3:]]
 O = LoadEnvironment(sys.argv[1], True)
 Res = O.InferAgent(ActionSequence, int(sys.argv[2]))
 Res.Summary(False)
+SaveSamples(Res, str(sys.argv))

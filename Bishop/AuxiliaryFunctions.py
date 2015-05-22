@@ -16,7 +16,7 @@ from Map import *
 from Agent import *
 
 
-def SaveSamples(self, Container, Name):
+def SaveSamples(Container, Name):
     """
     Save object as a pickle file.
 
