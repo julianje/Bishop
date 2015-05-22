@@ -1,17 +1,15 @@
 # Bishop inference
-import Bishop
+
+from Bishop import *
 
 MapName = "Tatik_T1"
 
 Observer = Bishop.LoadEnvironment(MapName)
 
-ObservedPath = Observer.GetActionList(['UL','R'])
+ObservedPath = Observer.GetActionList(['UL', 'R'])
 
-Res = Observer.InferAgent(StartingCoordinates=[6,6],
-	ActionSequence=ObservedPath,
-	Samples=500,
-	Softmax=True,
-	CostRestriction=False)
+Res = Observer.InferAgent(
+    ActionSequence=ObservedPath, Samples=500, Feedback=True)
 
 # Associate a map name with the samples
 Res.AssociateMap(MapName)
@@ -24,9 +22,6 @@ Res.AnalyzeConvergence()
 # Look at cost and reward posterior plots
 Res.PlotCostPosterior()
 Res.PlotRewardPosterior()
-# Probability that agent will get Targets A and B
-Res.ObjectAPrediction()
-Res.ObjectBPrediction()
 # Probability that R(A)>R(B)
 Res.CompareRewards()
 # Get expected costs and rewards
@@ -37,11 +32,11 @@ Res.CompareCosts()
 # Do everything above at once
 Res.LongSummary()
 # Save results
-Res.SaveSamples("MyResults")
+SaveSamples(Res, "MyResults")
 
 # Load samples
-Res = Bishop.LoadSamples("MyResults.p")
-# Or just look at them
-Bishop.AnalyzeSamples("MyResults.p") # Does not return samples
+Res = LoadSamples("MyResults.p")
+# Or just look at the long summary without returning the files to the workspace
+AnalyzeSamples("MyResults.p")
 # Load the observer model associated with samples
-Observer = Bishop.LoadObserver(Res) # Only works if Results had a mapp associated
+Observer = LoadObserver(Res)  # Only works if Results had a map associated
