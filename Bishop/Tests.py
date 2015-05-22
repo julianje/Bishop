@@ -148,4 +148,4 @@ MyMap.AddExitState(0)
 MyAgent = Agent(MyMap, "ScaledUniform", 1, 30)
 Obs = Observer(MyAgent, MyMap)
 # Use 10 samples to infer agent
-Res = Obs.InferAgent([1, 1, 0, 4, 4, 0, 4, 4, 4], 5000)
+Res = Obs.InferAgent([1, 1, 0, 4, 4, 0, 4, 4, 4], 100, True)
