@@ -13,6 +13,7 @@ import copy
 import math
 import random
 import sys
+import scipy.misc
 from itertools import product, repeat, permutations
 
 
@@ -162,7 +163,8 @@ class Planner(object):
         StateSequence = [StartingPoint]
         State = StartingPoint
         while State not in StopStates:
-            [State, NewAct] = inputMDP.Run(State, self.Agent.SoftmaxAction, Simple)
+            [State, NewAct] = inputMDP.Run(
+                State, self.Agent.SoftmaxAction, Simple)
             Actions.append(NewAct)
             StateSequence.append(State)
             iterations += 1
@@ -324,41 +326,47 @@ class Planner(object):
         # Sanity check, first visited index should correspond to starting state
         if self.CriticalStates[Visitedindices[0]] != self.Map.StartingPoint:
             print "ERROR: First critical state does not match starting point. PLANNER-009"
-        # Part 2. Compute likelihoods of each sub-sequence.
-        ###################################################
+        # Part 2. Compute likelihoods of each complete sub-sequence.
+        ############################################################
         # Now switch back to the indices you'll use to call the policies.
         objectscollected = copy.deepcopy(Visitedindices)
+        Complete = True
         if self.CriticalStates[Visitedindices[-1]] != self.Map.ExitState:
-            print "ERROR: Planner.Likelihood does not support incomplete paths yet. PLANNER-010"
-            return None
+            Complete = False
         for i in range(1, len(objectscollected)):
             tempPolicy = self.Policies[objectscollected[i]]
-            beginstate = StateSequence.index(self.CriticalStates[objectscollected[i-1]])
-            endstate = StateSequence.index(self.CriticalStates[objectscollected[i]])
+            beginstate = StateSequence.index(
+                self.CriticalStates[objectscollected[i - 1]])
+            endstate = StateSequence.index(
+                self.CriticalStates[objectscollected[i]])
             for j in range(beginstate, endstate):
                 prob = tempPolicy[ActionSequence[j]][StateSequence[j]]
                 if prob > 0:
                     LogLikelihood += np.log(prob)
                 else:
                     # Add the smallest possible value
-                    LogLikelihood += (-sys.maxint-1)
+                    LogLikelihood += (-sys.maxint - 1)
         # Part 3. Compute likelihood of selecting that goal.
         ####################################################
         # Get objects the agent has collected
         objectscollected = objectscollected[1:]  # Remove starting point
-        objectscollected.pop()  # Remove exit state
+        if Complete:
+            objectscollected.pop()  # Remove exit state
         # objects collected right now contains the indices for the Cost Matrix.
         # Now we want to compare them to the goal indices so we need to
         # subtract one.
         objectscollected = [i - 1 for i in objectscollected]
-        # Goal pursued.
-        ###################################################################
-        ## YOU CAN ONLY DO THIS IF YOU ASSUME THAT THE PATH IS COMPLETE. ##
-        ## OTHERWISE YOU NEED TO FIND ALL ENTRIES IN THE LIST WHERE THE  ##
-        ## BEGINNING MATCHES OBJECTSCOLLECTED                            ##
-        ###################################################################
-        goalindex = self.goalindices.index(objectscollected)
-        # Calculate the probability of selecting that goal
+        # Find all action sequences that are consistent with the observations:
+        if Complete:
+            goalindex = [self.goalindices.index(objectscollected)]
+        else:
+            # If goal is incomplete then select all plans
+            # that are consistent with the observed actions
+            goalindex = []
+            for i in range(len(self.goalindices)):
+                if objectscollected == self.goalindices[i][:len(objectscollected)]:
+                    goalindex.append(i)
+        # Calculate the probability of selecting each goal
         options = self.Utilities
         options = options - abs(max(options))
         try:
@@ -367,11 +375,46 @@ class Planner(object):
         except OverflowError:
             print "ERROR: Failed to softmax utility function. PLANNER-011"
         if sum(options) == 0:
-            LogLikelihood += np.log(1.0 / len(options))
+            softutilities = [1.0 / len(options)] * len(options)
         else:
             softutilities = [
                 options[j] / sum(options) for j in range(len(options))]
-            LogLikelihood += np.log(softutilities[goalindex])
+        if Complete:
+            # If the path was complete then you can
+            # just add the likelihood of the goal and you're done
+            LogLikelihood += np.log(softutilities[goalindex[0]])
+            return LogLikelihood
+        # All code below will only be executed if the path was incomplete
+        #################################################################
+        # First compute the log-likelihood of each term separately: P(A|Gi)*p(Gi|C,R)
+        LogLikelihoodTerms = [LogLikelihood] * len(goalindex)  # Take the probability you already computed.
+        # Now add the utility of the goal to each term
+        for i in range(len(goalindex)):
+            LogLikelihoodTerms[i] += np.log(softutilities[goalindex[i]])
+        # Get the starting point when target-uncertainty begins
+        NewStartingPoint = self.CriticalStates[Visitedindices[-1]]
+        # Get the new states
+        NewStates = StateSequence[Visitedindices[-1]:]
+        # Get the actions the agent took after uncertainty begins
+        NewActions = ActionSequence[StateSequence.index(NewStartingPoint):]
+        # Check
+        if (len(NewStates)) != (len(NewActions)+1):
+            print "ERROR: New states does not align with new actions."
+            return None
+        # For each goal compute the probability of the actions past the last critical state
+        for i in range(len(goalindex)):
+            Missinggoals = self.goalindices[i][len(objectscollected):]
+            if Missinggoals == []:
+                nextgoal = len(self.CriticalStates)-1
+            else:
+                # Add 1 because StartingPoints is in CriticalStates, so goal indices are shifted by 1.
+                nextgoal = Missinggoals[0]+1
+            tempPolicy = self.Policies[nextgoal]
+            # Get actions that haven't been accounted for yet
+            # Use tempPolicy
+            for j in range(len(NewActions)):
+                LogLikelihoodTerms[i] += tempPolicy[NewActions[j]][NewStates[j]]
+        LogLikelihood = scipy.misc.logsumexp(LogLikelihoodTerms)
         return LogLikelihood
 
     def Display(self, Full=False):
