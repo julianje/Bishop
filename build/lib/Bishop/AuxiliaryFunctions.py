@@ -153,6 +153,8 @@ def LoadEnvironment(MapName, Silent=False):
     else:
         print "ERROR: Missing cost parameters for prior sampling in AgentParameters block."
         return None
+    if Config.has_option("AgentParameters", "Apathy"):
+        Apathy = Config.getfloat("AgentParameters", "Apathy")
     # Map parameter section
     #######################
     if not Config.has_section("MapParameters"):
@@ -243,5 +245,5 @@ def LoadEnvironment(MapName, Silent=False):
     MyMap.AddExitState(ExitState)
     if not Silent:
         MyMap.PrintMap()
-    MyAgent = Agent(MyMap, Prior, CostParameters, RewardParameters, SoftmaxChoice, SoftmaxAction, choiceTau, actionTau, Restrict)
+    MyAgent = Agent(MyMap, Prior, CostParameters, RewardParameters, SoftmaxChoice, SoftmaxAction, choiceTau, actionTau, Apathy, Restrict)
     return Observer(MyAgent, MyMap)

@@ -13,7 +13,7 @@ import numpy as np
 
 class Agent(object):
 
-    def __init__(self, Map, Prior, CostParams, RewardParams, SoftmaxChoice=True, SoftmaxAction=True, choiceTau=8, actionTau=0.01, Restrict=False):
+    def __init__(self, Map, Prior, CostParams, RewardParams, SoftmaxChoice=True, SoftmaxAction=True, choiceTau=1, actionTau=0.01, Apathy=0, Restrict=False):
         """
         Agent class.
 
@@ -29,6 +29,7 @@ class Agent(object):
             SoftmaxAction (bool): Does the agent act upong goals optimally?
             choiceTau (float): Softmax parameter for goal selection.
             actionTau (float): Softmax parameter for action planning.
+            Apathy (float): Probability that a cost or a reward has 0 value.
             Restrict (bool): When set to true the cost samples make the first terrain
                             always less costly than the rest.
         """
@@ -57,22 +58,22 @@ class Agent(object):
             self.RewardParams = RewardParams
         else:
             self.RewardParams = [RewardParams]
+        self.Apathy = Apathy
         self.ResampleCosts()  # Generate random cost of map
         self.ResampleRewards()  # Generate random rewards for objects
 
-    def ResampleAgent(self, Apathy=0):
+    def ResampleAgent(self):
         """
         Reset agent with random costs and rewards.
 
         Args:
-            Apathy (float): Probability that agent doesn't like objects.
             Restrict (bool): If true, first terrain is always the least costly
 
         Returns:
             None
         """
-        self.ResampleCosts(Apathy)
-        self.ResampleRewards(Apathy)
+        self.ResampleCosts()
+        self.ResampleRewards()
         if self.Restrict:
             temp = self.costs[0]
             new = self.costs.argmin()
@@ -80,27 +81,19 @@ class Agent(object):
             self.costs[new] = temp
             self.costs[0] = minval
 
-    def ResampleCosts(self, Apathy=0):
+    def ResampleCosts(self):
         """
         Reset agent's costs.
-
-        Args:
-            Apathy (float): Probability that agent doesn't like objects.
-
-        Returns:
-            None
         """
         # Resample the agent's competence
         self.costs = self.Sample(
             self.CostDimensions, self.CostParams, Kind=self.Prior)
-        self.costs = [0 if random.random() < Apathy else i for i in self.costs]
+        self.costs = [
+            0 if random.random() <= self.Apathy else i for i in self.costs]
 
-    def ResampleRewards(self, Apathy=0):
+    def ResampleRewards(self):
         """
         Reset agent's rewards.
-
-        Args:
-            Apathy (float): Probability that agent doesn't like objects.
 
         Returns:
             None
@@ -109,7 +102,7 @@ class Agent(object):
         self.rewards = self.Sample(
             self.RewardDimensions, self.RewardParams, Kind=self.Prior)
         self.rewards = [
-            0 if random.random() < Apathy else i for i in self.rewards]
+            0 if random.random() <= self.Apathy else i for i in self.rewards]
 
     def Sample(self, dimensions, SamplingParam, Kind):
         """
