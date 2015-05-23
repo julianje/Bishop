@@ -274,7 +274,7 @@ class PosteriorContainer(object):
         else:
             # Print header
             sys.stdout.write(
-                "Samples,StartingPoint,Actions,SoftmaxAction,ActionTau,SoftmaxChoice,ChoiceTau,")
+                "Samples,StartingPoint,SoftmaxAction,ActionTau,SoftmaxChoice,ChoiceTau,Actions")
             if self.ObjectNames is not None:
                 for i in range(self.RewardDimensions):
                     sys.stdout.write("," + str(self.ObjectNames[i]))
