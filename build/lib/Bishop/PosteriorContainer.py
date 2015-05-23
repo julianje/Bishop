@@ -235,6 +235,8 @@ class PosteriorContainer(object):
             sys.stdout.write(
                 "Object locations: " + str(self.ObjectLocations) + "\n")
             sys.stdout.write(
+                "Object types: " + str(self.ObjectTypes) + "\n")
+            sys.stdout.write(
                 "Results using " + str(self.Samples) + " samples.\n")
             sys.stdout.write("\nPATH INFORMATION\n\n")
             sys.stdout.write(
@@ -274,7 +276,7 @@ class PosteriorContainer(object):
         else:
             # Print header
             sys.stdout.write(
-                "Samples,StartingPoint,SoftmaxAction,ActionTau,SoftmaxChoice,ChoiceTau,Actions")
+                "Samples,StartingPoint,ObjectLocations,ObjectTypes,SoftmaxAction,ActionTau,SoftmaxChoice,ChoiceTau,Actions")
             if self.ObjectNames is not None:
                 for i in range(self.RewardDimensions):
                     sys.stdout.write("," + str(self.ObjectNames[i]))
@@ -290,7 +292,20 @@ class PosteriorContainer(object):
             sys.stdout.write("\n")
             # Print results
             sys.stdout.write(
-                str(self.Samples) + "," + str(self.StartingPoint) + "," + str(self.SoftAction) + "," + str(self.actionTau) + "," + str(self.SoftChoice) + "," + str(self.choiceTau) + ",")
+                str(self.Samples) + "," + str(self.StartingPoint) + ",")
+            for i in range(len(self.ObjectLocations)):
+                if i < (len(self.ObjectLocations) - 1):
+                    sys.stdout.write(str(self.ObjectLocations[i]) + "-")
+                else:
+                    sys.stdout.write(str(self.ObjectLocations[i]))
+            sys.stdout.write(",")
+            for i in range(len(self.ObjectTypes)):
+                if i < (len(self.ObjectTypes) - 1):
+                    sys.stdout.write(str(self.ObjectTypes[i]) + "-")
+                else:
+                    sys.stdout.write(str(self.ObjectTypes[i]))
+            sys.stdout.write("," + str(self.SoftAction) + "," + str(
+                self.actionTau) + "," + str(self.SoftChoice) + "," + str(self.choiceTau) + ",")
             for i in range(len(self.Actions)):
                 if i < (len(self.Actions) - 1):
                     sys.stdout.write(str(self.Actions[i]) + "-")
