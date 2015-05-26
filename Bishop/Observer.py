@@ -14,6 +14,7 @@ import sys
 import math
 import PosteriorContainer
 import scipy.misc
+from scipy.stats.stats import pearsonr
 
 
 class Observer(object):
@@ -30,6 +31,58 @@ class Observer(object):
         self.Plr = Planner.Planner(A, M, Validate)
         self.Validate = Validate
 
+    def TestModel(self, Simulations, Samples, Verbose=True):
+        """
+        Simulate N agents, infer their parameters, and then correlate the inferred values with the true values.
+
+        Simulations (int): Number of agents to Simulate
+        Samples (int): Number of samples to use in each simulation
+        Verbose (bool): Print progress bar?
+        """
+        if Verbose:
+            sys.stdout.write("Simulating agents...\n")
+            sys.stdout.flush()
+        Agents = self.SimulateAgents(Simulations, False, True, False, True)
+        if Verbose:
+            sys.stdout.write("\n\nRunning inference...\n")
+            sys.stdout.flush()
+        InferredCosts = [0] * Simulations
+        InferredRewards = [0] * Simulations
+        for i in range(Simulations):
+            if Verbose:
+                begincolor = '\033[91m'
+                endcolor = '\033[0m'
+                block = u'\u2588'
+                space = " "
+                Percentage = round(i * 100.0 / Simulations, 2)
+                sys.stdout.write("\rInferring agent " + str(i+1) + " |")
+                roundper = int(math.floor(Percentage / 5))
+                sys.stdout.write(begincolor + block * roundper + endcolor)
+                sys.stdout.write(space * (20 - roundper))
+                sys.stdout.write("| " + str(Percentage) + "%")
+                sys.stdout.flush()
+            Results = self.InferAgent(Agents[2][i], Samples)
+            InferredCosts[i] = Results.GetExpectedCosts()
+            InferredRewards[i] = Results.GetExpectedRewards()
+        if Verbose:
+            # Print complete progress bar
+            sys.stdout.write("\rInferring agent " + str(Simulations) + " |")
+            sys.stdout.write(begincolor + block * 10 + endcolor)
+            sys.stdout.write("| 100.0%")
+            sys.stdout.flush()
+        sys.stdout.write("\n")
+        # Calculate correlations
+        TrueCosts = [item for sublist in Agents[0] for item in sublist]
+        TrueRewards = [item for sublist in Agents[1] for item in sublist]
+        InferenceCosts = [
+            item for sublist in InferredCosts for item in sublist]
+        InferenceRewards = [
+            item for sublist in InferredRewards for item in sublist]
+        sys.stdout.write(
+            "Costs correlation: " + str(pearsonr(TrueCosts, InferenceCosts)[0]) + "\n")
+        sys.stdout.write(
+            "Rewards correlation: " + str(pearsonr(TrueRewards, InferenceRewards)[0]) + "\n")
+
     def InferAgent(self, ActionSequence, Samples, Feedback=False):
         """
         Compute a series of samples with their likelihoods.
@@ -42,18 +95,20 @@ class Observer(object):
         Costs = [0] * Samples
         Rewards = [0] * Samples
         LogLikelihoods = [0] * Samples
+        if Feedback:
+            sys.stdout.write("\n")
         for i in range(Samples):
             if Feedback:
                 begincolor = '\033[91m'
                 endcolor = '\033[0m'
                 block = u'\u2588'
                 space = " "
-                Percentage = round((i+1)*100.0/Samples, 2)
+                Percentage = round(i * 100.0 / Samples, 2)
                 sys.stdout.write("\rProgress |")
-                roundper = int(math.floor(Percentage/5))
-                sys.stdout.write(begincolor + block*roundper + endcolor)
-                sys.stdout.write(space*(20-roundper))
-                sys.stdout.write("| "+str(Percentage) + "%")
+                roundper = int(math.floor(Percentage / 5))
+                sys.stdout.write(begincolor + block * roundper + endcolor)
+                sys.stdout.write(space * (20 - roundper))
+                sys.stdout.write("| " + str(Percentage) + "%")
                 sys.stdout.flush()
             # Propose a new sample
             self.Plr.Agent.ResampleAgent()
@@ -68,16 +123,25 @@ class Observer(object):
             if LogLikelihoods[i] is None:
                 print "ERROR: Failed to compute likelihood. OBSERVER-001"
                 return None
+        # Finish printing progress bar
+        if Feedback:
+            # Print complete progress bar
+            sys.stdout.write("\rProgress " + str(Samples) + " |")
+            sys.stdout.write(begincolor + block * 10 + endcolor)
+            sys.stdout.write("| 100.0%")
+            sys.stdout.flush()
         # Normalize LogLikelihoods
-        NormLogLikelihoods = LogLikelihoods - scipy.misc.logsumexp(LogLikelihoods)
-        Results = PosteriorContainer.PosteriorContainer(np.matrix(Costs), np.matrix(Rewards), NormLogLikelihoods, ActionSequence, self.Plr)
+        NormLogLikelihoods = LogLikelihoods - \
+            scipy.misc.logsumexp(LogLikelihoods)
+        Results = PosteriorContainer.PosteriorContainer(np.matrix(Costs), np.matrix(
+            Rewards), NormLogLikelihoods, ActionSequence, self.Plr)
         if Feedback:
             sys.stdout.write("\n\n")
             Results.Summary()
             sys.stdout.write("\n")
         return Results
 
-    def SimulateAgents(self, Samples, HumanReadable=False, ResampleAgent=True, Simple=True):
+    def SimulateAgents(self, Samples, HumanReadable=False, ResampleAgent=True, Simple=True, Verbose=True):
         """
         Simulate agents navigating through the map.
 
@@ -89,23 +153,52 @@ class Observer(object):
             Simple (bool): When the agent finds more than one equally-valuable action is takes one at random.
                             If simple is set to true it instead chooses the first action in the set.
                             This avoid generating a lot of equivalent paths that look superficially different.
+
+        Returns:
+            [Costs, Rewards, Actions, States]: Each item is a list of lists where Item[i] contains the results from the i-th simulation
         """
-        sys.stdout.write("Costs,Rewards,Actions,States\n")
+        Costs = [0] * Samples
+        Rewards = [0] * Samples
+        Actions = [0] * Samples
+        States = [0] * Samples
         for i in range(Samples):
+            if Verbose:
+                begincolor = '\033[91m'
+                endcolor = '\033[0m'
+                block = u'\u2588'
+                space = " "
+                Percentage = round(i * 100.0 / Samples, 2)
+                sys.stdout.write("\rProgress |")
+                roundper = int(math.floor(Percentage / 5))
+                sys.stdout.write(begincolor + block * roundper + endcolor)
+                sys.stdout.write(space * (20 - roundper))
+                sys.stdout.write("| " + str(Percentage) + "%")
+                sys.stdout.flush()
             # Reset agent
             if ResampleAgent:
                 self.Plr.Agent.ResampleAgent()
             # Replan
-            self.Plr.BuildPlanner(False)  # use True to run validation on each object
+            self.Plr.BuildPlanner(self.Validate)
             self.Plr.ComputeUtilities()
             # Simulate
             [A, S] = self.Plr.Simulate(Simple)
-            sys.stdout.write(str(self.Plr.Agent.costs)+","+str(self.Plr.Agent.rewards)+",")
+            # Store results
+            Costs[i] = self.Plr.Agent.costs
+            Rewards[i] = self.Plr.Agent.rewards
             if HumanReadable:
-                sys.stdout.write(str(self.Plr.Map.GetActionNames(A))+",")
+                Actions[i] = self.Plr.Map.GetActionNames(A)
             else:
-                sys.stdout.write(str(A)+",")
-            sys.stdout.write(str(S)+"\n")
+                Actions[i] = A
+            States[i] = S
+        # Finish printing progress bar
+        if Verbose:
+            # Print complete progress bar
+            sys.stdout.write("\rProgress |")
+            sys.stdout.write(begincolor + block * 10 + endcolor)
+            sys.stdout.write("| 100.0%")
+            sys.stdout.write("\n")
+            sys.stdout.flush()
+        return [Costs, Rewards, Actions, States]
 
     def GetSemantics(self, Complete=False):
         """
@@ -117,9 +210,12 @@ class Observer(object):
         if Complete:
             self.Plr.Map.PrintMap()
         else:
-            sys.stdout.write("Action names: "+str(self.Plr.Map.ActionNames)+"\n")
-            sys.stdout.write("Object names: "+str(self.Plr.Map.ObjectNames)+"\n")
-            sys.stdout.write("Terrain Names: "+str(self.Plr.Map.StateNames)+"\n")
+            sys.stdout.write(
+                "Action names: " + str(self.Plr.Map.ActionNames) + "\n")
+            sys.stdout.write(
+                "Object names: " + str(self.Plr.Map.ObjectNames) + "\n")
+            sys.stdout.write(
+                "Terrain Names: " + str(self.Plr.Map.StateNames) + "\n")
 
     def Display(self, Full=False):
         """
