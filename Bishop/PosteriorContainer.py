@@ -324,13 +324,13 @@ class PosteriorContainer(object):
         Args:
             jump (int): Number of skips between each sample.
         """
-        # jump indicates how often to recompute the average
+        # jump indicates how often to recompute the expected value
         if jump is None:
             if self.Samples > 100:
-                print "Recomputing average after every 20 samples"
+                print "Recomputing expected value after every 20 samples"
                 jump = int(round(self.Samples * 1.0 / 20))
             else:
-                print "Recomputing average after every sample"
+                print "Recomputing expected value after every sample"
                 jump = 1
         rangevals = range(0, self.Samples, jump)
         ycostvals = [self.GetExpectedCosts(i) for i in rangevals]
