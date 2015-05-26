@@ -180,9 +180,6 @@ class Observer(object):
                 sys.stdout.write(space * (20 - roundper))
                 sys.stdout.write("| " + str(Percentage) + "%")
                 sys.stdout.flush()
-            # Reset agent
-            if ResampleAgent:
-                self.Plr.Agent.ResampleAgent()
             # Replan
             self.Plr.BuildPlanner(self.Validate)
             self.Plr.ComputeUtilities()
@@ -196,6 +193,9 @@ class Observer(object):
             else:
                 Actions[i] = A
             States[i] = S
+            # Reset agent
+            if ResampleAgent:
+                self.Plr.Agent.ResampleAgent()
         # Finish printing progress bar
         if Verbose:
             # Print complete progress bar
