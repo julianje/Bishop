@@ -55,7 +55,7 @@ class Observer(object):
                 block = u'\u2588'
                 space = " "
                 Percentage = round(i * 100.0 / Simulations, 2)
-                sys.stdout.write("\rInferring agent " + str(i+1) + " |")
+                sys.stdout.write("\rInferring agent " + str(i + 1) + " |")
                 roundper = int(math.floor(Percentage / 5))
                 sys.stdout.write(begincolor + block * roundper + endcolor)
                 sys.stdout.write(space * (20 - roundper))
@@ -92,6 +92,12 @@ class Observer(object):
             Samples (int): Number of samples to use
             Feedback (bool): When true, function gives feedback on percentage complete.
         """
+        if not all(isinstance(x, int) for x in ActionSequence):
+            if all(isinstance(x, str) for x in ActionSequence):
+                ActionSequence = self.Plr.Map.GetActionList(ActionSequence)
+            else:
+                print "ERROR: Action sequence must contains the indices of actions or their names."
+                return None
         Costs = [0] * Samples
         Rewards = [0] * Samples
         LogLikelihoods = [0] * Samples
