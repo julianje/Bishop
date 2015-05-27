@@ -13,6 +13,7 @@ import Planner
 import sys
 import math
 import PosteriorContainer
+import AgentSimulation
 import scipy.misc
 from scipy.stats.stats import pearsonr
 
@@ -61,19 +62,19 @@ class Observer(object):
                 sys.stdout.write(space * (20 - roundper))
                 sys.stdout.write("| " + str(Percentage) + "%")
                 sys.stdout.flush()
-            Results = self.InferAgent(Agents[2][i], Samples)
+            Results = self.InferAgent(Agents.Actions[i], Samples)
             InferredCosts[i] = Results.GetExpectedCosts()
             InferredRewards[i] = Results.GetExpectedRewards()
         if Verbose:
             # Print complete progress bar
             sys.stdout.write("\rInferring agent " + str(Simulations) + " |")
-            sys.stdout.write(begincolor + block * 10 + endcolor)
+            sys.stdout.write(begincolor + block * 20 + endcolor)
             sys.stdout.write("| 100.0%")
             sys.stdout.flush()
         sys.stdout.write("\n")
         # Calculate correlations
-        TrueCosts = [item for sublist in Agents[0] for item in sublist]
-        TrueRewards = [item for sublist in Agents[1] for item in sublist]
+        TrueCosts = [item for sublist in Agents.Costs for item in sublist]
+        TrueRewards = [item for sublist in Agents.Rewards for item in sublist]
         InferenceCosts = [
             item for sublist in InferredCosts for item in sublist]
         InferenceRewards = [
@@ -133,7 +134,7 @@ class Observer(object):
         if Feedback:
             # Print complete progress bar
             sys.stdout.write("\rProgress " + str(Samples) + " |")
-            sys.stdout.write(begincolor + block * 10 + endcolor)
+            sys.stdout.write(begincolor + block * 20 + endcolor)
             sys.stdout.write("| 100.0%")
             sys.stdout.flush()
         # Normalize LogLikelihoods
@@ -161,7 +162,7 @@ class Observer(object):
                             This avoid generating a lot of equivalent paths that look superficially different.
 
         Returns:
-            [Costs, Rewards, Actions, States]: Each item is a list of lists where Item[i] contains the results from the i-th simulation
+            AgentSimulation object with stored samples, actions, and state transitions.
         """
         Costs = [0] * Samples
         Rewards = [0] * Samples
@@ -200,11 +201,11 @@ class Observer(object):
         if Verbose:
             # Print complete progress bar
             sys.stdout.write("\rProgress |")
-            sys.stdout.write(begincolor + block * 10 + endcolor)
+            sys.stdout.write(begincolor + block * 20 + endcolor)
             sys.stdout.write("| 100.0%")
             sys.stdout.write("\n")
             sys.stdout.flush()
-        return [Costs, Rewards, Actions, States]
+        return AgentSimulation.AgentSimulation(Costs, Rewards, Actions, States)
 
     def GetSemantics(self, Complete=False):
         """
