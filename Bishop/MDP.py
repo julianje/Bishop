@@ -39,7 +39,7 @@ class MDP(object):
         # Where we'll store the softmaxed probabilities
         self.policy = np.zeros((len(A), len(S)))
 
-    def ValueIteration(self, epsilon=0.00001):
+    def ValueIteration(self, epsilon=0.0001):
         """
         Perform value iteration on MDP.
 
