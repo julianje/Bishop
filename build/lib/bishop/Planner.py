@@ -44,6 +44,16 @@ class Planner(object):
         # Internal reward value to plan between goals
         self.planningreward = 500
         self.gamma = 0.95  # Internal future discount to plan between goals
+        self.Prepare(Validate)
+
+    def Prepare(self, Validate=True):
+        """
+        Run the planner and build the utility function.
+        This function just reduces code in other parts.
+
+        Args:
+            Validate (bool): Run validation?
+        """
         self.BuildPlanner(Validate)
         self.ComputeUtilities()
 
@@ -382,15 +392,23 @@ class Planner(object):
         if Complete:
             # If the path was complete then you can
             # just add the likelihood of the goal and you're done
-            LogLikelihood += np.log(softutilities[goalindex[0]])
+            if softutilities[goalindex[0]] > 0:
+                LogLikelihood += np.log(softutilities[goalindex[0]])
+            else:
+                LogLikelihood += (-sys.maxint - 1)
             return LogLikelihood
         # All code below will only be executed if the path was incomplete
         #################################################################
-        # First compute the log-likelihood of each term separately: P(A|Gi)*p(Gi|C,R)
-        LogLikelihoodTerms = [LogLikelihood] * len(goalindex)  # Take the probability you already computed.
+        # First compute the log-likelihood of each term separately:
+        # P(A|Gi)*p(Gi|C,R)
+        # Take the probability you already computed.
+        LogLikelihoodTerms = [LogLikelihood] * len(goalindex)
         # Now add the utility of the goal to each term
         for i in range(len(goalindex)):
-            LogLikelihoodTerms[i] += np.log(softutilities[goalindex[i]])
+            if softutilities[goalindex[i]] > 0:
+                LogLikelihoodTerms[i] += np.log(softutilities[goalindex[i]])
+            else:
+                LogLikelihoodTerms[i] += (-sys.maxint - 1)
         # Get the starting point when target-uncertainty begins
         NewStartingPoint = self.CriticalStates[Visitedindices[-1]]
         # Get the new states
@@ -398,22 +416,25 @@ class Planner(object):
         # Get the actions the agent took after uncertainty begins
         NewActions = ActionSequence[StateSequence.index(NewStartingPoint):]
         # Check
-        if (len(NewStates)) != (len(NewActions)+1):
+        if (len(NewStates)) != (len(NewActions) + 1):
             print "ERROR: New states does not align with new actions."
             return None
-        # For each goal compute the probability of the actions past the last critical state
+        # For each goal compute the probability of the actions past the last
+        # critical state
         for i in range(len(goalindex)):
             Missinggoals = self.goalindices[i][len(objectscollected):]
             if Missinggoals == []:
-                nextgoal = len(self.CriticalStates)-1
+                nextgoal = len(self.CriticalStates) - 1
             else:
-                # Add 1 because StartingPoints is in CriticalStates, so goal indices are shifted by 1.
-                nextgoal = Missinggoals[0]+1
+                # Add 1 because StartingPoints is in CriticalStates, so goal
+                # indices are shifted by 1.
+                nextgoal = Missinggoals[0] + 1
             tempPolicy = self.Policies[nextgoal]
             # Get actions that haven't been accounted for yet
             # Use tempPolicy
             for j in range(len(NewActions)):
-                LogLikelihoodTerms[i] += tempPolicy[NewActions[j]][NewStates[j]]
+                LogLikelihoodTerms[
+                    i] += tempPolicy[NewActions[j]][NewStates[j]]
         LogLikelihood = scipy.misc.logsumexp(LogLikelihoodTerms)
         return LogLikelihood
 

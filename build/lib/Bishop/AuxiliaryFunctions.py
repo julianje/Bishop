@@ -10,6 +10,7 @@ __license__ = "MIT"
 import ConfigParser
 import os
 import pickle
+import pkg_resources
 from PosteriorContainer import *
 from Observer import *
 from Map import *
@@ -68,7 +69,7 @@ def LoadObserver(PostCont):
         print "No map associated with samples. Cannot load observer."
         return None
     else:
-        return LoadEnvironment(PostCont.MapFile)
+        return LoadMap(PostCont.MapFile)
 
 
 def ShowAvailableMaps():
@@ -80,18 +81,21 @@ def ShowAvailableMaps():
             print file[:-4]
 
 
-def LoadEnvironment(MapName, Silent=False):
+def LoadMap(MapName, Revise=False, Silent=False):
     """
     Load a map. If map isn't found in Bishop's library the
     function searches for the map in your working directory.
 
     Args:
         MapName (str): Name of map to load
+        Revise (bool): When true, user manually confirms or overrides parameters.
         Silent (bool): If false then function doesn't print map.
 
     Returns:
         Observer object
     """
+    if Revise:
+        sys.stdout.write("\nPress enter to accept the argument or type in the new value to replace it.\n\n")
     Config = ConfigParser.ConfigParser()
     FilePath = os.path.dirname(__file__) + "/Maps/" + MapName + ".ini"
     #########################
@@ -112,6 +116,10 @@ def LoadEnvironment(MapName, Silent=False):
         return None
     if Config.has_option("AgentParameters", "Prior"):
         Prior = Config.get("AgentParameters", "Prior")
+        if Revise:
+            temp = raw_input("Prior (" + str(Prior) + "):")
+            if temp != '':
+                Prior = str(temp)
     else:
         print "ERROR: No prior specified in AgentParameters. Use Agent.Priors() to see list of priors"
         return None
@@ -125,23 +133,53 @@ def LoadEnvironment(MapName, Silent=False):
     else:
         print "Softmaxing choices"
         SoftmaxChoice = True
+    if Revise:
+        temp = raw_input("Softmax choices (" + str(SoftmaxChoice) + "):")
+        if temp != '':
+            if temp == 'True':
+                SoftmaxChoice = True
+            elif temp == 'False':
+                SoftmaxChoice = False
+            else:
+                sys.stdout.write("Not a valid choice. Ignoring.\n")
     if Config.has_option("AgentParameters", "SoftmaxAction"):
         SoftmaxAction = Config.getboolean("AgentParameters", "SoftmaxAction")
     else:
         print "Softmaxing actions"
         SoftmaxAction = True
+    if Revise:
+        temp = raw_input("Softmax actions (" + str(SoftmaxAction) + "):")
+        if temp != '':
+            if temp == 'True':
+                SoftmaxAction = True
+            elif temp == 'False':
+                SoftmaxAction = False
+            else:
+                sys.stdout.write("Not a valid choice. Ignoring.\n")
     if Config.has_option("AgentParameters", "choiceTau"):
         choiceTau = Config.getfloat("AgentParameters", "choiceTau")
     else:
         print "Setting choice softmax to 0.01"
         choiceTau = 0.01
+    if Revise:
+        temp = raw_input("Choice tau (" + str(choiceTau) + "):")
+        if temp != '':
+            choiceTau = float(temp)
     if Config.has_option("AgentParameters", "actionTau"):
         actionTau = Config.getfloat("AgentParameters", "actionTau")
     else:
         print "Setting action softmax to 0.01"
         actionTau = 0.01
+    if Revise:
+        temp = raw_input("Action tau (" + str(actionTau) + "):")
+        if temp != '':
+            actionTau = float(temp)
     if Config.has_option("AgentParameters", "CostParameters"):
         CostParameters = Config.get("AgentParameters", "CostParameters")
+        if Revise:
+            temp = raw_input("Cost parameters (" + str(CostParameters) + "):")
+            if temp != '':
+                CostParameters = temp
         CostParameters = CostParameters.split()
         CostParameters = [float(i) for i in CostParameters]
     else:
@@ -149,12 +187,20 @@ def LoadEnvironment(MapName, Silent=False):
         return None
     if Config.has_option("AgentParameters", "RewardParameters"):
         RewardParameters = Config.get("AgentParameters", "RewardParameters")
+        if Revise:
+            temp = raw_input("Reward parameters (" + str(RewardParameters) + "):")
+            if temp != '':
+                RewardParameters = temp
         RewardParameters = [float(i) for i in RewardParameters.split()]
     else:
         print "ERROR: Missing cost parameters for prior sampling in AgentParameters block."
         return None
     if Config.has_option("AgentParameters", "Apathy"):
         Apathy = Config.getfloat("AgentParameters", "Apathy")
+    if Revise:
+        temp = raw_input("Apathy parameter (" + str(Apathy) + "):")
+        if temp != '':
+            Apathy = float(temp)
     # Map parameter section
     #######################
     if not Config.has_section("MapParameters"):
@@ -166,18 +212,35 @@ def LoadEnvironment(MapName, Silent=False):
     else:
         print "Allowing diagonal travel"
         DiagonalTravel = True
+    if Revise:
+        temp = raw_input("Diagonal travel (" + str(DiagonalTravel) + "):")
+        if temp != '':
+            if temp == "True":
+                DiagonalTravel = True
+            elif temp == "False":
+                DiagonalTravel = False
+            else:
+                sys.stdout.write("Not a valid choice. Ignoring.\n")
     if Config.has_option("MapParameters", "StartingPoint"):
         StartingPoint = Config.getint(
             "MapParameters", "StartingPoint")
     else:
         print "ERROR: Missing starting point in MapParameters block."
         return None
+    if Revise:
+        temp = raw_input("Starting point (" + str(StartingPoint) + "):")
+        if temp != '':
+            StartingPoint = int(temp)
     if Config.has_option("MapParameters", "ExitState"):
         ExitState = Config.getint(
             "MapParameters", "ExitState")
     else:
         print "ERROR: Missing exit state in MapParameters block."
         return None
+    if Revise:
+        temp = raw_input("Exit state (" + str(ExitState) + "):")
+        if temp != '':
+            ExitState = int(temp)
     if Config.has_option("MapParameters", "MapName"):
         MapName = Config.get(
             "MapParameters", "MapName")
@@ -244,6 +307,23 @@ def LoadEnvironment(MapName, Silent=False):
     MyMap.AddStartingPoint(StartingPoint)
     MyMap.AddExitState(ExitState)
     if not Silent:
+        sys.stdout.write("\n")
         MyMap.PrintMap()
     MyAgent = Agent(MyMap, Prior, CostParameters, RewardParameters, SoftmaxChoice, SoftmaxAction, choiceTau, actionTau, Apathy, Restrict)
     return Observer(MyAgent, MyMap)
+
+
+def AboutBishop():
+    """
+    Version function while I wait for tests to finish running.
+    """
+    sys.stdout.write("    ___      ___      ___      ___      ___      ___   \n")
+    sys.stdout.write("   /\\  \\    /\\  \\    /\\  \\    /\\__\\    /\\  \\    /\\  \\  \n")
+    sys.stdout.write("  /::\\  \\  _\\:\\  \\  /::\\  \\  /:/__/_  /::\\  \\  /::\\  \\ \n")
+    sys.stdout.write(" /::\\:\\__\\/\\/::\\__\\/\\:\\:\\__\\/::\\/\\__\\/:/\\:\\__\\/::\\:\\__\\\n")
+    sys.stdout.write(" \\:\\::/  /\\::/\\/__/\\:\\:\\/__/\\/\\::/  /\\:\\/:/  /\\/\\::/  /\n")
+    sys.stdout.write("  \\::/  /  \\:\\__\\   \\::/  /   /:/  /  \\::/  /    \\/__/ \n")
+    sys.stdout.write("   \\/__/    \\/__/    \\/__/    \\/__/    \\/__/           \n\n")
+    sys.stdout.write("Bishop. V " + str(pkg_resources.get_distribution("Bishop").version) + "\n")
+    sys.stdout.write("http://github.com/jjara/Bishop\n")
+    sys.stdout.write("Julian Jara-Ettinger. jjara@mit.edu\n\n")
