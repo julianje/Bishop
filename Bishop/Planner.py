@@ -44,6 +44,16 @@ class Planner(object):
         # Internal reward value to plan between goals
         self.planningreward = 500
         self.gamma = 0.95  # Internal future discount to plan between goals
+        self.Prepare(Validate)
+
+    def Prepare(self, Validate=True):
+        """
+        Run the planner and build the utility function.
+        This function just reduces code in other parts.
+
+        Args:
+            Validate (bool): Run validation?
+        """
         self.BuildPlanner(Validate)
         self.ComputeUtilities()
 

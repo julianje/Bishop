@@ -10,6 +10,7 @@ __license__ = "MIT"
 import ConfigParser
 import os
 import pickle
+import pkg_resources
 from PosteriorContainer import *
 from Observer import *
 from Map import *
@@ -68,7 +69,7 @@ def LoadObserver(PostCont):
         print "No map associated with samples. Cannot load observer."
         return None
     else:
-        return LoadEnvironment(PostCont.MapFile)
+        return LoadMap(PostCont.MapFile)
 
 
 def ShowAvailableMaps():
@@ -80,7 +81,7 @@ def ShowAvailableMaps():
             print file[:-4]
 
 
-def LoadEnvironment(MapName, Revise=False, Silent=False):
+def LoadMap(MapName, Revise=False, Silent=False):
     """
     Load a map. If map isn't found in Bishop's library the
     function searches for the map in your working directory.
@@ -310,3 +311,19 @@ def LoadEnvironment(MapName, Revise=False, Silent=False):
         MyMap.PrintMap()
     MyAgent = Agent(MyMap, Prior, CostParameters, RewardParameters, SoftmaxChoice, SoftmaxAction, choiceTau, actionTau, Apathy, Restrict)
     return Observer(MyAgent, MyMap)
+
+
+def AboutBishop():
+    """
+    Version function while I wait for tests to finish running.
+    """
+    sys.stdout.write("    ___      ___      ___      ___      ___      ___   \n")
+    sys.stdout.write("   /\\  \\    /\\  \\    /\\  \\    /\\__\\    /\\  \\    /\\  \\  \n")
+    sys.stdout.write("  /::\\  \\  _\\:\\  \\  /::\\  \\  /:/__/_  /::\\  \\  /::\\  \\ \n")
+    sys.stdout.write(" /::\\:\\__\\/\\/::\\__\\/\\:\\:\\__\\/::\\/\\__\\/:/\\:\\__\\/::\\:\\__\\\n")
+    sys.stdout.write(" \\:\\::/  /\\::/\\/__/\\:\\:\\/__/\\/\\::/  /\\:\\/:/  /\\/\\::/  /\n")
+    sys.stdout.write("  \\::/  /  \\:\\__\\   \\::/  /   /:/  /  \\::/  /    \\/__/ \n")
+    sys.stdout.write("   \\/__/    \\/__/    \\/__/    \\/__/    \\/__/           \n\n")
+    sys.stdout.write("Bishop. V " + str(pkg_resources.get_distribution("Bishop").version) + "\n")
+    sys.stdout.write("http://github.com/jjara/Bishop\n")
+    sys.stdout.write("Julian Jara-Ettinger. jjara@mit.edu\n\n")
