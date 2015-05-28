@@ -1,0 +1,21 @@
+V 2.1.2
+=======
+	- New class for saving agent simulations (AgentSimulation)
+	- Support for model testing by correlating generative model input with inferences (Observer.TestModel).
+	- Improved progress bars.
+	- Observer.InferAgent() now accepts numeric or string action sequences.
+	- Bug fixes.
+
+V 2.1.1
+=======
+	- Internal restructuring changes.
+	- Bug fixes.
+
+V 2.1.0
+=======
+	- Added support for inference over incomplete paths.
+
+V 2.0.0
+=======
+	- Bishop now has a concept of a goal. Rather than planning through a massive MDP it now generates sub-MDPs and does goal-selection through a utility function.
+	- Lost support for inference over incomplete paths.
