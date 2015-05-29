@@ -193,10 +193,6 @@ class Planner(object):
         Returns:
             C (matrix): Cost function as a matrix where C[A,S] is the cost for tkaing action A in state S
         """
-        # if not isinstance(Agent, Agent):
-        #    print "ERROR: Did not receive correct agent object. PLANNER-004"
-        # if not isinstance(Map, Map):
-        #    print "ERROR: Did not receive correct map object. PLANNER-005"
 
         Costs = [-self.Agent.costs[self.Map.StateTypes[i]]
                  for i in range(len(self.Map.S))]
@@ -354,8 +350,9 @@ class Planner(object):
                 if prob > 0:
                     LogLikelihood += np.log(prob)
                 else:
-                    # Add the smallest possible value
-                    LogLikelihood += (-sys.maxint - 1)
+                    # If one of the complete subsequences
+                    # has probability zero then you can return value immediately
+                    return (-sys.maxint - 1)
         # Part 3. Compute likelihood of selecting that goal.
         ####################################################
         # Get objects the agent has collected
@@ -389,18 +386,23 @@ class Planner(object):
         else:
             softutilities = [
                 options[j] / sum(options) for j in range(len(options))]
+        # If path is compelte then there is only one goal that is consistent
+        # so you just need to add the likelihood and your'e done!
         if Complete:
             # If the path was complete then you can
             # just add the likelihood of the goal and you're done
             if softutilities[goalindex[0]] > 0:
                 LogLikelihood += np.log(softutilities[goalindex[0]])
             else:
-                LogLikelihood += (-sys.maxint - 1)
+                # Set to the closest you can get to log(0)
+                LogLikelihood = (-sys.maxint - 1)
             return LogLikelihood
         # All code below will only be executed if the path was incomplete
         #################################################################
-        # First compute the log-likelihood of each term separately:
-        # P(A|Gi)*p(Gi|C,R)
+        # The code below computes P(A|Gi)*P(Gi|C,R) for each goal Gi
+        # that is consistent with the past actions. The action sequence A
+        # is the sequence happening after the las object was collected
+        #
         # Take the probability you already computed.
         LogLikelihoodTerms = [LogLikelihood] * len(goalindex)
         # Now add the utility of the goal to each term
@@ -408,16 +410,17 @@ class Planner(object):
             if softutilities[goalindex[i]] > 0:
                 LogLikelihoodTerms[i] += np.log(softutilities[goalindex[i]])
             else:
-                LogLikelihoodTerms[i] += (-sys.maxint - 1)
+                # Set to the closest you can get to log(0)
+                LogLikelihoodTerms[i] = (-sys.maxint - 1)
         # Get the starting point when target-uncertainty begins
         NewStartingPoint = self.CriticalStates[Visitedindices[-1]]
         # Get the new states
-        NewStates = StateSequence[Visitedindices[-1]:]
+        NewStates = StateSequence[StateSequence.index(NewStartingPoint):]
         # Get the actions the agent took after uncertainty begins
         NewActions = ActionSequence[StateSequence.index(NewStartingPoint):]
         # Check
         if (len(NewStates)) != (len(NewActions) + 1):
-            print "ERROR: New states does not align with new actions."
+            print "ERROR: New states do not align with new actions. PLANNER-012"
             return None
         # For each goal compute the probability of the actions past the last
         # critical state
@@ -433,8 +436,9 @@ class Planner(object):
             # Get actions that haven't been accounted for yet
             # Use tempPolicy
             for j in range(len(NewActions)):
-                LogLikelihoodTerms[
-                    i] += tempPolicy[NewActions[j]][NewStates[j]]
+                # Only add stuff if you're not on the smallest value yet
+                if LogLikelihoodTerms[i] != (-sys.maxint - 1):
+                    LogLikelihoodTerms[i] += tempPolicy[NewActions[j]][NewStates[j]]
         LogLikelihood = scipy.misc.logsumexp(LogLikelihoodTerms)
         return LogLikelihood
 

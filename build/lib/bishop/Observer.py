@@ -171,13 +171,15 @@ class Observer(object):
         # Finish printing progress bar
         if Feedback:
             # Print complete progress bar
-            sys.stdout.write("\rProgress " + str(Samples) + " |")
+            sys.stdout.write("\rProgress |")
             sys.stdout.write(self.begincolor + self.block * 20 + self.endcolor)
             sys.stdout.write("| 100.0%")
             sys.stdout.flush()
         # Normalize LogLikelihoods
-        NormLogLikelihoods = LogLikelihoods - \
-            scipy.misc.logsumexp(LogLikelihoods)
+        Normalize = scipy.misc.logsumexp(LogLikelihoods)
+        if np.exp(Normalize) == 0:
+            sys.stdout.write("\nWARNING: All likelihoods are 0.\n")
+        NormLogLikelihoods = LogLikelihoods - Normalize
         Results = PosteriorContainer.PosteriorContainer(np.matrix(Costs), np.matrix(
             Rewards), NormLogLikelihoods, ActionSequence, self.Plr)
         if Feedback:
@@ -257,6 +259,12 @@ class Observer(object):
                 "Object names: " + str(self.Plr.Map.ObjectNames) + "\n")
             sys.stdout.write(
                 "Terrain Names: " + str(self.Plr.Map.StateNames) + "\n")
+
+    def PrintMap(self):
+        """
+        Shortcut to call the Map object's PrintMap function
+        """
+        self.Plr.Map.PrintMap()
 
     def Display(self, Full=False):
         """

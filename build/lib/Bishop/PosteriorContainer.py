@@ -63,6 +63,52 @@ class PosteriorContainer(object):
             self.actionTau = None
             self.choiceTau = None
 
+    def SaveCSV(self, filename, overwrite=False):
+        """
+        Export samples as a .csv file
+
+        Args:
+            filename (str): Filename
+            overwrite (bool): Overwrite file if it exists?
+        """
+        if os.path.isfile(filename) and not overwrite:
+            print "ERROR: File exists, type SaveCSV(\"" + filename + "\",True) to overwrite file."
+        else:
+            f = open(filename, 'w')
+            # Create header
+            if self.ObjectNames is not None:
+                for i in range(len(self.ObjectNames)):
+                    if i == 0:
+                        Header = str(self.ObjectNames[i])
+                    else:
+                        Header = Header + "," + str(self.ObjectNames[i])
+            else:
+                for i in range(self.RewardDimensions):
+                    if i == 0:
+                        Header = "Object" + str(i)
+                    else:
+                        Header = Header + ",Object" + str(i)
+            if self.CostNames is not None:
+                for i in self.CostNames:
+                    Header = Header + "," + str(i)
+            else:
+                for i in range(self.CostDimensions):
+                    Header = Header + ",Terrain" + str(i)
+            Header = Header + ",LogLikelihood\n"
+            f.write(Header)
+            # Now add the samples
+            for i in range(self.CostSamples.shape[0]):
+                for j in range(self.RewardDimensions):
+                    if j == 0:
+                        NewLine = str(self.RewardSamples[i, j])
+                    else:
+                        NewLine = NewLine + "," + str(self.RewardSamples[i, j])
+                for j in range(self.CostDimensions):
+                    NewLine = NewLine + "," + str(self.CostSamples[i, j])
+                NewLine = NewLine + "," + str(self.LogLikelihoods[i]) + "\n"
+                f.write(NewLine)
+            f.close()
+
     def AssociateMap(self, MapName):
         """
         Add a map name of Posterior PosteriorContainer. Function also checks if Map exists in library.

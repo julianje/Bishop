@@ -1,3 +1,13 @@
+V 2.1.3
+=======
+	- Big bug fix in incomplete path inferences.
+	- Big bug fix in Planner.Likelihood().
+	- PosteriorContainer has new method, SaveCSV, that exports everything to an R-friendly .csv file
+	- Expanded AgentSimulation class.
+	- Optimized Planner.Likelihood() a bit.
+	- Deleted all .egg files from buggy builds (All versions between 2.1.0 and 2.0.0).
+	- Other small bug fixes.
+
 V 2.1.2
 =======
 	- New class for saving agent simulations (AgentSimulation)

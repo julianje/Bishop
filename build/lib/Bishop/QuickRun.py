@@ -19,7 +19,7 @@ import sys
 
 Path_length = len(sys.argv) - 3
 ActionSequence = [int(s) for s in sys.argv[3:]]
-O = LoadEnvironment(sys.argv[1], True)
+O = LoadMap(sys.argv[1], False, True)
 Res = O.InferAgent(ActionSequence, int(sys.argv[2]))
 Res.Summary(False)
 SaveSamples(Res, str(sys.argv))

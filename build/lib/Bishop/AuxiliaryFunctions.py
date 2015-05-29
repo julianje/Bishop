@@ -81,29 +81,31 @@ def ShowAvailableMaps():
             print file[:-4]
 
 
-def LoadMap(MapName, Revise=False, Silent=False):
+def LoadMap(MapConfig, Revise=False, Silent=False):
     """
     Load a map. If map isn't found in Bishop's library the
     function searches for the map in your working directory.
 
     Args:
-        MapName (str): Name of map to load
+        MapConfig (str): Name of map to load
         Revise (bool): When true, user manually confirms or overrides parameters.
         Silent (bool): If false then function doesn't print map.
 
     Returns:
         Observer object
     """
+    Local = False
     if Revise:
         sys.stdout.write("\nPress enter to accept the argument or type in the new value to replace it.\n\n")
     Config = ConfigParser.ConfigParser()
-    FilePath = os.path.dirname(__file__) + "/Maps/" + MapName + ".ini"
+    FilePath = os.path.dirname(__file__) + "/Maps/" + MapConfig + ".ini"
     #########################
     ## Load .ini map first ##
     #########################
     if not os.path.isfile(FilePath):
         print "Map not in library. Checking local directory..."
-        FilePath = MapName + ".ini"
+        FilePath = MapConfig + ".ini"
+        Local = True
         if not os.path.isfile(FilePath):
             print "ERROR: Map not found."
             return None
@@ -244,7 +246,10 @@ def LoadMap(MapName, Revise=False, Silent=False):
     if Config.has_option("MapParameters", "MapName"):
         MapName = Config.get(
             "MapParameters", "MapName")
-        TerrainPath = os.path.dirname(__file__) + "/Maps/" + MapName
+        if not Local:
+            TerrainPath = os.path.dirname(__file__) + "/Maps/" + MapName
+        else:
+            TerrainPath = MapName
         f = open(TerrainPath, "r")
         MapLoad = True
         StateTypes = []
@@ -325,5 +330,6 @@ def AboutBishop():
     sys.stdout.write("  \\::/  /  \\:\\__\\   \\::/  /   /:/  /  \\::/  /    \\/__/ \n")
     sys.stdout.write("   \\/__/    \\/__/    \\/__/    \\/__/    \\/__/           \n\n")
     sys.stdout.write("Bishop. V " + str(pkg_resources.get_distribution("Bishop").version) + "\n")
-    sys.stdout.write("http://github.com/jjara/Bishop\n")
+    sys.stdout.write("http://github.com/julianje/Bishop\n")
     sys.stdout.write("Julian Jara-Ettinger. jjara@mit.edu\n\n")
+    sys.stdout.write("Results using Bishop 1.0.0: Jara-Ettinger, J., Schulz, L. E., & Tenenbaum J. B. (2015). The naive utility calculus: Joint inferences about the costs and rewards of actions. In Proceedings of the 37th Annual Conference of the Cognitive Science Society.\n\n")
