@@ -122,13 +122,41 @@ class Observer(object):
             sys.stdout.write(str(sum(MatchingActions) * 100.00 / Simulations) +
                              "% of inferences produced the observed actions.\n")
         if Return:
-            return [Agents, InferredCosts, InferredRewards, PredictedActions, MatchingActions]
+            InferredAgents = AgentSimulation.AgentSimulation(InferredCosts, InferredRewards, PredictedActions, None)
+            return [Agents, InferredAgents, MatchingActions]
         else:
             return None
 
-    def InferAgent(self, ActionSequence, Samples, Feedback=False):
+    def InferAgent(self, ActionSequence, Samples, Feedback=False, Method="Importance"):
         """
         Compute a series of samples with their likelihoods.
+
+        Args:
+            ActionSequence (list): Sequence of actions
+            Samples (int): Number of samples to use
+            Feedback (bool): When true, function gives feedback on percentage complete.
+            Method (string): "Importance" or "MH". What sampling algorithm should I use to esimate the posterior?
+        """
+        if Method == "Importance":
+            return self.InferAgent_ImportanceSampling(ActionSequence, Samples, Feedback)
+        if Method == "MCMC":
+            return self.InferAgent_MCMC(ActionSequence, Samples, Feedback)
+
+    def InferAgent_MCMC(self, ActionSequence, Samples, Feedback=False):
+        """
+        Compute a series of samples with their likelihoods using Metropolis-Hastings
+
+        Args:
+            ActionSequence (list): Sequence of actions
+            Samples (int): Number of samples to use
+            Feedback (bool): When true, function gives feedback on percentage complete.
+        """
+        print "ERROR: MCMC not implemented yet."
+        return None
+
+    def InferAgent_ImportanceSampling(self, ActionSequence, Samples, Feedback=False):
+        """
+        Compute a series of samples with their likelihoods using importance sampling
 
         Args:
             ActionSequence (list): Sequence of actions
