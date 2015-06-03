@@ -222,7 +222,6 @@ class PosteriorContainer(object):
             print "Number of bins not specified. Defaulting to 10."
             bins = 10
         maxval = np.amax(self.CostSamples)
-        f, axarr = plt.subplots(self.CostDimensions, sharex=True)
         binwidth = maxval * 1.0 / bins + 0.00001
         xvals = [binwidth * (i + 0.5) for i in range(bins)]
         for i in range(self.CostDimensions):
@@ -231,9 +230,11 @@ class PosteriorContainer(object):
                               for j in self.CostSamples[:, i]]
             for j in range(self.Samples):
                 yvals[insert_indices[j]] += np.exp(self.LogLikelihoods[j])
-            axarr[i].plot(xvals, yvals, 'b-')
-            if self.CostNames is not None:
-                axarr[i].set_title(self.CostNames[i])
+            plt.plot(xvals, yvals)
+        if self.CostNames is not None:
+            plt.legend(self.CostNames, loc='upper left')
+        else:
+            plt.legen([str(i) for i in range(self.CostDimensions)], loc='upper left')
         plt.show()
 
     def PlotRewardPosterior(self, bins=None):
@@ -247,7 +248,6 @@ class PosteriorContainer(object):
             print "Number of bins not specified. Defaulting to 10."
             bins = 10
         maxval = np.amax(self.RewardSamples)
-        f, axarr = plt.subplots(self.RewardDimensions, sharex=True)
         binwidth = maxval * 1.0 / bins + 0.00001
         xvals = [binwidth * (i + 0.5) for i in range(bins)]
         for i in range(self.RewardDimensions):
@@ -256,9 +256,11 @@ class PosteriorContainer(object):
                               for j in self.RewardSamples[:, i]]
             for j in range(self.Samples):
                 yvals[insert_indices[j]] += np.exp(self.LogLikelihoods[j])
-            axarr[i].plot(xvals, yvals, 'b-')
-            if self.ObjectNames is not None:
-                axarr[i].set_title(self.ObjectNames[i])
+            plt.plot(xvals, yvals)
+        if self.ObjectNames is not None:
+            plt.legend(self.ObjectNames, loc='upper left')
+        else:
+            plt.legend([str(i) for i in range(self.RewardDimensions)], loc='upper left')
         plt.show()
 
     def Summary(self, human=True):
