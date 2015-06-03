@@ -234,7 +234,11 @@ class PosteriorContainer(object):
         if self.CostNames is not None:
             plt.legend(self.CostNames, loc='upper left')
         else:
-            plt.legen([str(i) for i in range(self.CostDimensions)], loc='upper left')
+            plt.legend([str(i)
+                        for i in range(self.CostDimensions)], loc='upper left')
+        plt.xlabel("Cost")
+        plt.ylabel("Probability")
+        plt.title("Posterior distribution of terrain costs")
         plt.show()
 
     def PlotRewardPosterior(self, bins=None):
@@ -260,7 +264,12 @@ class PosteriorContainer(object):
         if self.ObjectNames is not None:
             plt.legend(self.ObjectNames, loc='upper left')
         else:
-            plt.legend([str(i) for i in range(self.RewardDimensions)], loc='upper left')
+            plt.legend([str(i)
+                        for i in range(self.RewardDimensions)], loc='upper left')
+            plt.set
+        plt.xlabel("Reward")
+        plt.ylabel("Probability")
+        plt.title("Posterior distribution of rewards")
         plt.show()
 
     def Summary(self, human=True):
@@ -337,6 +346,24 @@ class PosteriorContainer(object):
             else:
                 for i in range(self.CostDimensions):
                     sys.stdout.write(",Cost" + str(i))
+            # Names for reward tradeoffs
+            for i in range(self.RewardDimensions):
+                for j in range(i + 1, self.RewardDimensions):
+                    if i != j:
+                        if self.ObjectNames is not None:
+                            sys.stdout.write(
+                                "," + str(self.ObjectNames[i]) + "-" + str(self.ObjectNames[j]))
+                        else:
+                            sys.stdout.write(",R" + str(i) + "-R" + str(j))
+            # Names for cost tradeoffs
+            for i in range(self.CostDimensions):
+                for j in range(i + 1, self.CostDimensions):
+                    if i != j:
+                        if self.CostNames is not None:
+                            sys.stdout.write(
+                                "," + str(self.CostNames[i]) + "-" + str(self.CostNames[j]))
+                        else:
+                            sys.stdout.write(",O" + str(i) + "-O" + str(j))
             sys.stdout.write("\n")
             # Print results
             sys.stdout.write(
@@ -363,6 +390,18 @@ class PosteriorContainer(object):
                 sys.stdout.write("," + str(ExpectedRewards[i]))
             for i in range(self.CostDimensions):
                 sys.stdout.write("," + str(ExpectedCosts[i]))
+            # Print reward tradeoffs
+            RewardM = self.CompareRewards()
+            for i in range(self.RewardDimensions):
+                for j in range(i + 1, self.RewardDimensions):
+                    if i != j:
+                        sys.stdout.write("," + str(RewardM[i][j]))
+            # Print cost tradeoffs
+            CostM = self.CompareCosts()
+            for i in range(self.CostDimensions):
+                for j in range(i + 1, self.CostDimensions):
+                    if i != j:
+                        sys.stdout.write("," + str(CostM[i][j]))
             sys.stdout.write("\n")
 
     def AnalyzeConvergence(self, jump=None):
@@ -387,17 +426,22 @@ class PosteriorContainer(object):
         yrewardvals = np.array(yrewardvals)
         # break it into plots.
         # Costs
-        f, axarr = plt.subplots(
-            max(self.CostDimensions, self.RewardDimensions), 2)
+        f, axarr = plt.subplots(1, 2)
         for i in range(self.CostDimensions):
-            axarr[i, 0].plot(rangevals, ycostvals[:, i], 'b-')
-            if self.CostNames is not None:
-                axarr[i, 0].set_title(self.CostNames[i])
+            axarr[0].plot(rangevals, ycostvals[:, i])
+        if self.CostNames is not None:
+            axarr[0].legend(self.CostNames, loc='upper left')
+        else:
+            axarr[0].legend(
+                [str(i) for i in range(self.CostDimensions)], loc='upper left')
         # Rewards
         for i in range(self.RewardDimensions):
-            axarr[i, 1].plot(rangevals, yrewardvals[:, i], 'b-')
-            if self.ObjectNames is not None:
-                axarr[i, 1].set_title(self.ObjectNames[i])
+            axarr[1].plot(rangevals, yrewardvals[:, i])
+        if self.ObjectNames is not None:
+            axarr[1].legend(self.ObjectNames, loc='upper left')
+        else:
+            axarr[1].legend(
+                [str(i) for i in range(self.RewardDimensions)], loc='upper left')
         plt.show()
 
     def Display(self, Full=False):
