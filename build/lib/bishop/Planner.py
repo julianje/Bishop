@@ -351,7 +351,8 @@ class Planner(object):
                     LogLikelihood += np.log(prob)
                 else:
                     # If one of the complete subsequences
-                    # has probability zero then you can return value immediately
+                    # has probability zero then you can return value
+                    # immediately
                     return (-sys.maxint - 1)
         # Part 3. Compute likelihood of selecting that goal.
         ####################################################
@@ -377,8 +378,15 @@ class Planner(object):
         options = self.Utilities
         options = options - abs(max(options))
         try:
-            options = [math.exp(options[j] / self.Agent.choiceTau)
-                       for j in range(len(options))]
+            if self.Agent.SoftmaxChoice:
+                options = [math.exp(options[j] / self.Agent.choiceTau)
+                           for j in range(len(options))]
+            else:
+                # if not softmaxed just choose the action with the highest
+                # value
+                bestactions = np.where(options == max(options))
+                options[:] = 0
+                options[bestactions] = 1
         except OverflowError:
             print "ERROR: Failed to softmax utility function. PLANNER-011"
         if sum(options) == 0:
@@ -438,7 +446,8 @@ class Planner(object):
             for j in range(len(NewActions)):
                 # Only add stuff if you're not on the smallest value yet
                 if LogLikelihoodTerms[i] != (-sys.maxint - 1):
-                    LogLikelihoodTerms[i] += tempPolicy[NewActions[j]][NewStates[j]]
+                    LogLikelihoodTerms[
+                        i] += tempPolicy[NewActions[j]][NewStates[j]]
         LogLikelihood = scipy.misc.logsumexp(LogLikelihoodTerms)
         return LogLikelihood
 
