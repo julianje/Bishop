@@ -234,7 +234,11 @@ class PosteriorContainer(object):
         if self.CostNames is not None:
             plt.legend(self.CostNames, loc='upper left')
         else:
-            plt.legend([str(i) for i in range(self.CostDimensions)], loc='upper left')
+            plt.legend([str(i)
+                        for i in range(self.CostDimensions)], loc='upper left')
+        plt.xlabel("Cost")
+        plt.ylabel("Probability")
+        plt.title("Posterior distribution of terrain costs")
         plt.show()
 
     def PlotRewardPosterior(self, bins=None):
@@ -260,7 +264,12 @@ class PosteriorContainer(object):
         if self.ObjectNames is not None:
             plt.legend(self.ObjectNames, loc='upper left')
         else:
-            plt.legend([str(i) for i in range(self.RewardDimensions)], loc='upper left')
+            plt.legend([str(i)
+                        for i in range(self.RewardDimensions)], loc='upper left')
+            plt.set
+        plt.xlabel("Reward")
+        plt.ylabel("Probability")
+        plt.title("Posterior distribution of rewards")
         plt.show()
 
     def Summary(self, human=True):
@@ -337,6 +346,24 @@ class PosteriorContainer(object):
             else:
                 for i in range(self.CostDimensions):
                     sys.stdout.write(",Cost" + str(i))
+            # Names for reward tradeoffs
+            for i in range(self.RewardDimensions):
+                for j in range(i + 1, self.RewardDimensions):
+                    if i != j:
+                        if self.ObjectNames is not None:
+                            sys.stdout.write(
+                                "," + str(self.ObjectNames[i]) + "-" + str(self.ObjectNames[j]))
+                        else:
+                            sys.stdout.write(",R" + str(i) + "-R" + str(j))
+            # Names for cost tradeoffs
+            for i in range(self.CostDimensions):
+                for j in range(i + 1, self.CostDimensions):
+                    if i != j:
+                        if self.CostNames is not None:
+                            sys.stdout.write(
+                                "," + str(self.CostNames[i]) + "-" + str(self.CostNames[j]))
+                        else:
+                            sys.stdout.write(",O" + str(i) + "-O" + str(j))
             sys.stdout.write("\n")
             # Print results
             sys.stdout.write(
@@ -363,6 +390,18 @@ class PosteriorContainer(object):
                 sys.stdout.write("," + str(ExpectedRewards[i]))
             for i in range(self.CostDimensions):
                 sys.stdout.write("," + str(ExpectedCosts[i]))
+            # Print reward tradeoffs
+            RewardM = self.CompareRewards()
+            for i in range(self.RewardDimensions):
+                for j in range(i + 1, self.RewardDimensions):
+                    if i != j:
+                        sys.stdout.write("," + str(RewardM[i][j]))
+            # Print cost tradeoffs
+            CostM = self.CompareCosts()
+            for i in range(self.CostDimensions):
+                for j in range(i + 1, self.CostDimensions):
+                    if i != j:
+                        sys.stdout.write("," + str(CostM[i][j]))
             sys.stdout.write("\n")
 
     def AnalyzeConvergence(self, jump=None):
@@ -393,15 +432,52 @@ class PosteriorContainer(object):
         if self.CostNames is not None:
             axarr[0].legend(self.CostNames, loc='upper left')
         else:
-            axarr[0].legend([str(i) for i in range(self.CostDimensions)], loc='upper left')
+            axarr[0].legend(
+                [str(i) for i in range(self.CostDimensions)], loc='upper left')
         # Rewards
         for i in range(self.RewardDimensions):
             axarr[1].plot(rangevals, yrewardvals[:, i])
         if self.ObjectNames is not None:
             axarr[1].legend(self.ObjectNames, loc='upper left')
         else:
-            axarr[1].legend([str(i) for i in range(self.RewardDimensions)], loc='upper left')
+            axarr[1].legend(
+                [str(i) for i in range(self.RewardDimensions)], loc='upper left')
         plt.show()
+
+    def ML(self, n=1, round=2):
+        """
+        Print maximum likelihood sample(s)
+
+        n (int): Print top n samples
+        round (int): How much to round the samples
+        """
+        indices = self.LogLikelihoods.argsort()[-n:]
+        likelihoods = np.exp(self.LogLikelihoods[indices])
+        Costs = self.CostSamples[indices]
+        Rewards = self.RewardSamples[indices]
+        # Print header
+        if self.CostNames is not None:
+            for i in range(self.CostDimensions):
+                sys.stdout.write(str(self.CostNames[i]) + "\t")
+        else:
+            for i in range(self.CostDimensions):
+                sys.stdout.write("Terrain" + str(i) + "\t")
+        if self.ObjectNames is not None:
+            for i in range(self.RewardDimensions):
+                sys.stdout.write(str(self.ObjectNames[i]) + "\t")
+        else:
+            for i in range(self.RewardDimensions):
+                sys.stdout.write("Object" + str(i) + "\t")
+        sys.stdout.write("Likelihood\n")
+        # Print data
+        for top in range(n):
+            # Print cost samples
+            for i in range(self.CostDimensions):
+                sys.stdout.write(str(np.round(Costs[top, i], 2)) + "\t")
+            # Print reward samples
+            for i in range(self.RewardDimensions):
+                sys.stdout.write(str(np.round(Rewards[top, i], 2)) + "\t")
+            sys.stdout.write(str(np.round(likelihoods[top], 2)) + "\n")
 
     def Display(self, Full=False):
         """

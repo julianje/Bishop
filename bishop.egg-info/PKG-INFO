@@ -22,21 +22,18 @@ Description: #Bishop
         
         #### Simulate agents traveling in an existing map
         
-        	import Bishop	
-        	Observer = Bishop.LoadEnvironment("Tatik_T1_L1")
+        	from Bishop import *	
+        	Observer = LoadEnvironment("Tatik_T1_L1")
         	Observer.SimulateAgents(Samples=100,HumanReadable=True)
         
         To see a list of available maps just type
-        
-        	import Bishop	
-        	Bishop.ShowAvailableMaps()
+        	
+        	ShowAvailableMaps()
         
         #### Cost-reward inference given observable actions
         
-        	import Bishop
-        	Observer = Bishop.LoadEnvironment("Tatik_T1_L1")
-        	ObservedPath = Observer.GetActionList(['L','L','U'])
-        	Res = Observer.InferAgent(ObservedPath, Samples=100)
+        	Observer = LoadEnvironment("Tatik_T1_L1")
+        	Res = Observer.InferAgent(['L','L','U'], Samples=100, Feedback=True)
         
         The result is a __PosteriorContainer__ object. Here are some things you can do with the output
         
@@ -44,13 +41,13 @@ Description: #Bishop
         	Res.AnalyzeConvergence() # Visually check if sampling converged
         	Res.PlotCostPosterior()
         	Res.PlotRewardPosterior()
-        	Res.Summary(Human=False) # prints compressed summary for easier analysis
-        	Bishop.SaveSamples(Res, "MyResults")
+        	Res.Summary(Human=False) # prints summary in csv style for easier analysis
+        	SaveSamples(Res, "MyResults")
         
         You can reload the samples and the observer model later with
         
-        	Res = Bishop.LoadSamples("MyResults.p")
-        	Observer = Bishop.LoadObserver(Res)
+        	Res = LoadSamples("MyResults.p")
+        	Observer = LoadObserver(Res)
         
         ## Creating a new map
         
@@ -77,7 +74,7 @@ Description: #Bishop
         
         To generate a simple grid-world with one terrain start with
         
-        	MyMap = Bishop.Map()
+        	MyMap = Map()
         	MyMap.BuildGridWorld(5,3,Diagonal=True)
         
         This creates a 5 by 3 map that can be navigated diagonally. Terrain type is stored in MyMap.StateTypes. The first terrain has by default a value of 0. New terrains are added through squares:
@@ -104,10 +101,6 @@ Description: #Bishop
         
         Once you have a map, you need to create an agent, and use both to create an observer
         
-        	MyAgent = Bishop.Agent(MyMap, CostParam, RewardParam)
-        	Observer = Bishop.Observer(MyMap, MyAgent)
-        
-        ## How it works
-        
-        Bishop does bayesian inference over optimal planners to infer the cost and rewards underlying an agent's actions. It then uses the posterior distribution of costs and rewards to predict how the agent will navigate.
+        	MyAgent = Agent(MyMap, CostParam, RewardParam)
+        	Observer = Observer(MyMap, MyAgent)
 Platform: UNKNOWN
