@@ -444,6 +444,41 @@ class PosteriorContainer(object):
                 [str(i) for i in range(self.RewardDimensions)], loc='upper left')
         plt.show()
 
+    def ML(self, n=1, round=2):
+        """
+        Print maximum likelihood sample(s)
+
+        n (int): Print top n samples
+        round (int): How much to round the samples
+        """
+        indices = self.LogLikelihoods.argsort()[-n:]
+        likelihoods = np.exp(self.LogLikelihoods[indices])
+        Costs = self.CostSamples[indices]
+        Rewards = self.RewardSamples[indices]
+        # Print header
+        if self.CostNames is not None:
+            for i in range(self.CostDimensions):
+                sys.stdout.write(str(self.CostNames[i]) + "\t")
+        else:
+            for i in range(self.CostDimensions):
+                sys.stdout.write("Terrain" + str(i) + "\t")
+        if self.ObjectNames is not None:
+            for i in range(self.RewardDimensions):
+                sys.stdout.write(str(self.ObjectNames[i]) + "\t")
+        else:
+            for i in range(self.RewardDimensions):
+                sys.stdout.write("Object" + str(i) + "\t")
+        sys.stdout.write("Likelihood\n")
+        # Print data
+        for top in range(n):
+            # Print cost samples
+            for i in range(self.CostDimensions):
+                sys.stdout.write(str(np.round(Costs[top, i], 2)) + "\t")
+            # Print reward samples
+            for i in range(self.RewardDimensions):
+                sys.stdout.write(str(np.round(Rewards[top, i], 2)) + "\t")
+            sys.stdout.write(str(np.round(likelihoods[top], 2)) + "\n")
+
     def Display(self, Full=False):
         """
         Print object attributes.
