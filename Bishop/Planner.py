@@ -447,7 +447,7 @@ class Planner(object):
                 # Only add stuff if you're not on the smallest value yet
                 if LogLikelihoodTerms[i] != (-sys.maxint - 1):
                     LogLikelihoodTerms[
-                        i] += tempPolicy[NewActions[j]][NewStates[j]]
+                        i] += np.log(tempPolicy[NewActions[j]][NewStates[j]])
         LogLikelihood = scipy.misc.logsumexp(LogLikelihoodTerms)
         return LogLikelihood
 
