@@ -6,10 +6,8 @@ MapName = "Tatik_T1"
 
 Observer = Bishop.LoadEnvironment(MapName)
 
-ObservedPath = Observer.GetActionList(['UL', 'R'])
-
 Res = Observer.InferAgent(
-    ActionSequence=ObservedPath, Samples=500, Feedback=True)
+    ActionSequence=['UL', 'R'], Samples=500, Feedback=True)
 
 # Associate a map name with the samples
 Res.AssociateMap(MapName)
