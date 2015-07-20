@@ -243,7 +243,7 @@ class Planner(object):
             costs = sum([self.CostMatrix[goals[j - 1], goals[j]]
                          for j in range(1, len(goals))])
             # Compute the rewards
-            rewards = sum([self.Agent.rewards[j] for j in goalindices[i]])
+            rewards = sum([self.Agent.rewards[self.Map.ObjectTypes[j]] for j in goalindices[i]])
             # Costs are already negative here!
             utility[i] = rewards + costs
         self.Utilities = utility

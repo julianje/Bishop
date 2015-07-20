@@ -320,7 +320,7 @@ def LoadMap(MapConfig, Revise=False, Silent=False):
 
 def AboutBishop():
     """
-    Version function while I wait for tests to finish running.
+    About.
     """
     sys.stdout.write("    ___      ___      ___      ___      ___      ___   \n")
     sys.stdout.write("   /\\  \\    /\\  \\    /\\  \\    /\\__\\    /\\  \\    /\\  \\  \n")
