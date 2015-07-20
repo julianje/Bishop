@@ -46,7 +46,8 @@ class Observer(object):
         Verbose (bool): Print progress bar?
         """
         if Verbose is False and Return is False:
-            sys.stdout.write("ERROR: The function is set on silent and return no input.")
+            sys.stdout.write(
+                "ERROR: The function is set on silent and return no input.")
             return None
         if Verbose:
             sys.stdout.write("Simulating agents...\n")
@@ -122,7 +123,8 @@ class Observer(object):
             sys.stdout.write(str(sum(MatchingActions) * 100.00 / Simulations) +
                              "% of inferences produced the observed actions.\n")
         if Return:
-            InferredAgents = AgentSimulation.AgentSimulation(InferredCosts, InferredRewards, PredictedActions, None)
+            InferredAgents = AgentSimulation.AgentSimulation(
+                InferredCosts, InferredRewards, PredictedActions, None)
             return [Agents, InferredAgents, MatchingActions]
         else:
             return None
@@ -215,6 +217,34 @@ class Observer(object):
             Results.Summary()
             sys.stdout.write("\n")
         return Results
+
+    def LL(self, costs, rewards, ActionSequence):
+        """
+        Calcualte the log-likelihood of a sequence of actiosn given a set of costs and rewards.
+
+        Args:
+            costs (list): List of the cost of each terrain
+            rewards (list): List of rewards for each object
+            AcitonSequence (list): List of observed actions
+        """
+        if not all(isinstance(x, int) for x in ActionSequence):
+            if all(isinstance(x, str) for x in ActionSequence):
+                ActionSequence = self.Plr.Map.GetActionList(ActionSequence)
+            else:
+                print "ERROR: Action sequence must contains the indices of actions or their names."
+                return None
+        if len(costs) != self.Plr.Agent.CostDimensions:
+            print "ERROR: Number of cost samples does not match number of terrains"
+            return None
+        else:
+            self.Plr.Agent.costs = costs
+        if len(rewards) != self.Plr.Agent.RewardDimensions:
+            print "ERROR: Number of reward samples does not match number of object types"
+            return None
+        else:
+            self.Plr.Agent.rewards = rewards
+        self.Plr.Prepare(self.Validate)
+        return self.Plr.Likelihood(ActionSequence)
 
     def SimulateAgents(self, Samples, HumanReadable=False, ResampleAgent=True, Simple=True, Verbose=True):
         """
