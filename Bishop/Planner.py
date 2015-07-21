@@ -54,8 +54,11 @@ class Planner(object):
         Args:
             Validate (bool): Run validation?
         """
-        self.BuildPlanner(Validate)
-        self.ComputeUtilities()
+        try:
+            self.BuildPlanner(Validate)
+            self.ComputeUtilities()
+        except Exception as error:
+            print error
 
     def BuildPlanner(self, Validate=True):
         """

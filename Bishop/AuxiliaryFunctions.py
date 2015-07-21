@@ -25,9 +25,12 @@ def SaveSamples(Container, Name):
         Container (PosteriorContainer): PosteriorContainer object
         Name (string): Filename. Function adds ".p" extension if it's not provided
     """
-    if Name[-2:] != ".p":
-        Name = Name + ".p"
-    pickle.dump(Container, open(Name, "wb"))
+    try:
+        if Name[-2:] != ".p":
+            Name = Name + ".p"
+        pickle.dump(Container, open(Name, "wb"))
+    except Exception as error:
+        print error
 
 
 def LoadSamples(FileName):
@@ -40,8 +43,11 @@ def LoadSamples(FileName):
     returns:
         Samples
     """
-    Samples = pickle.load(open(FileName, "rb"))
-    return Samples
+    try:
+        Samples = pickle.load(open(FileName, "rb"))
+        return Samples
+    except Exception as error:
+        print error
 
 
 def AnalyzeSamples(FileName):
@@ -51,8 +57,11 @@ def AnalyzeSamples(FileName):
     Args:
         FileName (str): filename
     """
-    Samples = pickle.load(open(FileName, "rb"))
-    Samples.LongSummary()
+    try:
+        Samples = pickle.load(open(FileName, "rb"))
+        Samples.LongSummary()
+    except Exception as error:
+        print error
 
 
 def LoadObserver(PostCont):
@@ -69,16 +78,22 @@ def LoadObserver(PostCont):
         print "No map associated with samples. Cannot load observer."
         return None
     else:
-        return LoadMap(PostCont.MapFile)
+        try:
+            return LoadMap(PostCont.MapFile)
+        except Exception as error:
+            print error
 
 
 def ShowAvailableMaps():
     """
     Print list of maps in Bishop library.
     """
-    for file in os.listdir(os.path.dirname(__file__) + "/Maps/"):
-        if file.endswith(".ini"):
-            print file[:-4]
+    try:
+        for file in os.listdir(os.path.dirname(__file__) + "/Maps/"):
+            if file.endswith(".ini"):
+                print file[:-4]
+    except Exception as error:
+        print error
 
 
 def LoadMap(MapConfig, Revise=False, Silent=False):
@@ -94,22 +109,25 @@ def LoadMap(MapConfig, Revise=False, Silent=False):
     Returns:
         Observer object
     """
-    Local = False
-    if Revise:
-        sys.stdout.write("\nPress enter to accept the argument or type in the new value to replace it.\n\n")
-    Config = ConfigParser.ConfigParser()
-    FilePath = os.path.dirname(__file__) + "/Maps/" + MapConfig + ".ini"
-    #########################
-    ## Load .ini map first ##
-    #########################
-    if not os.path.isfile(FilePath):
-        print "Map not in library. Checking local directory..."
-        FilePath = MapConfig + ".ini"
-        Local = True
+    try:
+        Local = False
+        if Revise:
+            sys.stdout.write("\nPress enter to accept the argument or type in the new value to replace it.\n\n")
+        Config = ConfigParser.ConfigParser()
+        FilePath = os.path.dirname(__file__) + "/Maps/" + MapConfig + ".ini"
+        #########################
+        ## Load .ini map first ##
+        #########################
         if not os.path.isfile(FilePath):
-            print "ERROR: Map not found."
-            return None
-    Config.read(FilePath)
+            print "Map not in library. Checking local directory..."
+            FilePath = MapConfig + ".ini"
+            Local = True
+            if not os.path.isfile(FilePath):
+                print "ERROR: Map not found."
+                return None
+        Config.read(FilePath)
+    except Exception as error:
+        print error
 
     # Agent parameter section
     #########################
@@ -304,18 +322,21 @@ def LoadMap(MapConfig, Revise=False, Silent=False):
             ObjectTypes = []
             ObjectNames = None
     # Create objects!
-    MyMap = Map()
-    MyMap.BuildGridWorld(mapwidth, mapheight, DiagonalTravel)
-    MyMap.InsertObjects(ObjectLocations, ObjectTypes, ObjectNames)
-    MyMap.StateTypes = StateTypes
-    MyMap.StateNames = StateNames
-    MyMap.AddStartingPoint(StartingPoint)
-    MyMap.AddExitState(ExitState)
-    if not Silent:
-        sys.stdout.write("\n")
-        MyMap.PrintMap()
-    MyAgent = Agent(MyMap, Prior, CostParameters, RewardParameters, SoftmaxChoice, SoftmaxAction, choiceTau, actionTau, Apathy, Restrict)
-    return Observer(MyAgent, MyMap)
+    try:
+        MyMap = Map()
+        MyMap.BuildGridWorld(mapwidth, mapheight, DiagonalTravel)
+        MyMap.InsertObjects(ObjectLocations, ObjectTypes, ObjectNames)
+        MyMap.StateTypes = StateTypes
+        MyMap.StateNames = StateNames
+        MyMap.AddStartingPoint(StartingPoint)
+        MyMap.AddExitState(ExitState)
+        if not Silent:
+            sys.stdout.write("\n")
+            MyMap.PrintMap()
+        MyAgent = Agent(MyMap, Prior, CostParameters, RewardParameters, SoftmaxChoice, SoftmaxAction, choiceTau, actionTau, Apathy, Restrict)
+        return Observer(MyAgent, MyMap)
+    except Exception as error:
+        print error
 
 
 def AboutBishop():
