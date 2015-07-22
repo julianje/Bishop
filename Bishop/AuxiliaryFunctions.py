@@ -135,14 +135,32 @@ def LoadMap(MapConfig, Revise=False, Silent=False):
         print "ERROR: AgentParameters block missing."
         return None
     if Config.has_option("AgentParameters", "Prior"):
-        Prior = Config.get("AgentParameters", "Prior")
+        CostPrior = Config.get("AgentParameters", "Prior")
+        RewardPrior = CostPrior
         if Revise:
             temp = raw_input("Prior (" + str(Prior) + "):")
             if temp != '':
-                Prior = str(temp)
+                CostPrior = str(temp)
+                RewardPrior = CostPrior
     else:
-        print "ERROR: No prior specified in AgentParameters. Use Agent.Priors() to see list of priors"
-        return None
+        if Config.has_option("AgentParameters", "CostPrior"):
+            CostPrior = Config.get("AgentParameters", "CostPrior")
+            if Revise:
+                temp = raw_input("CostPrior (" + str(CostPrior) + "):")
+                if temp != '':
+                    CostPrior = str(temp)
+        else:
+            print "WARNING: No cost prior specified in AgentParameters. Use Agent.Priors() to see list of priors"
+            return None
+        if Config.has_option("AgentParameters", "RewardPrior"):
+            RewardPrior = Config.get("AgentParameters", "RewardPrior")
+            if Revise:
+                temp = raw_input("RewardPrior (" + str(RewardPrior) + "):")
+                if temp != '':
+                    RewardPrior = str(temp)
+        else:
+            print "WARNING: No reward prior specified in AgentParameters. Use Agent.Priors() to see list of priors"
+            return None
     if Config.has_option("AgentParameters", "Restrict"):
         Restrict = Config.getboolean("AgentParameters", "Restrict")
     else:
@@ -333,7 +351,7 @@ def LoadMap(MapConfig, Revise=False, Silent=False):
         if not Silent:
             sys.stdout.write("\n")
             MyMap.PrintMap()
-        MyAgent = Agent(MyMap, Prior, CostParameters, RewardParameters, SoftmaxChoice, SoftmaxAction, choiceTau, actionTau, Apathy, Restrict)
+        MyAgent = Agent(MyMap, CostPrior, RewardPrior, CostParameters, RewardParameters, SoftmaxChoice, SoftmaxAction, choiceTau, actionTau, Apathy, Restrict)
         return Observer(MyAgent, MyMap)
     except Exception as error:
         print error
