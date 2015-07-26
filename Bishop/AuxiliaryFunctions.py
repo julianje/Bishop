@@ -148,7 +148,6 @@ def LoadMap(MapConfig, Revise=False, Silent=False):
             if not os.path.isfile(FilePath):
                 print "ERROR: Map not found."
                 return None
-        print FilePath
         Config.read(FilePath)
     except Exception as error:
         print error

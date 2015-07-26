@@ -36,3 +36,4 @@ V 2.2.0
 	- Probability mass centered on 0 can now be set separately for the cost and the reward function (Apathy -> CNull and RNull).
 	- New support for empirically set priors.
 	- Maps can now be stored in subfolders.
+	- Summary functions add sample with highest likelihood.

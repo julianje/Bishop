@@ -308,6 +308,8 @@ class PosteriorContainer(object):
                 sys.stdout.write("Softmaxed actions.\n")
             else:
                 sys.stdout.write("Optimal actions.\n")
+            sys.stdout.write("\n Maximum likelihood result\n\n")
+            self.ML()
             sys.stdout.write("\nINFERRED REWARDS\n\n")
             if (self.ObjectNames is not None):
                 for i in range(self.RewardDimensions):
@@ -331,9 +333,11 @@ class PosteriorContainer(object):
                 "Cost comparison matrix: i, j = p( C(i)>=C(j) )\n")
             sys.stdout.write(str(CostMatrix) + "\n")
         else:
-            # Print header
+            # Print file header
+            ###################
             sys.stdout.write(
                 "Samples,StartingPoint,ObjectLocations,ObjectTypes,SoftmaxAction,ActionTau,SoftmaxChoice,ChoiceTau,Actions")
+            # Add names for objects and terrains
             if self.ObjectNames is not None:
                 for i in range(self.RewardDimensions):
                     sys.stdout.write("," + str(self.ObjectNames[i]))
@@ -345,7 +349,21 @@ class PosteriorContainer(object):
                     sys.stdout.write("," + str(self.CostNames[i]))
             else:
                 for i in range(self.CostDimensions):
-                    sys.stdout.write(",Cost" + str(i))
+                    sys.stdout.write(",Terrain" + str(i))
+            # Add names for objects and terrains prefixed with ML (headers for
+            # the Maximum likelihood samples)
+            if self.ObjectNames is not None:
+                for i in range(self.RewardDimensions):
+                    sys.stdout.write(",ML_" + str(self.ObjectNames[i]))
+            else:
+                for i in range(self.RewardDimensions):
+                    sys.stdout.write(",ML_Object" + str(i))
+            if self.CostNames is not None:
+                for i in range(self.CostDimensions):
+                    sys.stdout.write(",ML_" + str(self.CostNames[i]))
+            else:
+                for i in range(self.CostDimensions):
+                    sys.stdout.write(",ML_Terrain" + str(i))
             # Names for reward tradeoffs
             for i in range(self.RewardDimensions):
                 for j in range(i + 1, self.RewardDimensions):
@@ -366,6 +384,8 @@ class PosteriorContainer(object):
                             sys.stdout.write(",O" + str(i) + "-O" + str(j))
             sys.stdout.write("\n")
             # Print results
+            ###############
+            # Print general info
             sys.stdout.write(
                 str(self.Samples) + "," + str(self.StartingPoint) + ",")
             for i in range(len(self.ObjectLocations)):
@@ -386,10 +406,18 @@ class PosteriorContainer(object):
                     sys.stdout.write(str(self.Actions[i]) + "-")
                 else:
                     sys.stdout.write(str(self.Actions[i]))
+            # Print expected costs and rewards
             for i in range(self.RewardDimensions):
                 sys.stdout.write("," + str(ExpectedRewards[i]))
             for i in range(self.CostDimensions):
                 sys.stdout.write("," + str(ExpectedCosts[i]))
+            # Print maximum likelihood costs and rewards
+            # First two parameters don't matter because human is set to false.
+            [C, R] = self.ML(1, 2, False)
+            for i in range(self.RewardDimensions):
+                sys.stdout.write("," + str(R[0, i]))
+            for i in range(self.CostDimensions):
+                sys.stdout.write("," + str(C[0, i]))
             # Print reward tradeoffs
             RewardM = self.CompareRewards()
             for i in range(self.RewardDimensions):
@@ -444,40 +472,47 @@ class PosteriorContainer(object):
                 [str(i) for i in range(self.RewardDimensions)], loc='upper left')
         plt.show()
 
-    def ML(self, n=1, round=2):
+    def ML(self, n=1, roundparam=2, human=True):
         """
         Print maximum likelihood sample(s)
 
-        n (int): Print top n samples
-        round (int): How much to round the samples
+        n (int): Print top n samples (if n exceeds number of samples then function prints all samples)
+        roundparam (int): How much to round the samples
+        human (bool): When set to true prints nicely, when set to false returns format for csv structure (in this case n is set to 1 and values aren't rounded)
         """
         indices = self.LogLikelihoods.argsort()[-n:]
         likelihoods = np.exp(self.LogLikelihoods[indices])
         Costs = self.CostSamples[indices]
         Rewards = self.RewardSamples[indices]
-        # Print header
-        if self.CostNames is not None:
-            for i in range(self.CostDimensions):
-                sys.stdout.write(str(self.CostNames[i]) + "\t")
+        if human:
+            # Print header
+            if self.CostNames is not None:
+                for i in range(self.CostDimensions):
+                    sys.stdout.write(str(self.CostNames[i]) + "\t")
+            else:
+                for i in range(self.CostDimensions):
+                    sys.stdout.write("Terrain" + str(i) + "\t")
+            if self.ObjectNames is not None:
+                for i in range(self.RewardDimensions):
+                    sys.stdout.write(str(self.ObjectNames[i]) + "\t")
+            else:
+                for i in range(self.RewardDimensions):
+                    sys.stdout.write("Object" + str(i) + "\t")
+            sys.stdout.write("Likelihood\n")
+            # Print data
+            for top in range(min(n, self.Samples)):
+                # Print cost samples
+                for i in range(self.CostDimensions):
+                    sys.stdout.write(
+                        str(np.round(Costs[top, i], roundparam)) + "\t")
+                # Print reward samples
+                for i in range(self.RewardDimensions):
+                    sys.stdout.write(
+                        str(np.round(Rewards[top, i], roundparam)) + "\t")
+                sys.stdout.write(
+                    str(np.round(likelihoods[top], roundparam)) + "\n")
         else:
-            for i in range(self.CostDimensions):
-                sys.stdout.write("Terrain" + str(i) + "\t")
-        if self.ObjectNames is not None:
-            for i in range(self.RewardDimensions):
-                sys.stdout.write(str(self.ObjectNames[i]) + "\t")
-        else:
-            for i in range(self.RewardDimensions):
-                sys.stdout.write("Object" + str(i) + "\t")
-        sys.stdout.write("Likelihood\n")
-        # Print data
-        for top in range(n):
-            # Print cost samples
-            for i in range(self.CostDimensions):
-                sys.stdout.write(str(np.round(Costs[top, i], 2)) + "\t")
-            # Print reward samples
-            for i in range(self.RewardDimensions):
-                sys.stdout.write(str(np.round(Rewards[top, i], 2)) + "\t")
-            sys.stdout.write(str(np.round(likelihoods[top], 2)) + "\n")
+            return [Costs[0], Rewards[0]]
 
     def Display(self, Full=False):
         """

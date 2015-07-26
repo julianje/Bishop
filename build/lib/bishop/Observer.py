@@ -93,7 +93,7 @@ class Observer(object):
         # For each sample get the sequence of actions with the highest
         # likelihood
         if Verbose:
-            sys.stdout.write("Using inferred values to predict actions...\n")
+            sys.stdout.write("Using inferred expected values to predict actions...\n")
         PredictedActions = [0] * Simulations
         MatchingActions = [0] * Simulations
         for i in range(Simulations):
@@ -220,7 +220,7 @@ class Observer(object):
 
     def LL(self, costs, rewards, ActionSequence):
         """
-        Calcualte the log-likelihood of a sequence of actiosn given a set of costs and rewards.
+        Calcualte the log-likelihood of a sequence of actions given a set of costs and rewards.
 
         Args:
             costs (list): List of the cost of each terrain
