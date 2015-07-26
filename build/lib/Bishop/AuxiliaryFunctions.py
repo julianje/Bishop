@@ -96,6 +96,27 @@ def ShowAvailableMaps():
         print error
 
 
+def LocateFile(CurrDir, filename):
+    """
+    Search for file recursively.
+
+    Args:
+        CurrDir (str): Search directory
+        filename (str): filename
+
+    Returns:
+        dir (str): Location of the file (if found; None otherwise)
+    """
+    for Currfile in os.listdir(CurrDir):
+        test = os.path.join(CurrDir, Currfile)
+        if os.path.isdir(test):
+            return LocateFile(test, filename)
+        else:
+            # it's a file
+            if Currfile == filename:
+                return CurrDir
+
+
 def LoadMap(MapConfig, Revise=False, Silent=False):
     """
     Load a map. If map isn't found in Bishop's library the
@@ -112,9 +133,11 @@ def LoadMap(MapConfig, Revise=False, Silent=False):
     try:
         Local = False
         if Revise:
-            sys.stdout.write("\nPress enter to accept the argument or type in the new value to replace it.\n\n")
+            sys.stdout.write(
+                "\nPress enter to accept the argument or type in the new value to replace it.\n\n")
         Config = ConfigParser.ConfigParser()
-        FilePath = os.path.dirname(__file__) + "/Maps/" + MapConfig + ".ini"
+        FilePath = os.path.dirname(__file__) + "/Maps/"
+        FilePath = LocateFile(FilePath, MapConfig + ".ini") + "/" + MapConfig + ".ini"
         #########################
         ## Load .ini map first ##
         #########################
@@ -125,6 +148,7 @@ def LoadMap(MapConfig, Revise=False, Silent=False):
             if not os.path.isfile(FilePath):
                 print "ERROR: Map not found."
                 return None
+        print FilePath
         Config.read(FilePath)
     except Exception as error:
         print error
@@ -226,19 +250,35 @@ def LoadMap(MapConfig, Revise=False, Silent=False):
     if Config.has_option("AgentParameters", "RewardParameters"):
         RewardParameters = Config.get("AgentParameters", "RewardParameters")
         if Revise:
-            temp = raw_input("Reward parameters (" + str(RewardParameters) + "):")
+            temp = raw_input(
+                "Reward parameters (" + str(RewardParameters) + "):")
             if temp != '':
                 RewardParameters = temp
         RewardParameters = [float(i) for i in RewardParameters.split()]
     else:
         print "ERROR: Missing cost parameters for prior sampling in AgentParameters block."
         return None
-    if Config.has_option("AgentParameters", "Apathy"):
-        Apathy = Config.getfloat("AgentParameters", "Apathy")
+    if Config.has_option("AgentParameters", "PNull"):
+        CNull = Config.getfloat("AgentParameters", "PNull")
+        RNull = CNull
+    else:
+        if Config.has_option("AgentParameters", "CNull"):
+            CNull = Config.getfloat("AgentParameters", "CNull")
+        else:
+            print "WARNING: No probability of terrains having null cost. Setting to 0."
+            CNull = 0
+        if Config.has_option("AgentParameters", "RNull"):
+            RNull = Config.getfloat("AgentParameters", "RNull")
+        else:
+            print "WARNING: No probability of terrains having null cost. Setting to 0."
+            RNull = 0
     if Revise:
-        temp = raw_input("Apathy parameter (" + str(Apathy) + "):")
+        temp = raw_input("Null cost paramter (" + str(CNull) + "):")
         if temp != '':
-            Apathy = float(temp)
+            CNull = float(temp)
+        temp = raw_input("Null reward paramter (" + str(RNull) + "):")
+        if temp != '':
+            RNull = float(temp)
     # Map parameter section
     #######################
     if not Config.has_section("MapParameters"):
@@ -283,7 +323,8 @@ def LoadMap(MapConfig, Revise=False, Silent=False):
         MapName = Config.get(
             "MapParameters", "MapName")
         if not Local:
-            TerrainPath = os.path.dirname(__file__) + "/Maps/" + MapName
+            TerrainPath = os.path.dirname(__file__) + "/Maps/"
+            TerrainPath = os.path.join(LocateFile(TerrainPath, MapName), MapName)
         else:
             TerrainPath = MapName
         f = open(TerrainPath, "r")
@@ -351,7 +392,8 @@ def LoadMap(MapConfig, Revise=False, Silent=False):
         if not Silent:
             sys.stdout.write("\n")
             MyMap.PrintMap()
-        MyAgent = Agent(MyMap, CostPrior, RewardPrior, CostParameters, RewardParameters, SoftmaxChoice, SoftmaxAction, choiceTau, actionTau, Apathy, Restrict)
+        MyAgent = Agent(MyMap, CostPrior, RewardPrior, CostParameters, RewardParameters,
+                        SoftmaxChoice, SoftmaxAction, choiceTau, actionTau, CNull, RNull, Restrict)
         return Observer(MyAgent, MyMap)
     except Exception as error:
         print error
@@ -361,14 +403,23 @@ def AboutBishop():
     """
     About.
     """
-    sys.stdout.write("    ___      ___      ___      ___      ___      ___   \n")
-    sys.stdout.write("   /\\  \\    /\\  \\    /\\  \\    /\\__\\    /\\  \\    /\\  \\  \n")
-    sys.stdout.write("  /::\\  \\  _\\:\\  \\  /::\\  \\  /:/__/_  /::\\  \\  /::\\  \\ \n")
-    sys.stdout.write(" /::\\:\\__\\/\\/::\\__\\/\\:\\:\\__\\/::\\/\\__\\/:/\\:\\__\\/::\\:\\__\\\n")
-    sys.stdout.write(" \\:\\::/  /\\::/\\/__/\\:\\:\\/__/\\/\\::/  /\\:\\/:/  /\\/\\::/  /\n")
-    sys.stdout.write("  \\::/  /  \\:\\__\\   \\::/  /   /:/  /  \\::/  /    \\/__/ \n")
-    sys.stdout.write("   \\/__/    \\/__/    \\/__/    \\/__/    \\/__/           \n\n")
-    sys.stdout.write("Bishop. V " + str(pkg_resources.get_distribution("Bishop").version) + "\n")
+    sys.stdout.write(
+        "    ___      ___      ___      ___      ___      ___   \n")
+    sys.stdout.write(
+        "   /\\  \\    /\\  \\    /\\  \\    /\\__\\    /\\  \\    /\\  \\  \n")
+    sys.stdout.write(
+        "  /::\\  \\  _\\:\\  \\  /::\\  \\  /:/__/_  /::\\  \\  /::\\  \\ \n")
+    sys.stdout.write(
+        " /::\\:\\__\\/\\/::\\__\\/\\:\\:\\__\\/::\\/\\__\\/:/\\:\\__\\/::\\:\\__\\\n")
+    sys.stdout.write(
+        " \\:\\::/  /\\::/\\/__/\\:\\:\\/__/\\/\\::/  /\\:\\/:/  /\\/\\::/  /\n")
+    sys.stdout.write(
+        "  \\::/  /  \\:\\__\\   \\::/  /   /:/  /  \\::/  /    \\/__/ \n")
+    sys.stdout.write(
+        "   \\/__/    \\/__/    \\/__/    \\/__/    \\/__/           \n\n")
+    sys.stdout.write(
+        "Bishop. V " + str(pkg_resources.get_distribution("Bishop").version) + "\n")
     sys.stdout.write("http://github.com/julianje/Bishop\n")
     sys.stdout.write("Julian Jara-Ettinger. jjara@mit.edu\n\n")
-    sys.stdout.write("Results using Bishop 1.0.0: Jara-Ettinger, J., Schulz, L. E., & Tenenbaum J. B. (2015). The naive utility calculus: Joint inferences about the costs and rewards of actions. In Proceedings of the 37th Annual Conference of the Cognitive Science Society.\n\n")
+    sys.stdout.write(
+        "Results using Bishop 1.0.0: Jara-Ettinger, J., Schulz, L. E., & Tenenbaum J. B. (2015). The naive utility calculus: Joint inferences about the costs and rewards of actions. In Proceedings of the 37th Annual Conference of the Cognitive Science Society.\n\n")

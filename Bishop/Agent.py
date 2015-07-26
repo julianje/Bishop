@@ -13,7 +13,7 @@ import numpy as np
 
 class Agent(object):
 
-    def __init__(self, Map, CostPrior, RewardPrior, CostParams, RewardParams, SoftmaxChoice=True, SoftmaxAction=True, choiceTau=1, actionTau=0.01, Apathy=0, Restrict=False):
+    def __init__(self, Map, CostPrior, RewardPrior, CostParams, RewardParams, SoftmaxChoice=True, SoftmaxAction=True, choiceTau=1, actionTau=0.01, CNull=0, RNull=0, Restrict=False):
         """
         Agent class.
 
@@ -30,7 +30,8 @@ class Agent(object):
             SoftmaxAction (bool): Does the agent act upong goals optimally?
             choiceTau (float): Softmax parameter for goal selection.
             actionTau (float): Softmax parameter for action planning.
-            Apathy (float): Probability that a cost or a reward has 0 value.
+            CNull (float): Probability that a terrain has no cost.
+            RNull (float): Probability that an object has no reward
             Restrict (bool): When set to true the cost samples make the first terrain
                             always less costly than the rest.
         """
@@ -60,7 +61,8 @@ class Agent(object):
             self.RewardParams = RewardParams
         else:
             self.RewardParams = [RewardParams]
-        self.Apathy = Apathy
+        self.CNull = CNull
+        self.RNull = RNull
         self.ResampleCosts()  # Generate random cost of map
         self.ResampleRewards()  # Generate random rewards for objects
 
@@ -91,7 +93,7 @@ class Agent(object):
         self.costs = self.Sample(
             self.CostDimensions, self.CostParams, Kind=self.CostPrior)
         self.costs = [
-            0 if random.random() <= self.Apathy else i for i in self.costs]
+            0 if random.random() <= self.CNull else i for i in self.costs]
 
     def ResampleRewards(self):
         """
@@ -104,7 +106,7 @@ class Agent(object):
         self.rewards = self.Sample(
             self.RewardDimensions, self.RewardParams, Kind=self.RewardPrior)
         self.rewards = [
-            0 if random.random() <= self.Apathy else i for i in self.rewards]
+            0 if random.random() <= self.RNull else i for i in self.rewards]
 
     def Sample(self, dimensions, SamplingParam, Kind):
         """
@@ -112,7 +114,7 @@ class Agent(object):
 
         Args:
             dimensions (int): Number of dimensions
-            SamplingParam: Parameter to use on distribution
+            SamplingParam (list): Parameter to use on distribution
             Kind (str): Name of distribution
 
         Returns:
@@ -130,12 +132,14 @@ class Agent(object):
             return [np.random.exponential(SamplingParam[0]) for j in range(dimensions)]
         if (Kind == "Constant"):
             return [0.5 * SamplingParam[0]] * dimensions
+        if (Kind == "Empirical"):
+            return np.shuffle(SamplingParam)[0:dimensions]
 
     def Priors(self):
         """
         Print list of supported priors. This is hardcoded for now.
         """
-        print ("Simplex, ScaledUniform, Gaussian, Exponential, Constant")
+        print ("Simplex, ScaledUniform, Gaussian, Exponential, Constant, Empirical")
 
     def Display(self, Full=True):
         """

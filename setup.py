@@ -6,7 +6,7 @@ def readme():
         return f.read()
 
 setup(name='Bishop',
-      version='2.1.4',
+      version='2.2.0',
       description='Bayesian Theory of Mind library',
       long_description=readme(),
       url='http://gibthub.com/julianje/bishop',

@@ -29,3 +29,10 @@ V 2.0.0
 =======
 	- Bishop now has a concept of a goal. Rather than planning through a massive MDP it now generates sub-MDPs and does goal-selection through a utility function.
 	- Lost support for inference over incomplete paths.
+
+V 2.2.0
+=======
+	- Cost and reward functions can now be set to constant
+	- Probability mass centered on 0 can now be set separately for the cost and the reward function (Apathy -> CNull and RNull).
+	- New support for empirically set priors.
+	- Maps can now be stored in subfolders.
