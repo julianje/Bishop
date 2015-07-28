@@ -7,7 +7,7 @@ def readme():
 
 setup(name='Bishop',
       version='2.2.0',
-      description='Bayesian Theory of Mind library',
+      description='Cognitive model of Theory of Mind',
       long_description=readme(),
       url='http://gibthub.com/julianje/bishop',
       author='Julian Jara-Ettinger',

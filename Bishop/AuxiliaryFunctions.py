@@ -110,7 +110,9 @@ def LocateFile(CurrDir, filename):
     for Currfile in os.listdir(CurrDir):
         test = os.path.join(CurrDir, Currfile)
         if os.path.isdir(test):
-            return LocateFile(test, filename)
+            res = LocateFile(test, filename)
+            if res is not None:
+                return res
         else:
             # it's a file
             if Currfile == filename:
@@ -137,11 +139,13 @@ def LoadMap(MapConfig, Revise=False, Silent=False):
                 "\nPress enter to accept the argument or type in the new value to replace it.\n\n")
         Config = ConfigParser.ConfigParser()
         FilePath = os.path.dirname(__file__) + "/Maps/"
-        FilePath = LocateFile(FilePath, MapConfig + ".ini") + "/" + MapConfig + ".ini"
+        FilePath = LocateFile(FilePath, MapConfig + ".ini")
+        if FilePath is not None:
+            FilePath = FilePath + "/" + MapConfig + ".ini"
         #########################
         ## Load .ini map first ##
         #########################
-        if not os.path.isfile(FilePath):
+        else:
             print "Map not in library. Checking local directory..."
             FilePath = MapConfig + ".ini"
             Local = True

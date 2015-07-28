@@ -133,7 +133,7 @@ class Agent(object):
         if (Kind == "Constant"):
             return [0.5 * SamplingParam[0]] * dimensions
         if (Kind == "Empirical"):
-            return np.shuffle(SamplingParam)[0:dimensions]
+            return [random.choice(SamplingParam) for i in range(dimensions)]
 
     def Priors(self):
         """
