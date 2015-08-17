@@ -2,7 +2,7 @@
 
 """
 Observer class stores a planner and wraps some higher-level methods on it.
-It's main functions are SimulateAgents and InferAgent
+Its main functions are SimulateAgents and InferAgent
 """
 
 __author__ = "Julian Jara-Ettinger"
