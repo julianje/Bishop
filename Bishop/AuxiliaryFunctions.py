@@ -224,8 +224,12 @@ def LoadMap(MapConfig, Revise=False, Silent=False):
     if Config.has_option("AgentParameters", "choiceTau"):
         choiceTau = Config.getfloat("AgentParameters", "choiceTau")
     else:
-        print "Setting choice softmax to 0.01"
-        choiceTau = 0.01
+        if SoftmaxChoice:
+            print "Setting choice softmax to 0.01"
+            choiceTau = 0.01
+        else:
+            # Doesn't matter; won't be used.
+            choiceTau = 0
     if Revise:
         temp = raw_input("Choice tau (" + str(choiceTau) + "):")
         if temp != '':
@@ -233,8 +237,12 @@ def LoadMap(MapConfig, Revise=False, Silent=False):
     if Config.has_option("AgentParameters", "actionTau"):
         actionTau = Config.getfloat("AgentParameters", "actionTau")
     else:
-        print "Setting action softmax to 0.01"
-        actionTau = 0.01
+        if SoftmaxAction:
+            print "Setting action softmax to 0.01"
+            actionTau = 0.01
+        else:
+            # Doesn't matter; won't be used.
+            actionTau = 0
     if Revise:
         temp = raw_input("Action tau (" + str(actionTau) + "):")
         if temp != '':
