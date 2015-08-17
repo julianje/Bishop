@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Observer class stores a planner and wraps some higher-level methods on it.
+Observer class stores a planner and wraps some higher-level methods around it.
 Its main functions are SimulateAgents and InferAgent
 """
 
@@ -320,7 +320,7 @@ class Observer(object):
 
     def PrintMap(self):
         """
-        Shortcut to call the Map object's PrintMap function
+        Shortcut to call the Map object's PrintMap function.
         """
         self.Plr.Map.PrintMap()
 

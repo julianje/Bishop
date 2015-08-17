@@ -64,6 +64,9 @@ class MDP(object):
     def Validate(self):
         """
         Check that MDP object is correct.
+
+        Args:
+            None
         """
         print "Validating MDP..."
         dims = self.T.shape
