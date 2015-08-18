@@ -330,11 +330,17 @@ class Observer(object):
             sys.stdout.write(
                 "Terrain Names: " + str(self.Plr.Map.StateNames) + "\n")
 
-    def PrintMap(self):
+    def PrintMap(self, terrain='*'):
         """
         Shortcut to call the Map object's PrintMap function.
+
+        Args:
+            terrain (Character): Character to mark terrains.
+
+        >> Observer.PrintMap()
+        >> Observer.PrintMap("X") # Mark empty terrains with 'X'
         """
-        self.Plr.Map.PrintMap()
+        self.Plr.Map.PrintMap(terrain)
 
     def Display(self, Full=False):
         """

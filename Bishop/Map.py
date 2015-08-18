@@ -65,7 +65,7 @@ class Map(object):
         if Tshape[0] != Tshape[2]:
             print "ERROR: Transition matrix has wrong dimensions. MAP-001"
             Success = False
-        if Tshape[0] != len(self.S)+1:  # 1 for the dead state!
+        if Tshape[0] != len(self.S) + 1:  # 1 for the dead state!
             print "ERROR: Transition matrix does not match number of states. MAP-002"
             Success = False
         if Tshape[1] != len(self.A):
@@ -140,7 +140,8 @@ class Map(object):
                 "Object " + str(i) for i in set(self.ObjectTypes)]
         # From, With, To. Add one for the dead state
         self.T = np.zeros((len(self.S) + 1, len(self.A), len(self.S) + 1))
-        # First create dead state structure. All actions leave agent in same place.
+        # First create dead state structure. All actions leave agent in same
+        # place.
         self.T[len(self.S), :, len(self.S)] = 1
         # Make all states of the same type
         self.StateTypes = [0] * (len(self.S))
@@ -369,12 +370,12 @@ class Map(object):
             return None
         self.StartingPoint = StartingPoint
 
-    def PrintMap(self):
+    def PrintMap(self, terrain='*'):
         """
         Print map in ascii
 
         Args:
-            None
+            terrain (Character): Character to mark terrains.
 
         >> MyMap.PrintMap()
         """
@@ -399,10 +400,12 @@ class Map(object):
         terrains = list(set(self.StateTypes))
         if self.StateNames == []:
             for i in range(len(terrains)):
-                sys.stdout.write(colors[i] + "Terrain " + str(i) + endcolor + "\n")
+                sys.stdout.write(
+                    colors[i] + "Terrain " + str(i) + endcolor + "\n")
         else:
             for i in range(len(terrains)):
-                sys.stdout.write(colors[i] + str(self.StateNames[i]) + endcolor + "\n")
+                sys.stdout.write(
+                    colors[i] + str(self.StateNames[i]) + endcolor + "\n")
 
         print "Objects are numbered. E = exit state and S = starting point"
         for i in range(len(self.ObjectNames)):
@@ -414,7 +417,7 @@ class Map(object):
         for i in range(self.mapheight):
             for j in range(self.mapwidth):
                 # Check if state being printed has an object
-                character = 'X'
+                character = terrain
                 if currstate == self.ExitState:
                     character = 'E'
                 if currstate == self.StartingPoint:
