@@ -301,6 +301,18 @@ class Observer(object):
             sys.stdout.flush()
         return AgentSimulation.AgentSimulation(Costs, Rewards, Actions, States)
 
+    def SetStartingPoint(self, StartingPoint, Verbose=True):
+        """
+        Shorter syntax to change the Map's starting point.
+
+        Args:
+            StartingPoint (int): Id of map state with new starting point.
+            Verbose (bool): If True, function prints revised map.
+        """
+        self.Plr.Map.AddStartingPoint(StartingPoint)
+        if Verbose:
+            self.PrintMap()
+
     def GetSemantics(self, Complete=False):
         """
         Print action, object, and terrain names.
