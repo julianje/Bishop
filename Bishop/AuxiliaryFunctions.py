@@ -361,35 +361,40 @@ def LoadMap(MapConfig, Revise=False, Silent=False):
         temp = raw_input("Exit state (" + str(ExitState) + "):")
         if temp != '':
             ExitState = int(temp)
-    if Config.has_option("MapParameters", "MapName"):
-        MapName = Config.get(
-            "MapParameters", "MapName")
-        if not Local:
-            TerrainPath = os.path.dirname(__file__) + "/Maps/"
-            TerrainPath = os.path.join(LocateFile(TerrainPath, MapName), MapName)
-        else:
-            TerrainPath = MapName
-        f = open(TerrainPath, "r")
-        MapLoad = True
-        StateTypes = []
-        StateNames = []
-        mapheight = 0
-        for line in iter(f):
-            if MapLoad:
-                states = [int(i) for i in list(line.rstrip())]
-                if states == []:
-                    MapLoad = False
-                else:
-                    mapheight += 1
-                    StateTypes.extend(states)
+    try:
+        if Config.has_option("MapParameters", "MapName"):
+            MapName = Config.get(
+                "MapParameters", "MapName")
+            if not Local:
+                TerrainPath = os.path.dirname(__file__) + "/Maps/"
+                TerrainPath = os.path.join(LocateFile(TerrainPath, MapName), MapName)
             else:
-                statename = line.rstrip()
-                if statename != "":
-                    StateNames.append(statename)
-        f.close()
-        mapwidth = len(StateTypes) / mapheight
-    else:
-        print "ERROR: Missing map name"
+                TerrainPath = MapName
+            f = open(TerrainPath, "r")
+            MapLoad = True
+            StateTypes = []
+            StateNames = []
+            mapheight = 0
+            for line in iter(f):
+                if MapLoad:
+                    states = [int(i) for i in list(line.rstrip())]
+                    if states == []:
+                        MapLoad = False
+                    else:
+                        mapheight += 1
+                        StateTypes.extend(states)
+                else:
+                    statename = line.rstrip()
+                    if statename != "":
+                        StateNames.append(statename)
+            f.close()
+            mapwidth = len(StateTypes) / mapheight
+        else:
+            print "ERROR: Missing map name"
+            return None
+    except:
+        print "ERROR: Cannot load map layout."
+        # raise
         return None
     # Load object information
     #########################
