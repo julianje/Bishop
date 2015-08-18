@@ -6,7 +6,7 @@ def readme():
         return f.read()
 
 setup(name='Bishop',
-      version='2.2.0',
+      version='2.2.1',
       description='Cognitive model of Theory of Mind',
       long_description=readme(),
       url='http://gibthub.com/julianje/bishop',

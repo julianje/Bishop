@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 
 """
-Quick run through arguments.
-Call this function and send Map name, samples,
-and action sequence as arguments.
+Script to quickly run cost-reward inference on an existing map.
+Arguments (separated by space):
+    Map[string]: Name of map (should exist on Bishop's library or on your local folder)
+    Samples[int]: Number of samples on inference
+    Actions[list]: List of integer codes for action sequence.
+
+Example:
 
 >> python QuickRun.py Tatik_T1_L1 100 2 2 2
 

@@ -49,7 +49,7 @@ class Planner(object):
     def Prepare(self, Validate=True):
         """
         Run the planner and build the utility function.
-        This function just reduces code in other parts.
+        This function just helps make other code blocks easier to reader.
 
         Args:
             Validate (bool): Run validation?
@@ -62,10 +62,10 @@ class Planner(object):
 
     def BuildPlanner(self, Validate=True):
         """
-        Build the planner using a map, an agent, and an option path.
+        Build the planner using the object's map, agent, and path details.
 
         Args:
-            Validate (bool): Check if objects work
+            Validate (bool): Check that the objects have all the information to run.
         """
         if Validate:
             # Check that map has all it needs
@@ -96,7 +96,7 @@ class Planner(object):
 
     def Plan(self, Validate=True):
         """
-        Build a plan's cost matrix and store the policies.
+        Plan how to move between goals, store the policies, estimate the costs, and build the cost matrix.
 
         .. Warning::
 
@@ -154,6 +154,10 @@ class Planner(object):
 
     def SimulatePathUntil(self, StartingPoint, StopStates, inputMDP, Limit=300, Simple=False):
         """
+        .. Warning::
+
+           This function is for internal use only.
+
         Simulate path from StartingPoint until agent reaches a state in the StopStates list.
         Simulation ends after the agent has taken more steps than specified on Limit.
 
@@ -191,10 +195,10 @@ class Planner(object):
         Build the cost function for an MDP using the Map and Agent objects.
 
         Args:
-            DeadState (bool): Indicates if it should add a dead state with cost 0
+            DeadState (bool): Indicates if it should add a dead state with cost 0.
 
         Returns:
-            C (matrix): Cost function as a matrix where C[A,S] is the cost for tkaing action A in state S
+            C (matrix): Cost function as a matrix where C[A,S] is the cost for tkaing action A in state S.
         """
 
         Costs = [-self.Agent.costs[self.Map.StateTypes[i]]
@@ -217,7 +221,7 @@ class Planner(object):
 
     def ComputeUtilities(self):
         """
-        Build the space of goals and compute the utility function
+        Build the goal space and compute the utility function.
 
         .. Warning::
 

@@ -84,16 +84,47 @@ def LoadObserver(PostCont):
             print error
 
 
+def GetMapList(CurrDir):
+    """
+    Get list of map files in a directory.
+
+    Args:
+        CurrDir (str): Search directory.
+
+    Returns:
+        files (list): List of files.å
+    """
+    files = []
+    for File in os.listdir(CurrDir):
+        # Check if it's a file
+        if File.endswith(".ini"):
+            files.append(File)
+    return files
+
+
 def ShowAvailableMaps():
     """
     Print list of maps in Bishop library.
     """
-    try:
-        for file in os.listdir(os.path.dirname(__file__) + "/Maps/"):
-            if file.endswith(".ini"):
-                print file[:-4]
-    except Exception as error:
-        print error
+    # Create an empty dictionary.
+    results = {}
+    BaseDirectory = os.path.dirname(__file__) + "/Maps/"
+    Files = GetMapList(BaseDirectory)
+    if Files != []:
+        results['Bishop main maps'] = Files
+    for Item in os.listdir(BaseDirectory):
+        TempDir = os.path.join(BaseDirectory, Item)
+        if os.path.isdir(TempDir):
+            # Add to dictionary
+            Files = GetMapList(TempDir)
+            if Files != []:
+                results[Item] = GetMapList(TempDir)
+    # print maps
+    for key in results:
+        sys.stdout.write(key + ":\n")
+        for i in results[key]:
+            sys.stdout.write("\t" + i + "\n")
+    sys.stdout.write("\n")
 
 
 def LocateFile(CurrDir, filename):

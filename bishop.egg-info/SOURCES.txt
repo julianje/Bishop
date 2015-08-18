@@ -21,6 +21,7 @@ Bishop.egg-info/top_level.txt
 Bishop/Examples/DetailedInference.py
 Bishop/Examples/SimpleInference.py
 Bishop/Examples/SimulateAgents.py
+Bishop/Maps/.DS_Store
 Bishop/Maps/Cogsci15Maps/.DS_Store
 Bishop/Maps/Cogsci15Maps/Tatik_Map
 Bishop/Maps/Cogsci15Maps/Tatik_T1_L1.ini

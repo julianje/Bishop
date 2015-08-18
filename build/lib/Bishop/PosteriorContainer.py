@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 """
-PosteriorContainer wraps samples from the planner
-and comes with supporting functions to analyze
+PosteriorContainer saves (usually sampled) inputs to the generative model and their likelihood of producing some observed data.
+Comes with a bunch of supporting methods to analyze the samples.
 """
 
 __author__ = "Julian Jara-Ettinger"
@@ -18,19 +18,20 @@ import math
 class PosteriorContainer(object):
 
     """
-    Class to handle posterior samples.
+    PosteriorContainer saves (usually sampled) inputs to the generative model and their likelihood of producing some observed data.
+    Comes with a bunch of supporting methods to analyze the samples.
     """
 
     def __init__(self, C, R, L, ActionSequence, Planner=[]):
         """
-        Create an object that stores sampling results.
+        Create an object that stores inputs to generative model.
 
         Args:
             C (list): List of cost samples
             R (list): List of reward samples
             L (list): List of log-likelihoods
             ActionSequence (list): List of actions
-            Planner (Planner): (optional) Planner object
+            Planner (Planner): (optional) Planner object (The generative model)
         """
         self.CostSamples = C
         self.RewardSamples = R
@@ -65,7 +66,7 @@ class PosteriorContainer(object):
 
     def SaveCSV(self, filename, overwrite=False):
         """
-        Export samples as a .csv file
+        Export PosteriorContainer samples as a .csv file
 
         Args:
             filename (str): Filename
@@ -111,7 +112,7 @@ class PosteriorContainer(object):
 
     def AssociateMap(self, MapName):
         """
-        Add a map name of Posterior PosteriorContainer. Function also checks if Map exists in library.
+        Add the map's name to the object. This allows you to later reload the full details of whatever you run running.
 
         Args:
             MapName (string): Name of map to use.
@@ -126,6 +127,7 @@ class PosteriorContainer(object):
         LongSummary prints a summary of the samples, the convergence analysis,
         and it plots the posterior distributions.
         """
+
         self.Summary()
         self.AnalyzeConvergence()
         # 10 is the default input. Just sending it to avoid the print message
@@ -167,10 +169,10 @@ class PosteriorContainer(object):
 
     def GetExpectedCosts(self, limit=None):
         """
-        Calculate the expected costs using the first N samples.
+        Calculate the expected costs using the first N samples (used for timeseries).
 
         Args:
-            limit (int): Number of samples to use
+            limit (int): Number of samples to use. If set to None, function uses all samples.
         """
         ExpectedCosts = []
         if limit is None:
@@ -190,10 +192,10 @@ class PosteriorContainer(object):
 
     def GetExpectedRewards(self, limit=None):
         """
-        Calculate the expected rewards using the first N samples.
+        Calculate the expected rewards using the first N samples (used for timeseries).
 
         Args:
-            limit (int): Number of samples to use
+            limit (int): Number of samples to use. If set to None, function uses all samples.
         """
         ExpectedRewards = []
         if limit is None:
@@ -213,7 +215,7 @@ class PosteriorContainer(object):
 
     def PlotCostPosterior(self, bins=None):
         """
-        Plot posterior distribution of cost samples
+        Plot posterior distribution of cost samples.
 
         Args:
             bins (int): Number of bins to use
@@ -243,7 +245,7 @@ class PosteriorContainer(object):
 
     def PlotRewardPosterior(self, bins=None):
         """
-        Plot posterior distribution of reward samples
+        Plot posterior distribution of reward samples.
 
         Args:
             bins (int): Number of bins to use
