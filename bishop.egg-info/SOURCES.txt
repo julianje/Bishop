@@ -4,12 +4,12 @@ setup.py
 Bishop/Agent.py
 Bishop/AgentSimulation.py
 Bishop/AuxiliaryFunctions.py
+Bishop/BishopInference.py
 Bishop/MDP.py
 Bishop/Map.py
 Bishop/Observer.py
 Bishop/Planner.py
 Bishop/PosteriorContainer.py
-Bishop/QuickRun.py
 Bishop/Tests.py
 Bishop/__init__.py
 Bishop.egg-info/PKG-INFO
@@ -121,3 +121,4 @@ Bishop/Maps/OneRewardMaps/Tatik_T3_L4_OR.ini
 Bishop/Maps/TestMaps/M1
 Bishop/Maps/TestMaps/T1
 Bishop/Maps/TestMaps/T1.ini
+bin/BishopInference
