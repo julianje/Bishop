@@ -34,9 +34,14 @@ parser.add_argument(
 parser.add_argument(
     "-s", "--samples", help="Number of samples to use on inference.", type=int)
 parser.add_argument(
-    "-o", "--output", help="Name of file where to solve samples")
+    "-o", "--output", help="Name of file where to solve samples.")
+parser.add_argument(
+    "-sp", "--startingpoint", help="Agent's starting point.", type=int)
+
 args = parser.parse_args()
 O = LoadObserver(args.map, False, True)
+if args.startingpoint is not None:
+    O.SetStartingPoint(args.startingpoint)
 # Need to split args.Actions
 ActionSequence = [int(s) for s in args.actions.split()]
 Res = O.InferAgent(ActionSequence, args.samples)
