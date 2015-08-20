@@ -17,7 +17,8 @@ setup(name='Bishop',
       install_requires=[
           'numpy',
           'matplotlib',
-          'scipy'
+          'scipy',
+          'argparse'
       ],
       include_package_data=True,
       zip_safe=False)
