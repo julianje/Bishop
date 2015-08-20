@@ -299,7 +299,7 @@ class Observer(object):
             sys.stdout.write("| 100.0%")
             sys.stdout.write("\n")
             sys.stdout.flush()
-        return AgentSimulation.AgentSimulation(Costs, Rewards, Actions, States)
+        return AgentSimulation.AgentSimulation(Costs, Rewards, Actions, States, self.Plr.Map.ObjectNames, self.Plr.Map.StateNames)
 
     def SetStartingPoint(self, StartingPoint, Verbose=True):
         """

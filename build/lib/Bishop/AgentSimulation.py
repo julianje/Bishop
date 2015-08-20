@@ -8,11 +8,12 @@ __author__ = "Julian Jara-Ettinger"
 __license__ = "MIT"
 
 import sys
+import os.path
 
 
 class AgentSimulation(object):
 
-    def __init__(self, Costs, Rewards, Actions, States):
+    def __init__(self, Costs, Rewards, Actions, States, ObjectNames=None, CostNames=None):
         """
         Create an object that stores simulation results.
 
@@ -26,13 +27,72 @@ class AgentSimulation(object):
         self.Rewards = Rewards
         self.Actions = Actions
         self.States = States
+        self.ObjectNames = ObjectNames
+        self.CostNames = CostNames
+        self.CostDimensions = len(self.Costs[0])
+        self.RewardDimensions = len(self.Rewards[0])
+        self.SampleNo = len(self.Costs)
 
     def PrintActions(self):
         """
         Pretty print action simulations
         """
         for i in range(len(self.Actions)):
-            sys.stdout.write(str(self.Actions[i])+"\n")
+            sys.stdout.write(str(self.Actions[i]) + "\n")
+
+    def SaveCSV(self, filename, overwrite=False):
+        """
+        Export simulation samples as a .csv file
+
+        Args:
+            filename (str): Filename
+            overwrite (bool): Overwrite file if it exists?
+        """
+        if os.path.isfile(filename) and not overwrite:
+            print "ERROR: File exists, type SaveCSV(\"" + filename + "\",True) to overwrite file."
+        else:
+            f = open(filename, 'w')
+            # Create header
+            if self.ObjectNames is not None:
+                for i in range(len(self.ObjectNames)):
+                    if i == 0:
+                        Header = str(self.ObjectNames[i])
+                    else:
+                        Header = Header + "," + str(self.ObjectNames[i])
+            else:
+                for i in range(self.RewardDimensions):
+                    if i == 0:
+                        Header = "Object" + str(i)
+                    else:
+                        Header = Header + ",Object" + str(i)
+            if self.CostNames is not None:
+                for i in self.CostNames:
+                    Header = Header + "," + str(i)
+            else:
+                for i in range(self.CostDimensions):
+                    Header = Header + ",Terrain" + str(i)
+            Header = Header + ",Actions,States\n"
+            f.write(Header)
+            # Now add the samples
+            for i in range(self.SampleNo):
+                for j in range(self.RewardDimensions):
+                    if j == 0:
+                        NewLine = str(self.Rewards[i][j])
+                    else:
+                        NewLine = NewLine + "," + str(self.Rewards[i][j])
+                for j in range(self.CostDimensions):
+                    NewLine = NewLine + "," + str(self.Costs[i][j])
+                # Print actions
+                NewLine = NewLine + ","
+                for action in self.Actions[i]:
+                    NewLine = NewLine + str(action) + "-"
+                # Print states
+                NewLine = NewLine + ","
+                for state in self.States[i]:
+                    NewLine = NewLine + str(state) + "-"
+                NewLine = NewLine + "\n"
+                f.write(NewLine)
+            f.close()
 
     def Display(self, Full=True):
         """

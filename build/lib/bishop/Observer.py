@@ -299,7 +299,7 @@ class Observer(object):
             sys.stdout.write("| 100.0%")
             sys.stdout.write("\n")
             sys.stdout.flush()
-        return AgentSimulation.AgentSimulation(Costs, Rewards, Actions, States)
+        return AgentSimulation.AgentSimulation(Costs, Rewards, Actions, States, self.Plr.Map.ObjectNames, self.Plr.Map.StateNames)
 
     def SetStartingPoint(self, StartingPoint, Verbose=True):
         """
@@ -330,11 +330,17 @@ class Observer(object):
             sys.stdout.write(
                 "Terrain Names: " + str(self.Plr.Map.StateNames) + "\n")
 
-    def PrintMap(self):
+    def PrintMap(self, terrain='*'):
         """
         Shortcut to call the Map object's PrintMap function.
+
+        Args:
+            terrain (Character): Character to mark terrains.
+
+        >> Observer.PrintMap()
+        >> Observer.PrintMap("X") # Mark empty terrains with 'X'
         """
-        self.Plr.Map.PrintMap()
+        self.Plr.Map.PrintMap(terrain)
 
     def Display(self, Full=False):
         """

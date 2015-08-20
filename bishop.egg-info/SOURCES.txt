@@ -75,6 +75,9 @@ Bishop/Maps/FixedRewardMaps/Tatik_T3_L1_FR.ini
 Bishop/Maps/FixedRewardMaps/Tatik_T3_L2_FR.ini
 Bishop/Maps/FixedRewardMaps/Tatik_T3_L3_FR.ini
 Bishop/Maps/FixedRewardMaps/Tatik_T3_L4_FR.ini
+Bishop/Maps/FlagMaps/.DS_Store
+Bishop/Maps/FlagMaps/FlagSetup.ini
+Bishop/Maps/FlagMaps/Flag_Map
 Bishop/Maps/OneCostMaps/.DS_Store
 Bishop/Maps/OneCostMaps/Tatik_Map_OC
 Bishop/Maps/OneCostMaps/Tatik_T1_L1_OC.ini

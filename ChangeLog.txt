@@ -37,3 +37,8 @@ V 2.2.0
 	- New support for empirically set priors.
 	- Maps can now be stored in subfolders.
 	- Summary functions add sample with highest likelihood.
+
+V 2.2.1
+=======
+	- Fixed some naming schemes. LoadMap() is now LoadObserver().
+	- AgentSimulation can now also save output into CSV files.

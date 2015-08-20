@@ -64,7 +64,7 @@ def AnalyzeSamples(FileName):
         print error
 
 
-def LoadObserver(PostCont):
+def LoadObserverFromPC(PostCont):
     """
     Load observer object from a PosteriorContainer object.
 
@@ -79,7 +79,7 @@ def LoadObserver(PostCont):
         return None
     else:
         try:
-            return LoadMap(PostCont.MapFile)
+            return LoadObserver(PostCont.MapFile)
         except Exception as error:
             print error
 
@@ -150,7 +150,7 @@ def LocateFile(CurrDir, filename):
                 return CurrDir
 
 
-def LoadMap(MapConfig, Revise=False, Silent=False):
+def LoadObserver(MapConfig, Revise=False, Silent=False):
     """
     Load a map. If map isn't found in Bishop's library the
     function searches for the map in your working directory.

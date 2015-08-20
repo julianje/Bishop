@@ -35,8 +35,18 @@ class Agent(object):
             Restrict (bool): When set to true the cost samples make the first terrain
                             always less costly than the rest.
         """
-        self.CostPrior = CostPrior
-        self.RewardPrior = RewardPrior
+        # Check that priors exist.
+        Priors = self.Priors(False)
+        if CostPrior in Priors:
+            self.CostPrior = CostPrior
+        else:
+            print "WARNING: Cost prior not found! Setting to uniform"
+            self.CostPrior = "ScaledUniform"
+        if RewardPrior in Priors:
+            self.RewardPrior = RewardPrior
+        else:
+            print "WARNING; Reward prior not found! Setting to uniform"
+            self.RewardPrior = "ScaledUniform"
         self.Restrict = Restrict
         self.CostDimensions = len(np.unique(Map.StateTypes))
         # Get dimensions over which you'll build your simplex
@@ -135,11 +145,19 @@ class Agent(object):
         if (Kind == "Empirical"):
             return [random.choice(SamplingParam) for i in range(dimensions)]
 
-    def Priors(self):
+    def Priors(self, human=True):
         """
         Print list of supported priors. This is hardcoded for now.
+
+        Args:
+            human (bool): If true function prints names, otherwise it returns a list.
         """
-        print ("Simplex, ScaledUniform, Gaussian, Exponential, Constant, Empirical")
+        Priors = ['Simplex', 'ScaledUniform', 'Gaussian', 'Exponential', 'Constant', 'Empirical']
+        if human:
+            for Prior in Priors:
+                print Prior
+        else:
+            return Priors
 
     def Display(self, Full=True):
         """
