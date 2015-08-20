@@ -1,21 +1,22 @@
 # -*- coding: utf-8 -*-
+#!/usr/bin/env python
 
 """
 Script to quickly run cost-reward inferences on an existing map.
 
 For help:
->> pytyon QuickRun.py --help
+>> pytyon BishopInference.py --help
 
 Example:
 
->> python QuickRun.py --map Tatik_T1_L1 --samples 100 --actions "2 2 2"
+>> python BishopInference.py --map Tatik_T1_L1 --samples 100 --actions "2 2 2"
 
 runs inference on map Tatik_T1_L1 using 100 samples
 and action sequence 2 2 2.
 
->> python QuickRun.py --map Tatik_T1_L1 --samples 100 --actions "2 2 2" --output "samples"
+>> python BishopInference.py --map Tatik_T1_L1 --samples 100 --actions "2 2 2" --output "samples"
 or
->> python QuickRun.py -m Tatik_T1_L1 -s 100 -a "2 2 2" -o "samples"
+>> python BishopInference.py -m Tatik_T1_L1 -s 100 -a "2 2 2" -o "samples"
 
 saves output on "samples.p" as a pickle file.
 """

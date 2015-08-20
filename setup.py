@@ -14,6 +14,7 @@ setup(name='Bishop',
       author_email='jjara@mit.edu',
       license='MIT',
       packages=['Bishop'],
+      scripts=['bin/BishopInference'],
       install_requires=[
           'numpy',
           'matplotlib',
