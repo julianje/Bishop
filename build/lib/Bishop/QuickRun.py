@@ -41,7 +41,7 @@ parser.add_argument(
 args = parser.parse_args()
 O = LoadObserver(args.map, False, True)
 if args.startingpoint is not None:
-    O.SetStartingPoint(args.startingpoint)
+    O.SetStartingPoint(args.startingpoint, False)
 # Need to split args.Actions
 ActionSequence = [int(s) for s in args.actions.split()]
 Res = O.InferAgent(ActionSequence, args.samples)
