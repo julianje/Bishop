@@ -40,7 +40,7 @@ class PosteriorContainer(object):
         self.RewardDimensions = self.RewardSamples.shape[1]
         self.Samples = self.RewardSamples.shape[0]
         self.Actions = ActionSequence
-        self.MapFile = "None"
+        self.MapFile = None
         if Planner is not None:
             self.CostNames = Planner.Map.StateNames
             self.StartingPoint = Planner.Map.StartingPoint
@@ -284,11 +284,11 @@ class PosteriorContainer(object):
         ExpectedCosts = self.GetExpectedCosts()
         CostMatrix = self.CompareCosts()
         # Combine all functions to print summary
-        print self.MapFile
         if human:
-            sys.stdout.write("Map: " + str(self.MapFile) + "\n")
-            sys.stdout.write(
-                "To see map details run Bishop.LoadObserverFromPC(self).\n")
+            if self.MapFile is not None:
+                sys.stdout.write("Map: " + str(self.MapFile) + "\n")
+                sys.stdout.write(
+                    "To see map details run Bishop.LoadObserverFromPC(self).\n")
             sys.stdout.write(
                 "Object locations: " + str(self.ObjectLocations) + "\n")
             sys.stdout.write(

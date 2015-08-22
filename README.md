@@ -3,43 +3,55 @@ ______
 
 ## About
 
-Bishop, after [Washington Bishop](http://en.wikipedia.org/wiki/Washington_Irving_Bishop), is a cognitive model of [Theory of mind](http://en.wikipedia.org/wiki/Theory_of_mind).
+Bishop, after [Washington Bishop](http://en.wikipedia.org/wiki/Washington_Irving_Bishop), is a python package for modeling  [Theory of mind](http://en.wikipedia.org/wiki/Theory_of_mind) tasks. Given some observable behavior, Bishop infers (through Bayesian inference over a rational model of decision making and planning under uncertainty) the cost and reward functions that explain the agent's choices and actions.
 
 ## Install and uninstall
 
 	python setup.py install
 	pip uninstall Bishop
 
-## Running Bishop
+## Using Bishop
 
-#### Simulate agents traveling in an existing map
+Simulate agents:
 
 	from Bishop import *	
-	Observer = LoadEnvironment("Tatik_T1_L1")
-	Observer.SimulateAgents(Samples=100,HumanReadable=True)
+	Observer = LoadObserver("FlagSetup")
+	R = Observer.SimulateAgents(Samples=100) # Generate 100 random agents.
+	R.SaveCSV("MySamples.csv") # Save costs, rewards, actions, and state transitions as a CSV file.
+	R.Display() # Print everything
 
-To see a list of available maps just type
+To see a list of available maps:
 	
 	ShowAvailableMaps()
 
 #### Cost-reward inference given observable actions
 
-	Observer = LoadEnvironment("Tatik_T1_L1")
-	Res = Observer.InferAgent(['L','L','U'], Samples=100, Feedback=True)
+#### From the terminal
 
-The result is a __PosteriorContainer__ object. Here are some things you can do with the output
+    $Bishop --help
+    $Bishop -m FlagSetup -sp 0 -a "R R" -s 5000 -o MySamples -v
 
-	Res.Summary() # Human-readable summary
+uses the FlagSetup file (in Bishop's library) to load the map and places an agent in location 0 who took two steps to the right. It then infers the cost and reward function using 5000 samples and stores the output in "MySamples.p"
+
+#### Inside python
+
+	Obs = LoadObserver("Tatik_T1_L1")
+	Res = Obs.InferAgent(['UL'], Samples=100, Feedback=True) #UL (Up-Left) is a diagonal move 
+
+The Observer.InferAgent returns a __PosteriorContainer__ object. Here are some things you can do with it
+
+	Res.Summary()
+	Res.Summary(Human=False) # Or print it in csv-format
 	Res.AnalyzeConvergence() # Visually check if sampling converged
 	Res.PlotCostPosterior()
 	Res.PlotRewardPosterior()
-	Res.Summary(Human=False) # prints summary in csv style for easier analysis
+	Res.Summary(Human=False)
 	SaveSamples(Res, "MyResults")
 
 You can reload the samples and the observer model later with
 
 	Res = LoadSamples("MyResults.p")
-	Observer = LoadObserver(Res)
+	Obs = LoadObserverFromPC(Res)
 
 ## Creating a new map
 
@@ -47,20 +59,59 @@ You can reload the samples and the observer model later with
 
 A map consists of two files: An ASCII description, and a .ini configuration file.
 
-ASCII files begin with a map drawing, with each terrain type indicated numerically. After a line break, each terrain name is specified in a single line
+ASCII files begin with a map drawing, with each terrain type indicated numerically. After a line break, each terrain name is specified in a single line. These are the files for "FlagSetup" map
 
-	000
-	111
-	000
-	
-	Jungle
-	Water
+__FlagSetup.ini__
 
-specifies a 3x3 map where the top and bottom row are "Jungle" and the middle row is "Water."
+    [MapParameters]
+    DiagonalTravel: True
+    MapName: Flag_Map
+    # Starting point can get overriden later with Observer.SetStartingPoint()
+    StartingPoint: 2
+    ExitState: 58
+    
+    [Objects]
+    ObjectLocations: 41 49
+    ObjectTypes: 0 1
+    ObjectNames: LTreat RTreat
+    # If the two treats were the same type:
+    # ObjectTypes: 0 0
+    # ObjectNames: OnlyOneNameNeeded
+    
+    [AgentParameters]
+    # Prior over costs and rewards.
+    Prior: ScaledUniform
+    # Force terrain 0 to be always less costly than the rest?
+    Restrict: False
+    SoftmaxChoice = False
+    SoftmaxAction = False
+    # Softmax parameters
+    # actionTau = 0.01
+    # choiceTau = 0.01 
+    # When different than 0 prior becomes a mixture of the
+    # prior above with a peak in 0. The value determines the mass on that point.
+    RNull = 0.2
+    CNull = 0
+    # Parameters for priors. Meaning changes depending on the prior. See docstrings
+    CostParameters = 1
+    RewardParameters = 10
 
-The second file, MapName.ini, lets you specify properties of the agent (e.g., is the agent strictly or approximately rational and efficient?) and the map (starting point and exit states). See the Maps folder for an example.
 
-### Inside python
+__FlagMap__
+
+    0000011122222
+    0000011122222
+    0000011122222
+    0000011122222
+    0000011122222
+    0000011122222
+    0000011122222
+    
+    LeftTerrainName
+    CenterTerrainName
+    RightTerrainName
+
+### Building a map inside python
 
 ##### Map skeleton
 
@@ -94,4 +145,4 @@ SOON
 Once you have a map, you need to create an agent, and use both to create an observer
 
 	MyAgent = Agent(MyMap, CostParam, RewardParam)
-	Observer = Observer(MyMap, MyAgent)
+	MyObserver = Observer(MyMap, MyAgent)

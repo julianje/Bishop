@@ -284,7 +284,6 @@ class PosteriorContainer(object):
         ExpectedCosts = self.GetExpectedCosts()
         CostMatrix = self.CompareCosts()
         # Combine all functions to print summary
-        print self.MapFile
         if human:
             if self.MapFile is not None:
                 sys.stdout.write("Map: " + str(self.MapFile) + "\n")
