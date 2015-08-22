@@ -4,7 +4,6 @@ setup.py
 Bishop/Agent.py
 Bishop/AgentSimulation.py
 Bishop/AuxiliaryFunctions.py
-Bishop/BishopInference.py
 Bishop/MDP.py
 Bishop/Map.py
 Bishop/Observer.py
@@ -121,4 +120,4 @@ Bishop/Maps/OneRewardMaps/Tatik_T3_L4_OR.ini
 Bishop/Maps/TestMaps/M1
 Bishop/Maps/TestMaps/T1
 Bishop/Maps/TestMaps/T1.ini
-bin/BishopInference
+bin/Bishop

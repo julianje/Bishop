@@ -26,6 +26,7 @@ __license__ = "MIT"
 
 from Bishop import *
 import argparse
+import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -38,14 +39,24 @@ parser.add_argument(
     "-o", "--output", help="Name of file where to solve samples.")
 parser.add_argument(
     "-sp", "--startingpoint", help="Agent's starting point.", type=int)
+parser.add_argument(
+    "-v", "--verbose", help="Verbose?", action="store_true")
 
 args = parser.parse_args()
+# Don't print yet because we might change the starting point
 O = LoadObserver(args.map, False, True)
 if args.startingpoint is not None:
     O.SetStartingPoint(args.startingpoint, False)
 # Need to split args.Actions
 ActionSequence = [int(s) for s in args.actions.split()]
-Res = O.InferAgent(ActionSequence, args.samples)
-Res.Summary(False)
+if args.verbose:
+    O.PrintMap()
+Res = O.InferAgent(ActionSequence, args.samples, args.verbose)
+print Res.MapFile
+Res.AssociateMap(str(args.map))
+print Res.MapFile
+if not args.verbose:
+    Res.Summary(False)
 if args.output is not None:
     SaveSamples(Res, args.output)
+print Res.MapFile

@@ -6,7 +6,7 @@ def readme():
         return f.read()
 
 setup(name='Bishop',
-      version='2.2.1',
+      version='2.2.2',
       description='Cognitive model of Theory of Mind',
       long_description=readme(),
       url='http://gibthub.com/julianje/bishop',
@@ -14,7 +14,7 @@ setup(name='Bishop',
       author_email='jjara@mit.edu',
       license='MIT',
       packages=['Bishop'],
-      scripts=['bin/BishopInference'],
+      scripts=['bin/Bishop'],
       install_requires=[
           'numpy',
           'matplotlib',

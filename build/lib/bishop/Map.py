@@ -384,8 +384,7 @@ class Map(object):
         colors = ['\033[94m', '\033[92m', '\033[93m',
                   '\033[91m', '\033[1m', '\033[4m', '\033[95m']
         endcolor = '\033[0m'
-        sys.stdout.write("Possible actions: " + str(self.ActionNames) + "\n")
-        sys.stdout.write("Diagonal travel: " + str(self.diagonal) + "\n")
+        sys.stdout.write("Action space: " + str(self.ActionNames) + "\n")
         sys.stdout.write("Targets: ")
         if self.ObjectLocations != []:
             sys.stdout.write(str(self.PullObjectStates(True)) + "\n")
@@ -395,22 +394,23 @@ class Map(object):
         if self.ExitState is not None:
             sys.stdout.write(str(self.GetCoordinates(self.ExitState)) + "\n\n")
         else:
-            sys.stdout.write("None\n\n")
+            sys.stdout.write("None\n")
         # Print color keys
         terrains = list(set(self.StateTypes))
+        sys.stdout.write("Terrains: ")
         if self.StateNames == []:
             for i in range(len(terrains)):
                 sys.stdout.write(
-                    colors[i] + "Terrain " + str(i) + endcolor + "\n")
+                    colors[i] + "Terrain " + str(i) + endcolor + " ")
         else:
             for i in range(len(terrains)):
                 sys.stdout.write(
-                    colors[i] + str(self.StateNames[i]) + endcolor + "\n")
-
-        print "Objects are numbered. E = exit state and S = starting point"
-        for i in range(len(self.ObjectNames)):
-            sys.stdout.write(self.ObjectNames[i] + ": " + str(i) + "\n")
+                    colors[i] + str(self.StateNames[i]) + endcolor + " ")
         sys.stdout.write("\n")
+        sys.stdout.write("Map labels: Exit state (E), starting point (S)")
+        for i in range(len(self.ObjectNames)):
+            sys.stdout.write(", " + self.ObjectNames[i] + "(" + str(i) + ")")
+        sys.stdout.write("\n\n")
         ObjectStates = self.PullObjectStates(False)  # Get raw object states
         currstate = 0
         begincolor = endcolor

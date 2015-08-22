@@ -40,7 +40,7 @@ class PosteriorContainer(object):
         self.RewardDimensions = self.RewardSamples.shape[1]
         self.Samples = self.RewardSamples.shape[0]
         self.Actions = ActionSequence
-        self.MapFile = None
+        self.MapFile = "None"
         if Planner is not None:
             self.CostNames = Planner.Map.StateNames
             self.StartingPoint = Planner.Map.StartingPoint
@@ -118,9 +118,6 @@ class PosteriorContainer(object):
             MapName (string): Name of map to use.
         """
         self.MapFile = MapName
-        FilePath = os.path.dirname(__file__) + "/Maps/" + MapName + ".ini"
-        if not os.path.isfile(FilePath):
-            print "WARNING: PosteriorContainer is linked with a map that doesn't exist in Bishop's library."
 
     def LongSummary(self):
         """
@@ -286,11 +283,12 @@ class PosteriorContainer(object):
         RewardMatrix = self.CompareRewards()
         ExpectedCosts = self.GetExpectedCosts()
         CostMatrix = self.CompareCosts()
-        # Combine all function to print summary here
+        # Combine all functions to print summary
+        print self.MapFile
         if human:
             sys.stdout.write("Map: " + str(self.MapFile) + "\n")
             sys.stdout.write(
-                "To see map details run Bishop.LoadObserver(self).\n")
+                "To see map details run Bishop.LoadObserverFromPC(self).\n")
             sys.stdout.write(
                 "Object locations: " + str(self.ObjectLocations) + "\n")
             sys.stdout.write(
