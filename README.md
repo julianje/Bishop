@@ -3,7 +3,7 @@ ______
 
 ## About
 
-Bishop, after [Washington Bishop](http://en.wikipedia.org/wiki/Washington_Irving_Bishop), is a python package for modeling  [Theory of mind](http://en.wikipedia.org/wiki/Theory_of_mind) tasks. Given some observable behavior, Bishop infers (through Bayesian inference over a rational model of decision making and planning under uncertainty) the cost and reward functions that explain the agent's choices and actions.
+Bishop, after [Washington Bishop](http://en.wikipedia.org/wiki/Washington_Irving_Bishop), is a python package for modeling  [Theory of mind](http://en.wikipedia.org/wiki/Theory_of_mind). Given some observable behavior, Bishop infers (through Bayesian inference over a rational model of decision making and planning under uncertainty) the cost and reward functions that explain the agent's choices and actions.
 
 ## Install and uninstall
 
