@@ -14,6 +14,10 @@ import math
 import random
 import sys
 import scipy.misc
+import Image
+import ImageDraw
+import ImageFont
+import os
 from itertools import product, repeat, permutations
 
 
@@ -250,7 +254,8 @@ class Planner(object):
             costs = sum([self.CostMatrix[goals[j - 1], goals[j]]
                          for j in range(1, len(goals))])
             # Compute the rewards
-            rewards = sum([self.Agent.rewards[self.Map.ObjectTypes[j]] for j in goalindices[i]])
+            rewards = sum(
+                [self.Agent.rewards[self.Map.ObjectTypes[j]] for j in goalindices[i]])
             # Costs are already negative here!
             utility[i] = rewards + costs
         self.Utilities = utility
@@ -460,6 +465,76 @@ class Planner(object):
                         LogLikelihoodTerms[i] = -sys.maxint - 1
         LogLikelihood = scipy.misc.logsumexp(LogLikelihoodTerms)
         return LogLikelihood
+
+    def GetPivot(self, state):
+        """
+        Internal function to transform int id's into x-y position of the top-left part of the grid.
+        (e.g., (0,0) for state 0 in position (1,1)).
+
+        Args:
+            state (int): State id.
+        Returns:
+            [x,y]: coordinates
+        """
+        y = state / self.Map.mapwidth
+        x = state - y * self.Map.mapwidth
+        return [x, y]
+
+    def DrawMap(self, filename, ActionSequence=[], size=20):
+        """
+        Save map as an image.
+
+        Args:
+            filename (String): Name of file for saved image.
+            Actionsequence [list]: list of (numeric) actions the agent took.
+            size (int): Size of each grid in pixels.
+        """
+        terraincolors = ["#F0A3FF", "#0075DC", "#993F00", "#4C005C",
+                         "#005C31", "#2BCE48", "#FFCC99", "#808080"]
+        objectcolors = ["#FF5005", "#FFFF00", "#FFFF80", "#990000",
+                        "#740AFF", "#00998F", "#426600", "#003380", "#C20088", "#94FFB5",
+                        "#2BCE48", "#5EF1F2"]
+        if not self.Map.Validate():
+            print "WARNING: Map is not well formed. May fail to render image. PLANNER-013"
+        # Draw map first:
+        im = Image.new(
+            "RGB", [self.Map.mapwidth * size, self.Map.mapheight * size])
+        draw = ImageDraw.Draw(im)
+        for i in range(self.Map.mapwidth):
+            for j in range(self.Map.mapheight):
+                dimensions = [
+                    i * size, j * size, (i + 1) * size, (j + 1) * size]
+                draw.rectangle(dimensions,
+                               terraincolors[self.Map.StateTypes[self.Map.mapwidth * j + i]], "#000000")
+        # add objects, starting point, and exit.
+        fontpath = os.path.dirname(__file__) + '/Fonts/'
+        font = ImageFont.truetype(
+            os.path.join(fontpath, "estre.ttf"), int(size * 4.0 / 3.0))
+        [SPX, SPY] = self.GetPivot(self.Map.StartingPoint)
+        draw.text([SPX * size + (size / 4), SPY * size], "S", "#000000", font)
+        [EX, EY] = self.GetPivot(self.Map.ExitState)
+        draw.text([EX * size, EY * size], "E", "#000000", font)
+        # add objects
+        for obj in range(len(self.Map.ObjectLocations)):
+            [OX, OY] = self.GetPivot(self.Map.ObjectLocations[obj])
+            draw.ellipse(
+                [OX * size, OY * size, (OX + 1) * size, (OY + 1) * size], objectcolors[self.Map.ObjectTypes[obj]], "#000000")
+        # add path
+        if ActionSequence != []:
+            [DX, DY] = [SPX, SPY]
+            for action in ActionSequence:
+                if action in [0, 4, 6]:
+                    DX -= 1
+                if action in [1, 5, 7]:
+                    DX += 1
+                if action in [2, 4, 5]:
+                    DY += 1
+                if action in [3, 6, 7]:
+                    DY -= 1
+                draw.text(
+                    [DX * size, DY * size, (DX + 1) * size, (DY + 1) * size], "*", "#000000", font)
+        # Save image
+        im.save(filename)
 
     def Display(self, Full=False):
         """

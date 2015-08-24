@@ -19,7 +19,8 @@ setup(name='Bishop',
           'numpy',
           'matplotlib',
           'scipy',
-          'argparse'
+          'argparse',
+          'Image'
       ],
       include_package_data=True,
       zip_safe=False)

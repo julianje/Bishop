@@ -1,3 +1,4 @@
 include README.md
 recursive-include Bishop/Maps *
 include Bishop/Examples/*
+include Bishop/Fonts/*

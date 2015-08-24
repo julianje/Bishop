@@ -129,6 +129,23 @@ class Observer(object):
         else:
             return None
 
+    def DrawMap(self, filename, ActionSequence=[], size=20):
+        """
+        Save map as an image.
+
+        Args:
+            filename (String): Name of file for saved image.
+            Actionsequence [list]: list of (numeric) actions the agent took.
+            size (int): Size of each grid in pixels.
+        """
+        if not all(isinstance(x, int) for x in ActionSequence):
+            if all(isinstance(x, str) for x in ActionSequence):
+                ActionSequence = self.Plr.Map.GetActionList(ActionSequence)
+            else:
+                print "ERROR: Action sequence must contains the indices of actions or their names."
+                return None
+        self.Plr.DrawMap(filename, ActionSequence, size)
+
     def InferAgent(self, ActionSequence, Samples, Feedback=False, Method="Importance"):
         """
         Compute a series of samples with their likelihoods.

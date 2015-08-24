@@ -20,6 +20,8 @@ Bishop.egg-info/top_level.txt
 Bishop/Examples/DetailedInference.py
 Bishop/Examples/SimpleInference.py
 Bishop/Examples/SimulateAgents.py
+Bishop/Fonts/.DS_Store
+Bishop/Fonts/estre.ttf
 Bishop/Maps/.DS_Store
 Bishop/Maps/Cogsci15Maps/.DS_Store
 Bishop/Maps/Cogsci15Maps/Tatik_Map
