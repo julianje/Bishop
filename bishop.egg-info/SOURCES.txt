@@ -119,6 +119,7 @@ Bishop/Maps/OneRewardMaps/Tatik_T3_L1_OR.ini
 Bishop/Maps/OneRewardMaps/Tatik_T3_L2_OR.ini
 Bishop/Maps/OneRewardMaps/Tatik_T3_L3_OR.ini
 Bishop/Maps/OneRewardMaps/Tatik_T3_L4_OR.ini
+Bishop/Maps/TestMaps/.DS_Store
 Bishop/Maps/TestMaps/M1
 Bishop/Maps/TestMaps/T1
 Bishop/Maps/TestMaps/T1.ini

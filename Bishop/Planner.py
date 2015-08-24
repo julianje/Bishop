@@ -510,6 +510,8 @@ class Planner(object):
         fontpath = os.path.dirname(__file__) + '/Fonts/'
         font = ImageFont.truetype(
             os.path.join(fontpath, "estre.ttf"), int(size * 4.0 / 3.0))
+        fontsmall = ImageFont.truetype(
+            os.path.join(fontpath, "estre.ttf"), int(size * 4.0 / 6.0))
         [SPX, SPY] = self.GetPivot(self.Map.StartingPoint)
         draw.text([SPX * size + (size / 4), SPY * size], "S", "#000000", font)
         [EX, EY] = self.GetPivot(self.Map.ExitState)
@@ -522,17 +524,19 @@ class Planner(object):
         # add path
         if ActionSequence != []:
             [DX, DY] = [SPX, SPY]
-            for action in ActionSequence:
+            for actionid in range(len(ActionSequence)):
+                action = ActionSequence[actionid]
                 if action in [0, 4, 6]:
                     DX -= 1
                 if action in [1, 5, 7]:
                     DX += 1
                 if action in [2, 4, 5]:
-                    DY += 1
-                if action in [3, 6, 7]:
                     DY -= 1
-                draw.text(
-                    [DX * size, DY * size, (DX + 1) * size, (DY + 1) * size], "*", "#000000", font)
+                if action in [3, 6, 7]:
+                    DY += 1
+                if DX != EX or DY != EY:
+                    draw.text([DX * size, DY * size, (DX + 1) * size,
+                               (DY + 1) * size], str(actionid), "#000000", fontsmall)
         # Save image
         im.save(filename)
 

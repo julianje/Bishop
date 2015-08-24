@@ -134,6 +134,8 @@ class Agent(object):
             # Output: Simplex sample of length 'dimensions' (Adds to 1)
             sample = -np.log(np.random.rand(dimensions))
             return sample / sum(sample)
+        if (Kind == "IntegerUniform"):
+            return np.round(np.random.rand(dimensions) * SamplingParam[0])
         if (Kind == "ScaledUniform"):
             return np.random.rand(dimensions) * SamplingParam[0]
         if (Kind == "Gaussian"):
@@ -152,7 +154,7 @@ class Agent(object):
         Args:
             human (bool): If true function prints names, otherwise it returns a list.
         """
-        Priors = ['Simplex', 'ScaledUniform', 'Gaussian', 'Exponential', 'Constant', 'Empirical']
+        Priors = ['Simplex', 'IntegerUniform', 'ScaledUniform', 'Gaussian', 'Exponential', 'Constant', 'Empirical']
         if human:
             for Prior in Priors:
                 print Prior
