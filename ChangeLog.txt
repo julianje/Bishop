@@ -42,3 +42,7 @@ V 2.2.1
 =======
 	- Fixed some naming schemes. LoadMap() is now LoadObserver().
 	- AgentSimulation can now also save output into CSV files.
+
+V 2.3.0
+=======
+	- Fixed a big bug. Code assumed that the CostMatrix was symmetric and this is not necessarily true.

@@ -153,7 +153,6 @@ class Planner(object):
                 TotalCost = sum(
                     [self.MDP.R[Actions[i]][StateSequence[i]] for i in range(len(Actions))])
                 CostMatrix[OriginalPointIndex][TargetStateIndex] = TotalCost
-                CostMatrix[TargetStateIndex][OriginalPointIndex] = TotalCost
         return [Policies, CostMatrix]
 
     def SimulatePathUntil(self, StartingPoint, StopStates, inputMDP, Limit=300, Simple=False):
