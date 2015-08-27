@@ -118,11 +118,9 @@ class MDP(object):
             options = np.mat(
                 self.T[i, :, :]) * np.mat(self.values.transpose())
             options = options.tolist()
-            # Include cost of immediate action
-            options = [options[j][0]+self.R[:, i].tolist()[j] for j in range(len(options))]
             # Prevent softmax from overflowing
-            maxval = abs(max(options))
-            options = [j - maxval for j in options]
+            maxval = abs(max(options)[0])
+            options = [options[j][0] - maxval for j in range(len(options))]
             # Softmax the policy
             if Softmax:
                 try:

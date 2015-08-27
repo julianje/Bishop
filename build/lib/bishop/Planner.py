@@ -132,8 +132,8 @@ class Planner(object):
             subMDP.T[TargetState, :, :] = 0
             # Any action sends to dead state
             subMDP.T[TargetState, :, len(self.Map.S)] = 1
-            # Replace with big reward
-            subMDP.R[:, TargetState] = self.planningreward
+            # Add a big reward
+            subMDP.R[:, TargetState] += self.planningreward
             if Validate:
                 subMDP.Validate()
             # Calculate and save optimal policy
@@ -347,9 +347,8 @@ class Planner(object):
         ############################################################
         # Now switch back to the indices you'll use to call the policies.
         objectscollected = copy.deepcopy(Visitedindices)
-        Complete = True
-        if self.CriticalStates[Visitedindices[-1]] != self.Map.ExitState:
-            Complete = False
+        Complete = True if self.CriticalStates[
+            Visitedindices[-1]] == self.Map.ExitState else False
         for i in range(1, len(objectscollected)):
             tempPolicy = self.Policies[objectscollected[i]]
             beginstate = StateSequence.index(

@@ -46,3 +46,8 @@ V 2.2.1
 V 2.3.0
 =======
 	- Fixed a big bug. Code assumed that the CostMatrix was symmetric and this is not necessarily true.
+
+V 2.4.0
+=======
+	- Modified ValueIteration and Policy builder on MDP. Replacing target state on subMDPs for a big reward biased the agent to push diagonal actions to the end (because that way you save square root of 2 cost).
+
