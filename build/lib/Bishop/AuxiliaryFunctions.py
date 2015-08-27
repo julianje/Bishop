@@ -102,9 +102,12 @@ def GetMapList(CurrDir):
     return files
 
 
-def ShowAvailableMaps():
+def ShowAvailableMaps(Match=""):
     """
     Print list of maps in Bishop library.
+
+    Args:
+        Match (String): Only print maps that contain string.
     """
     # Create an empty dictionary.
     results = {}
@@ -123,7 +126,8 @@ def ShowAvailableMaps():
     for key in results:
         sys.stdout.write(key + ":\n")
         for i in results[key]:
-            sys.stdout.write("\t" + i + "\n")
+            if Match in i:
+                sys.stdout.write("\t" + i + "\n")
     sys.stdout.write("\n")
 
 
@@ -367,7 +371,8 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
                 "MapParameters", "MapName")
             if not Local:
                 TerrainPath = os.path.dirname(__file__) + "/Maps/"
-                TerrainPath = os.path.join(LocateFile(TerrainPath, MapName), MapName)
+                TerrainPath = os.path.join(
+                    LocateFile(TerrainPath, MapName), MapName)
             else:
                 TerrainPath = MapName
             f = open(TerrainPath, "r")
