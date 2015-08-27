@@ -146,6 +146,24 @@ class Observer(object):
                 return None
         self.Plr.DrawMap(filename, ActionSequence, size)
 
+    def SetCR(self, costs, rewards):
+        """
+        Set costs and rewards.
+
+        Args:
+            costs (list): List of cost values
+            rewards (list): List of reward values
+        """
+        if len(costs) == len(self.Plr.Agent.costs):
+            self.Plr.Agent.costs = costs
+        else:
+            print "Cost list does not match number of terrains."
+            return None
+        if len(rewards) == len(self.Plr.Agent.rewards):
+            self.Plr.Agent.rewards = rewards
+            return None
+        self.Plr.Prepare(self.Validate)
+
     def InferAgent(self, ActionSequence, Samples, Feedback=False, Method="Importance"):
         """
         Compute a series of samples with their likelihoods.

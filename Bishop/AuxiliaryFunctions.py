@@ -79,7 +79,10 @@ def LoadObserverFromPC(PostCont):
         return None
     else:
         try:
-            return LoadObserver(PostCont.MapFile)
+            Observer = LoadObserver(PostCont.MapFile, False, True)
+            Observer.SetStartingPoint(PostCont.StartingPoint, False)
+            Observer.PrintMap()
+            return Observer
         except Exception as error:
             print error
 

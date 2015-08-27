@@ -49,6 +49,11 @@ class Planner(object):
         self.planningreward = 500
         self.gamma = 0.95  # Internal future discount to plan between goals
         self.Prepare(Validate)
+        # Internal save to avoid recomputing things in self.Likelihood() when not necessary
+        self.LastActionSequence = None
+        self.LastStateSquence = None
+        self.LastVisitedIndices = None
+        self.LastComplete = None
 
     def Prepare(self, Validate=True):
         """
@@ -196,6 +201,7 @@ class Planner(object):
     def BuildCostFunction(self, DeadState=True):
         """
         Build the cost function for an MDP using the Map and Agent objects.
+        Dead state adds a 0 cost movement towards an absorbing state with reward 0 (which makes valueiteration for the subMDPs converge faster because the agent can only take the reward once).
 
         Args:
             DeadState (bool): Indicates if it should add a dead state with cost 0.
@@ -325,30 +331,43 @@ class Planner(object):
             ActionSequence (list): List of observed actions
         """
         LogLikelihood = 0
-        # Part 1. Decompose action sequence into sub-goals.
-        ###################################################
-        # Get list of states
-        StateSequence = self.MDP.GetStates(
-            self.Map.StartingPoint, ActionSequence)
-        # Get the index of the critical states the agent visited.
-        VisitedindicesFull = [
-            self.CriticalStates.index(i) if i in self.CriticalStates else -1 for i in StateSequence]
-        VisitedindicesFull = filter(lambda a: a != -1, VisitedindicesFull)
-        # If agent crosses same spot more than once then
-        # only the first pass matters.
-        Visitedindices = []
-        for i in VisitedindicesFull:
-            if not i in Visitedindices:
-                Visitedindices.append(i)
-        # Sanity check, first visited index should correspond to starting state
-        if self.CriticalStates[Visitedindices[0]] != self.Map.StartingPoint:
-            print "ERROR: First critical state does not match starting point. PLANNER-009"
+        if ActionSequence != self.LastActionSequence:
+            self.LastActionSequence = ActionSequence
+            # Part 1. Decompose action sequence into sub-goals.
+            ###################################################
+            # Get list of states
+            StateSequence = self.MDP.GetStates(
+                self.Map.StartingPoint, ActionSequence)
+            self.LastStateSquence = StateSequence
+            # Get the index of the critical states the agent visited.
+            VisitedindicesFull = [
+                self.CriticalStates.index(i) if i in self.CriticalStates else -1 for i in StateSequence]
+            VisitedindicesFull = filter(lambda a: a != -1, VisitedindicesFull)
+            # If agent crosses same spot more than once then
+            # only the first pass matters.
+            # EXCEPT when you're crossing the exit state. The exit state only
+            # matters if it's the final state.
+            Visitedindices = []
+            for i in VisitedindicesFull:
+                # Check that it's new, but that it's not the exit state.
+                if (i not in Visitedindices) and (i != len(self.CriticalStates) - 1):
+                    Visitedindices.append(i)
+            # Now add the exit state if it's there.
+            if VisitedindicesFull[-1] == len(self.CriticalStates) - 1:
+                Visitedindices.append(VisitedindicesFull[-1])
+                Complete = True
+            else:
+                Complete = False
+            self.LastComplete = Complete
+            self.LastVisitedIndices = Visitedindices
+        else:
+            StateSequence = self.LastStateSquence
+            Visitedindices = self.LastVisitedIndices
+            Complete = self.LastComplete
         # Part 2. Compute likelihoods of each complete sub-sequence.
         ############################################################
         # Now switch back to the indices you'll use to call the policies.
         objectscollected = copy.deepcopy(Visitedindices)
-        Complete = True if self.CriticalStates[
-            Visitedindices[-1]] == self.Map.ExitState else False
         for i in range(1, len(objectscollected)):
             tempPolicy = self.Policies[objectscollected[i]]
             beginstate = StateSequence.index(
@@ -484,7 +503,7 @@ class Planner(object):
 
         Args:
             filename (String): Name of file for saved image.
-            Actionsequence [list]: list of (numeric) actions the agent took.
+            ActionSequence [list]: list of (numeric) actions the agent took.
             size (int): Size of each grid in pixels.
         """
         terraincolors = ["#F0A3FF", "#0075DC", "#993F00", "#4C005C",
