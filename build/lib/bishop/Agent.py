@@ -13,7 +13,7 @@ import numpy as np
 
 class Agent(object):
 
-    def __init__(self, Map, CostPrior, RewardPrior, CostParams, RewardParams, SoftmaxChoice=True, SoftmaxAction=True, choiceTau=1, actionTau=0.01, CNull=0, RNull=0, Restrict=False):
+    def __init__(self, Map, CostPrior, RewardPrior, CostParams, RewardParams, Capacity=-1, SoftmaxChoice=True, SoftmaxAction=True, choiceTau=1, actionTau=0.01, CNull=0, RNull=0, Restrict=False):
         """
         Agent class.
 
@@ -26,6 +26,8 @@ class Agent(object):
             RewardPrior (str): String indicating Reward prior's name. Run Agent.Priors() to see list
             CostParams (list): List of parameters for sampling costs.
             RewardParams (list): List of parameters for sampling rewards.
+            Capacity (int): Number of objects agent can carry. If set to -1 Planner adjusts
+                            it to the total number of objects in the map.
             SoftmaxChoice (bool): Does the agent select goals optimally?
             SoftmaxAction (bool): Does the agent act upong goals optimally?
             choiceTau (float): Softmax parameter for goal selection.
@@ -51,6 +53,7 @@ class Agent(object):
         self.CostDimensions = len(np.unique(Map.StateTypes))
         # Get dimensions over which you'll build your simplex
         self.RewardDimensions = len(set(Map.ObjectTypes))
+        self.Capacity = Capacity
         self.SoftmaxChoice = SoftmaxChoice
         self.SoftmaxAction = SoftmaxAction
         if SoftmaxAction:
@@ -154,7 +157,8 @@ class Agent(object):
         Args:
             human (bool): If true function prints names, otherwise it returns a list.
         """
-        Priors = ['Simplex', 'IntegerUniform', 'ScaledUniform', 'Gaussian', 'Exponential', 'Constant', 'Empirical']
+        Priors = ['Simplex', 'IntegerUniform', 'ScaledUniform',
+                  'Gaussian', 'Exponential', 'Constant', 'Empirical']
         if human:
             for Prior in Priors:
                 print Prior

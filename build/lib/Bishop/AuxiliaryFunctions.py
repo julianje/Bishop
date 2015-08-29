@@ -226,6 +226,15 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
         else:
             print "WARNING: No reward prior specified in AgentParameters. Use Agent.Priors() to see list of priors"
             return None
+    if Config.has_option("AgentParameters", "Capacity"):
+        Capacity = Config.getint("AgentParameters", "Capacity")
+    else:
+        Capacity = -1
+    if Revise:
+        temp = raw_input(
+            "Agent capacity (" + str(Capacity) + "; -1 means unlimited):")
+        if temp != '':
+            Capacity = int(temp)
     if Config.has_option("AgentParameters", "Restrict"):
         Restrict = Config.getboolean("AgentParameters", "Restrict")
     else:
@@ -447,7 +456,7 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
         if not Silent:
             sys.stdout.write("\n")
             MyMap.PrintMap()
-        MyAgent = Agent(MyMap, CostPrior, RewardPrior, CostParameters, RewardParameters,
+        MyAgent = Agent(MyMap, CostPrior, RewardPrior, CostParameters, RewardParameters, Capacity,
                         SoftmaxChoice, SoftmaxAction, choiceTau, actionTau, CNull, RNull, Restrict)
         return Observer(MyAgent, MyMap)
     except Exception as error:

@@ -54,3 +54,5 @@ V 2.4.0
 V 2.5.0
 =======
 	- Agents now have capacity of objects they can collect.
+	- Cleaned up files.
+	- Updated examples and documentation.

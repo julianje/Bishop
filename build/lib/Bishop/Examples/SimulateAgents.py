@@ -2,19 +2,26 @@
 
 from Bishop import *
 
-Observer = LoadEnvironment("Tatik_T1_L1")
+Observer = LoadObserver("Tatik_T1_L1")
 # Simulate different agents
-Observer.SimulateAgents(Samples=100, HumanReadable=True)
+Simulations = Observer.SimulateAgents(Samples=100, HumanReadable=True)
 # Simulate same agent over and over again (output only changes is agent is
 # softmaxed)
-Observer.SimulateAgents(Samples=100, HumanReadable=True, ResampleAgent=False)
+Simulations = Observer.SimulateAgents(Samples=100, HumanReadable=True, ResampleAgent=False)
+
+# See cost and reward samples and the actions.
+Simulations.Costs
+Simulations.Rewards
+Simulations.Actions
+# Save simulations onto a .csv file
+Simulations.SaveCSV("MySimulations.csv", overwrite=False)
 
 # Call using all parameters:
 # Simulate 100 agents, output raw action ids,
 # resample agent after each simulation
 # when agent can take two equally good actions
 # select the first one.
-Observer.SimulateAgents(
+Simulations = Observer.SimulateAgents(
     Samples=100,
     HumanReadable=False,
     ResampleAgent=True,

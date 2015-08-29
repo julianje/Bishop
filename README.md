@@ -22,7 +22,8 @@ Simulate agents:
 
 To see a list of available maps:
 	
-	ShowAvailableMaps()
+	ShowAvailableMaps() # Print all maps
+    ShowAvailableMaps("Flag") # Print maps that contain "Flag"
 
 #### Cost-reward inference given observable actions
 

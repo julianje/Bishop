@@ -36,6 +36,9 @@ class Planner(object):
         """
         self.Agent = Agent
         self.Map = Map
+        # Check if you need to set Agent's capacity
+        if self.Agent.Capacity == -1:
+            self.Agent.Capacity = len(self.Map.ObjectLocations)
         self.MDP = []
         # Policies is a list of lists, where policies[i] contains the MDPs policy for reaching position CriticalStates[i]
         # Note that here i and j are not MDP raw state numbers, but the
@@ -49,7 +52,8 @@ class Planner(object):
         self.planningreward = 500
         self.gamma = 0.95  # Internal future discount to plan between goals
         self.Prepare(Validate)
-        # Internal save to avoid recomputing things in self.Likelihood() when not necessary
+        # Internal save to avoid recomputing things in self.Likelihood() when
+        # not necessary
         self.LastActionSequence = None
         self.LastStateSquence = None
         self.LastVisitedIndices = None
@@ -247,6 +251,8 @@ class Planner(object):
         for i in range(len(subsets)):
             for j in permutations(subsets[i]):
                 goalindices.append(list(j))
+        # Reduce goal indices to the ones that the agent has capacity for.
+        goalindices = [i for i in goalindices if len(i) <= self.Agent.Capacity]
         utility = [0] * len(goalindices)
         # For each sequence of goals
         for i in range(len(goalindices)):
@@ -261,7 +267,7 @@ class Planner(object):
             # Compute the rewards
             rewards = sum(
                 [self.Agent.rewards[self.Map.ObjectTypes[j]] for j in goalindices[i]])
-            # Costs are already negative here!
+            # Costs are already negative here.
             utility[i] = rewards + costs
         self.Utilities = utility
         self.goalindices = goalindices
