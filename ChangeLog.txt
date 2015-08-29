@@ -51,3 +51,6 @@ V 2.4.0
 =======
 	- Modified ValueIteration and Policy builder on MDP. Replacing target state on subMDPs for a big reward biased the agent to push diagonal actions to the end (because that way you save square root of 2 cost).
 
+V 2.5.0
+=======
+	- Agents now have capacity of objects they can collect.
