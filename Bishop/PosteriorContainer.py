@@ -271,13 +271,14 @@ class PosteriorContainer(object):
         plt.title("Posterior distribution of rewards")
         plt.show()
 
-    def Summary(self, human=True):
+    def Summary(self, human=True, Id=None):
         """
         Print summary of samples.
 
         Args:
             human (bool): When true function prints a human-readable format.
                           When false it prints a compressed csv format (suitable for merging many runs)
+            Id (string): Optional string. When provided the function simply adds it to the summary (Helpful for adding names to certain action sequences).
         """
         ExpectedRewards = self.GetExpectedRewards()
         RewardMatrix = self.CompareRewards()
@@ -285,6 +286,8 @@ class PosteriorContainer(object):
         CostMatrix = self.CompareCosts()
         # Combine all functions to print summary
         if human:
+            if Id is not None:
+                sys.stdout.write("Id: " + str(Id) + "\n")
             if self.MapFile is not None:
                 sys.stdout.write("Map: " + str(self.MapFile) + "\n")
                 sys.stdout.write(
@@ -335,6 +338,8 @@ class PosteriorContainer(object):
         else:
             # Print file header
             ###################
+            if Id is not None:
+                sys.stdout.write("Id,")
             sys.stdout.write(
                 "Samples,StartingPoint,ObjectLocations,ObjectTypes,SoftmaxAction,ActionTau,SoftmaxChoice,ChoiceTau,Actions")
             # Add names for objects and terrains
@@ -386,6 +391,8 @@ class PosteriorContainer(object):
             # Print results
             ###############
             # Print general info
+            if Id is not None:
+                sys.stdout.write(str(Id) + ",")
             sys.stdout.write(
                 str(self.Samples) + "," + str(self.StartingPoint) + ",")
             for i in range(len(self.ObjectLocations)):
