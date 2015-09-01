@@ -286,7 +286,8 @@ class PosteriorContainer(object):
         CostMatrix = self.CompareCosts()
         # Combine all functions to print summary
         if not np.any(self.LogLikelihoods):
-            sys.stdout.write("All samples have likelihood 0. Ensure the observed path is rational or raise the choice and/or action softmax parameters")
+            sys.stdout.write(
+                "All samples have likelihood 0. Ensure the observed path is rational or raise the choice and/or action softmax parameters")
             return None
         if human:
             if Id is not None:
@@ -314,6 +315,10 @@ class PosteriorContainer(object):
                 sys.stdout.write("Softmaxed actions.\n")
             else:
                 sys.stdout.write("Optimal actions.\n")
+            usefulsamples = len(
+                [i for i in self.LogLikelihoods if i != (- sys.maxint - 1)])
+            sys.stdout.write("\nNumber of useful samples: " +
+                             str(usefulsamples) + "(" + str(usefulsamples*100.0 / self.Samples) + "%)\n")
             sys.stdout.write("\n Maximum likelihood result\n\n")
             self.ML()
             sys.stdout.write("\nINFERRED REWARDS\n\n")

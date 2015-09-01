@@ -177,6 +177,7 @@ class Observer(object):
             Feedback (bool): When true, function gives feedback on percentage complete.
             Method (string): "Importance" or "MH". What sampling algorithm should I use to esimate the posterior?
         """
+        ActionSequence = self.GetActionIDs(ActionSequence)
         if Method == "Importance":
             return self.InferAgent_ImportanceSampling(ActionSequence, Samples, Feedback)
         if Method == "MCMC":
@@ -194,6 +195,15 @@ class Observer(object):
         print "ERROR: MCMC not implemented yet."
         return None
 
+    def GetActionIDs(self, ActionSequence):
+        if not all(isinstance(x, int) for x in ActionSequence):
+            if all(isinstance(x, str) for x in ActionSequence):
+                return self.Plr.Map.GetActionList(ActionSequence)
+            else:
+                print "ERROR: Action sequence must contains the indices of actions or their names."
+                return None
+        return ActionSequence
+
     def FindHit(self, ActionSequence, Limit):
         """
         Sample costs and rewards and only produce higher likelihoods
@@ -202,6 +212,7 @@ class Observer(object):
         ActionSequence (list): Sequence of actions
         Limit (int): Number of samples to search for
         """
+        ActionSequence = self.GetActionIDs(ActionSequence)
         ML = 0
         # Print header
         sys.stdout.write("Sample\t")

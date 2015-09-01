@@ -252,7 +252,7 @@ class Planner(object):
             for j in permutations(subsets[i]):
                 goalindices.append(list(j))
         # Reduce goal indices to the ones that the agent has capacity for.
-        goalindices_temp = [i for i in goalindices if len(i) <= self.Agent.Capacity]
+        goalindices_temp = [i for i in goalindices if len(i) <= self.Agent.Capacity and len(i) >= self.Agent.Minimum]
         # Remove duplicates
         goalindices = []
         for i in goalindices_temp:

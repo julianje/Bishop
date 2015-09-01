@@ -226,6 +226,15 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
         else:
             print "WARNING: No reward prior specified in AgentParameters. Use Agent.Priors() to see list of priors"
             return None
+    if Config.has_option("AgentParameters", "Minimum"):
+        Minimum = Config.getint("AgentParameters", "Minimum")
+    else:
+        Minimum = 0
+    if Revise:
+        temp = raw_input(
+            "Minimum objects to collect (" + str(Minimum) + "):")
+        if temp != '':
+            Minimum = int(temp)
     if Config.has_option("AgentParameters", "Capacity"):
         Capacity = Config.getint("AgentParameters", "Capacity")
     else:
@@ -235,6 +244,9 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
             "Agent capacity (" + str(Capacity) + "; -1 means unlimited):")
         if temp != '':
             Capacity = int(temp)
+    if Minimum > Capacity:
+        sys.stdout.write("ERROR: Agent's minimum number of elements exceed capacity.")
+        return None
     if Config.has_option("AgentParameters", "Restrict"):
         Restrict = Config.getboolean("AgentParameters", "Restrict")
     else:
@@ -457,7 +469,7 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
             sys.stdout.write("\n")
             MyMap.PrintMap()
         MyAgent = Agent(MyMap, CostPrior, RewardPrior, CostParameters, RewardParameters, Capacity,
-                        SoftmaxChoice, SoftmaxAction, choiceTau, actionTau, CNull, RNull, Restrict)
+                        Minimum, SoftmaxChoice, SoftmaxAction, choiceTau, actionTau, CNull, RNull, Restrict)
         return Observer(MyAgent, MyMap)
     except Exception as error:
         print error
