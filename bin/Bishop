@@ -66,9 +66,10 @@ if args.verbose:
 Res = O.InferAgent(ActionSequence, args.samples, args.verbose)
 Res.AssociateMap(str(args.map))
 Res.MapFile = str(args.map)
-if not args.verbose:
+if args.output is not None:
+    SaveSamples(Res, args.output)
+if args.verbose:
     if args.output is not None:
         Res.Summary(False, args.output)
-        Savesamples(Res, args.output)
     else:
         Res.Summary(False)

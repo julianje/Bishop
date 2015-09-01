@@ -244,7 +244,7 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
             "Agent capacity (" + str(Capacity) + "; -1 means unlimited):")
         if temp != '':
             Capacity = int(temp)
-    if Minimum > Capacity:
+    if Capacity != -1 and Minimum > Capacity:
         sys.stdout.write("ERROR: Agent's minimum number of elements exceed capacity.")
         return None
     if Config.has_option("AgentParameters", "Restrict"):
