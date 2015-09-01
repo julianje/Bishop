@@ -93,7 +93,8 @@ class Observer(object):
         # For each sample get the sequence of actions with the highest
         # likelihood
         if Verbose:
-            sys.stdout.write("Using inferred expected values to predict actions...\n")
+            sys.stdout.write(
+                "Using inferred expected values to predict actions...\n")
         PredictedActions = [0] * Simulations
         MatchingActions = [0] * Simulations
         for i in range(Simulations):
@@ -176,6 +177,7 @@ class Observer(object):
             Feedback (bool): When true, function gives feedback on percentage complete.
             Method (string): "Importance" or "MH". What sampling algorithm should I use to esimate the posterior?
         """
+        ActionSequence = self.GetActionIDs(ActionSequence)
         if Method == "Importance":
             return self.InferAgent_ImportanceSampling(ActionSequence, Samples, Feedback)
         if Method == "MCMC":
@@ -192,6 +194,55 @@ class Observer(object):
         """
         print "ERROR: MCMC not implemented yet."
         return None
+
+    def GetActionIDs(self, ActionSequence):
+        if not all(isinstance(x, int) for x in ActionSequence):
+            if all(isinstance(x, str) for x in ActionSequence):
+                return self.Plr.Map.GetActionList(ActionSequence)
+            else:
+                print "ERROR: Action sequence must contains the indices of actions or their names."
+                return None
+        return ActionSequence
+
+    def FindHit(self, ActionSequence, Limit):
+        """
+        Sample costs and rewards and only produce higher likelihoods
+
+        Args:
+        ActionSequence (list): Sequence of actions
+        Limit (int): Number of samples to search for
+        """
+        ActionSequence = self.GetActionIDs(ActionSequence)
+        ML = 0
+        # Print header
+        sys.stdout.write("Sample\t")
+        if self.Plr.Map.StateNames is not None:
+            for i in self.Plr.Map.StateNames:
+                sys.stdout.write(str(i) + "\t")
+        else:
+            for i in range(self.Plr.Agent.CostDimensions):
+                sys.stdout.write("Terrain" + str(i) + "\t")
+        if self.Plr.Map.ObjectNames is not None:
+            for i in self.Plr.Map.ObjectNames:
+                sys.stdout.write(str(i) + "\t")
+        else:
+            for i in range(self.Plr.Map.RewardDimensions):
+                sys.stdout.write("Object" + str(i) + "\t")
+        sys.stdout.write("Likelihood\n")
+        for i in range(Limit):
+            self.Plr.Agent.ResampleAgent()
+            self.Plr.Prepare(self.Validate)
+            Loglik = self.Plr.Likelihood(ActionSequence)
+            if np.exp(Loglik) > ML:
+                ML = np.exp(Loglik)
+                sys.stdout.write(str(i + 1) + "\t")
+                for j in range(self.Plr.Agent.CostDimensions):
+                    sys.stdout.write(
+                        str(np.round(self.Plr.Agent.costs[j], 2)) + "\t")
+                for j in range(self.Plr.Agent.RewardDimensions):
+                    sys.stdout.write(
+                        str(np.round(self.Plr.Agent.rewards[j], 2)) + "\t")
+                sys.stdout.write(str(ML) + "\n")
 
     def InferAgent_ImportanceSampling(self, ActionSequence, Samples, Feedback=False):
         """
