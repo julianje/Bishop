@@ -161,6 +161,8 @@ class Observer(object):
             return None
         if len(rewards) == len(self.Plr.Agent.rewards):
             self.Plr.Agent.rewards = rewards
+        else:
+            print "Reward list does not match number of terrains."
             return None
         self.Plr.Prepare(self.Validate)
 
