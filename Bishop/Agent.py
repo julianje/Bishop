@@ -13,7 +13,7 @@ import numpy as np
 
 class Agent(object):
 
-    def __init__(self, Map, CostPrior, RewardPrior, CostParams, RewardParams, Capacity=-1, SoftmaxChoice=True, SoftmaxAction=True, choiceTau=1, actionTau=0.01, CNull=0, RNull=0, Restrict=False):
+    def __init__(self, Map, CostPrior, RewardPrior, CostParams, RewardParams, Capacity=-1, Minimum=0, SoftmaxChoice=True, SoftmaxAction=True, choiceTau=1, actionTau=0.01, CNull=0, RNull=0, Restrict=False):
         """
         Agent class.
 
@@ -28,6 +28,7 @@ class Agent(object):
             RewardParams (list): List of parameters for sampling rewards.
             Capacity (int): Number of objects agent can carry. If set to -1 Planner adjusts
                             it to the total number of objects in the map.
+            Minimum (int): Minimum number of objects must take before leaving.
             SoftmaxChoice (bool): Does the agent select goals optimally?
             SoftmaxAction (bool): Does the agent act upong goals optimally?
             choiceTau (float): Softmax parameter for goal selection.
@@ -54,6 +55,7 @@ class Agent(object):
         # Get dimensions over which you'll build your simplex
         self.RewardDimensions = len(set(Map.ObjectTypes))
         self.Capacity = Capacity
+        self.Minimum = Minimum
         self.SoftmaxChoice = SoftmaxChoice
         self.SoftmaxAction = SoftmaxAction
         if SoftmaxAction:
