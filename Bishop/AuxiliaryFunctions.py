@@ -203,10 +203,12 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
         CostPrior = Config.get("AgentParameters", "Prior")
         RewardPrior = CostPrior
         if Revise:
-            temp = raw_input("Prior (" + str(CostPrior) + "):")
+            temp = raw_input("CostPrior (" + str(CostPrior) + "):")
             if temp != '':
                 CostPrior = str(temp)
-                RewardPrior = CostPrior
+            temp = raw_input("RewardPrior (" + str(RewardPrior) + "):")
+            if temp != '':
+                RewardPrior = str(temp)
     else:
         if Config.has_option("AgentParameters", "CostPrior"):
             CostPrior = Config.get("AgentParameters", "CostPrior")
@@ -241,7 +243,7 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
         Capacity = -1
     if Revise:
         temp = raw_input(
-            "Agent capacity (" + str(Capacity) + "; -1 means unlimited):")
+            "Agent capacity (" + str(Capacity) + "; -1 = unlimited):")
         if temp != '':
             Capacity = int(temp)
     if Capacity != -1 and Minimum > Capacity:
