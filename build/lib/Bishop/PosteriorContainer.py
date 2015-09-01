@@ -285,6 +285,9 @@ class PosteriorContainer(object):
         ExpectedCosts = self.GetExpectedCosts()
         CostMatrix = self.CompareCosts()
         # Combine all functions to print summary
+        if not np.any(self.LogLikelihoods):
+            sys.stdout.write("All samples have likelihood 0. Ensure the observed path is rational or raise the choice and/or action softmax parameters")
+            return None
         if human:
             if Id is not None:
                 sys.stdout.write("Id: " + str(Id) + "\n")
