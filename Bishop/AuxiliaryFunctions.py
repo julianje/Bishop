@@ -203,7 +203,7 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
         CostPrior = Config.get("AgentParameters", "Prior")
         RewardPrior = CostPrior
         if Revise:
-            temp = raw_input("Prior (" + str(Prior) + "):")
+            temp = raw_input("Prior (" + str(CostPrior) + "):")
             if temp != '':
                 CostPrior = str(temp)
                 RewardPrior = CostPrior
