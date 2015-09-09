@@ -55,3 +55,4 @@ V 2.5.0
 =======
 	- Agents now have a minimum number of objects to collect and a capacity.
 	- Updated examples and documentation.
+	- More priors.

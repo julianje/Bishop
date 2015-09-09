@@ -68,7 +68,7 @@ Res.AssociateMap(str(args.map))
 Res.MapFile = str(args.map)
 if args.output is not None:
     SaveSamples(Res, args.output)
-if args.verbose:
+if not args.verbose:
     if args.output is not None:
         Res.Summary(False, args.output)
     else:
