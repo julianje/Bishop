@@ -318,7 +318,7 @@ class PosteriorContainer(object):
             usefulsamples = len(
                 [i for i in self.LogLikelihoods if i != (- sys.maxint - 1)])
             sys.stdout.write("\nNumber of useful samples: " +
-                             str(usefulsamples) + "(" + str(usefulsamples*100.0 / self.Samples) + "%)\n")
+                             str(usefulsamples) + "(" + str(usefulsamples * 100.0 / self.Samples) + "%)\n")
             sys.stdout.write("\n Maximum likelihood result\n\n")
             self.ML()
             sys.stdout.write("\nINFERRED REWARDS\n\n")
@@ -454,6 +454,10 @@ class PosteriorContainer(object):
         Args:
             jump (int): Number of skips between each sample.
         """
+        NL = np.exp(self.LogLikelihoods)
+        if sum(NL) == 0:
+            print "ERROR: All likelihoods are zero up to this point. Cannot analyze convergence POSTERIORCONTAINER-002"
+            return None
         # jump indicates how often to recompute the expected value
         if jump is None:
             if self.Samples > 100:
