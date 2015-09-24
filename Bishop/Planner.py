@@ -252,7 +252,8 @@ class Planner(object):
             for j in permutations(subsets[i]):
                 goalindices.append(list(j))
         # Reduce goal indices to the ones that the agent has capacity for.
-        goalindices_temp = [i for i in goalindices if len(i) <= self.Agent.Capacity and len(i) >= self.Agent.Minimum]
+        goalindices_temp = [i for i in goalindices if len(
+            i) <= self.Agent.Capacity and len(i) >= self.Agent.Minimum]
         # Remove duplicates
         goalindices = []
         for i in goalindices_temp:
@@ -404,6 +405,10 @@ class Planner(object):
         # Now we want to compare them to the goal indices so we need to
         # subtract one.
         objectscollected = [i - 1 for i in objectscollected]
+        # Check that objects collected lies within the range of the map.
+        if (len(objectscollected) < self.Agent.Minimum) or (len(objectscollected) > self.Agent.Capacity):
+            print "ERROR: Number of objects agent collected is outside the range specified in the map."
+            return None
         # Find all action sequences that are consistent with the observations:
         if Complete:
             goalindex = [self.goalindices.index(objectscollected)]
