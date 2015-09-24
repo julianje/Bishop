@@ -127,23 +127,25 @@ This creates a 5 by 3 map that can be navigated diagonally. Terrain type is stor
 
 added a 2x3 square with the top-left corner positioned on (2,1). Both coordinates begin in 1 and the y-axis is counted from top to bottom. The last argument (1) gives the terrain code. Inserting overlapping squares always rewrites past terrain. You can then add terrain names
 
-	MyMap.AddStateNames(["Water","Jungle"])
+	MyMap.AddTerrainNames(["Water","Jungle"])
 
 To see what your map looks like type
 
 	MyMap.PrintMap()
 
-##### Adding targets
+##### Adding starting point, exit point, and objects
 
-SOON
+See docstrings for
 
-##### Saving the map
-
-SOON
+    MyMap.AddStartingPoint()
+    MyMap.AddExitState()
+    MyMap.InsertObjects()
 
 ##### Using the map
 
 Once you have a map, you need to create an agent, and use both to create an observer
 
-	MyAgent = Agent(MyMap, CostParam, RewardParam)
+	MyAgent = Agent(MyMap, CostPrior, RewardPrior, CostPriorParameters, RewardPriorParameters)
 	MyObserver = Observer(MyMap, MyAgent)
+
+See Agent's constructor docstring for list of all parameters agent can take and more details.
