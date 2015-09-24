@@ -52,7 +52,7 @@ Bishop/Maps/ControlFlagMaps/Flag_Sym_TwoR_FC.ini
 Bishop/Maps/ControlFlagMaps/Flag_Sym_TwoR_FR.ini
 Bishop/Maps/ControlFlagMaps/LongFlag_Asymmetric
 Bishop/Maps/ControlFlagMaps/LongFlag_Symmetric
-Bishop/Maps/ControlFlagMaps/LongFlag_Symmetric_FR
+Bishop/Maps/ControlFlagMaps/LongFlag_Symmetric_FC
 Bishop/Maps/EmpiricalPriors/.DS_Store
 Bishop/Maps/EmpiricalPriors/TatikEmp_T1_L1.ini
 Bishop/Maps/EmpiricalPriors/TatikEmp_T1_L2.ini
@@ -155,6 +155,17 @@ Bishop/Maps/OneRewardMaps/Tatik_T3_L1_OR.ini
 Bishop/Maps/OneRewardMaps/Tatik_T3_L2_OR.ini
 Bishop/Maps/OneRewardMaps/Tatik_T3_L3_OR.ini
 Bishop/Maps/OneRewardMaps/Tatik_T3_L4_OR.ini
+Bishop/Maps/PondMaps/.DS_Store
+Bishop/Maps/PondMaps/P_OT_ORC.ini
+Bishop/Maps/PondMaps/P_OT_ORE.ini
+Bishop/Maps/PondMaps/P_OT_TRC.ini
+Bishop/Maps/PondMaps/P_OT_TRE.ini
+Bishop/Maps/PondMaps/P_TT_ORC.ini
+Bishop/Maps/PondMaps/P_TT_ORE.ini
+Bishop/Maps/PondMaps/P_TT_TRC.ini
+Bishop/Maps/PondMaps/P_TT_TRE.ini
+Bishop/Maps/PondMaps/Pond_OT
+Bishop/Maps/PondMaps/Pond_TT
 Bishop/Maps/TestMaps/.DS_Store
 Bishop/Maps/TestMaps/M1
 Bishop/Maps/TestMaps/M2
