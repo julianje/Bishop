@@ -383,18 +383,18 @@ class PosteriorContainer(object):
                     if i != j:
                         if self.ObjectNames is not None:
                             sys.stdout.write(
-                                "," + str(self.ObjectNames[i]) + "-" + str(self.ObjectNames[j]))
+                                "," + str(self.ObjectNames[i]) + "." + str(self.ObjectNames[j]))
                         else:
-                            sys.stdout.write(",R" + str(i) + "-R" + str(j))
+                            sys.stdout.write(",R" + str(i) + ".R" + str(j))
             # Names for cost tradeoffs
             for i in range(self.CostDimensions):
                 for j in range(i + 1, self.CostDimensions):
                     if i != j:
                         if self.CostNames is not None:
                             sys.stdout.write(
-                                "," + str(self.CostNames[i]) + "-" + str(self.CostNames[j]))
+                                "," + str(self.CostNames[i]) + "." + str(self.CostNames[j]))
                         else:
-                            sys.stdout.write(",O" + str(i) + "-O" + str(j))
+                            sys.stdout.write(",O" + str(i) + ".O" + str(j))
             sys.stdout.write("\n")
             # Print results
             ###############
@@ -405,20 +405,20 @@ class PosteriorContainer(object):
                 str(self.Samples) + "," + str(self.StartingPoint) + ",")
             for i in range(len(self.ObjectLocations)):
                 if i < (len(self.ObjectLocations) - 1):
-                    sys.stdout.write(str(self.ObjectLocations[i]) + "-")
+                    sys.stdout.write(str(self.ObjectLocations[i]) + ".")
                 else:
                     sys.stdout.write(str(self.ObjectLocations[i]))
             sys.stdout.write(",")
             for i in range(len(self.ObjectTypes)):
                 if i < (len(self.ObjectTypes) - 1):
-                    sys.stdout.write(str(self.ObjectTypes[i]) + "-")
+                    sys.stdout.write(str(self.ObjectTypes[i]) + ".")
                 else:
                     sys.stdout.write(str(self.ObjectTypes[i]))
             sys.stdout.write("," + str(self.SoftAction) + "," + str(
                 self.actionTau) + "," + str(self.SoftChoice) + "," + str(self.choiceTau) + ",")
             for i in range(len(self.Actions)):
                 if i < (len(self.Actions) - 1):
-                    sys.stdout.write(str(self.Actions[i]) + "-")
+                    sys.stdout.write(str(self.Actions[i]) + ".")
                 else:
                     sys.stdout.write(str(self.Actions[i]))
             # Print expected costs and rewards
