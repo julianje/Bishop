@@ -23,7 +23,7 @@ from itertools import product, repeat, permutations
 
 class Planner(object):
 
-    def __init__(self, Agent, Map, Validate=True, Method="Discount"):
+    def __init__(self, Agent, Map, Method="Linear", Validate=True):
         """
         Build a Planner.
 
@@ -32,8 +32,8 @@ class Planner(object):
         Args:
             Agent (Agent): Agent object
             Map (Map): Map object
-            Validate (bool): Run object validation? Helps find bugs
             Method (str): "Discount" or "Linear" for type of cost
+            Validate (bool): Run object validation? Helps find bugs
         """
         self.Method = Method
         self.Agent = Agent
@@ -164,7 +164,6 @@ class Planner(object):
                 if self.Method == "Discount":
                     TotalCost = np.prod(
                         [self.MDP.R[Actions[i]][StateSequence[i]] for i in range(len(Actions))])
-                    print(TotalCost)
                 else:
                     TotalCost = sum(
                         [self.MDP.R[Actions[i]][StateSequence[i]] for i in range(len(Actions))])

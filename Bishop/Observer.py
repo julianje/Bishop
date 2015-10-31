@@ -20,16 +20,17 @@ from scipy.stats.stats import pearsonr
 
 class Observer(object):
 
-    def __init__(self, A, M, Validate=False):
+    def __init__(self, A, M, Method="Linear", Validate=False):
         """
         Build an observed object
 
         Args:
             A (Agent): Agent object
             M (Map): Map objects
+            Method (str): What type of planner? "Discount" or "Linear"
             Validate (bool): Should objects be validated?
         """
-        self.Plr = Planner.Planner(A, M, Validate)
+        self.Plr = Planner.Planner(A, M, Method, Validate)
         self.Validate = Validate
         # hidden variables for progress bar
         self.begincolor = '\033[91m'

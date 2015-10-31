@@ -199,6 +199,24 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
     if not Config.has_section("AgentParameters"):
         print "ERROR: AgentParameters block missing."
         return None
+    if Config.has_option("AgentParameters", "Method"):
+        temp = Config.get("AgentParameters", "Method")
+        if temp == 'Linear' or temp == 'Discount':
+            Method = temp
+        else:
+            print "ERROR: Unknown method. Setting to linear."
+            Method = "Linear"
+    else:
+        print "No method. Setting to Linear."
+        Method = "Linear"
+    if Revise:
+        temp = raw_input(
+            "Planning method (Discount or Linear. Current=" + str(Method) + "):")
+        if temp == 'Linear' or temp == 'Discount':
+            Method = temp
+        else:
+            print "Not valid. Setting Method to Linear"
+            Method = "Linear"
     if Config.has_option("AgentParameters", "Prior"):
         CostPrior = Config.get("AgentParameters", "Prior")
         RewardPrior = CostPrior
@@ -247,7 +265,8 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
         if temp != '':
             Capacity = int(temp)
     if Capacity != -1 and Minimum > Capacity:
-        sys.stdout.write("ERROR: Agent's minimum number of elements exceed capacity.")
+        sys.stdout.write(
+            "ERROR: Agent's minimum number of elements exceed capacity.")
         return None
     if Config.has_option("AgentParameters", "Restrict"):
         Restrict = Config.getboolean("AgentParameters", "Restrict")
@@ -472,7 +491,7 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
             MyMap.PrintMap()
         MyAgent = Agent(MyMap, CostPrior, RewardPrior, CostParameters, RewardParameters, Capacity,
                         Minimum, SoftmaxChoice, SoftmaxAction, choiceTau, actionTau, CNull, RNull, Restrict)
-        return Observer(MyAgent, MyMap)
+        return Observer(MyAgent, MyMap, Method)
     except Exception as error:
         print error
 
