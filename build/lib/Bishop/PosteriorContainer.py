@@ -41,6 +41,7 @@ class PosteriorContainer(object):
         self.Samples = self.RewardSamples.shape[0]
         self.Actions = ActionSequence
         self.MapFile = None
+        # Extract information from the planner object
         if Planner is not None:
             self.CostNames = Planner.Map.StateNames
             self.StartingPoint = Planner.Map.StartingPoint
@@ -52,6 +53,7 @@ class PosteriorContainer(object):
             self.SoftAction = Planner.Agent.SoftmaxAction
             self.actionTau = Planner.Agent.actionTau
             self.choiceTau = Planner.Agent.choiceTau
+            self.Method = Planner.Method
         else:
             self.CostNames = None
             self.StartingPoint = None
@@ -63,6 +65,7 @@ class PosteriorContainer(object):
             self.SoftAction = None
             self.actionTau = None
             self.choiceTau = None
+            self.Method = "Unknown"
 
     def SaveCSV(self, filename, overwrite=False):
         """
