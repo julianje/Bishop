@@ -42,11 +42,11 @@ uses the FlagSetup file (in Bishop's library) to load the map and places an agen
 The Observer.InferAgent returns a __PosteriorContainer__ object. Here are some things you can do with it
 
 	Res.Summary()
-	Res.Summary(Human=False) # Or print it in csv-format
+	Res.Summary(human=False) # Or print it in csv-format
 	Res.AnalyzeConvergence() # Visually check if sampling converged
 	Res.PlotCostPosterior()
 	Res.PlotRewardPosterior()
-	Res.Summary(Human=False)
+    Res.LongSummary() # Do everything above.
 	SaveSamples(Res, "MyResults")
 
 You can reload the samples and the observer model later with
@@ -80,6 +80,9 @@ __FlagSetup.ini__
     # ObjectNames: OnlyOneNameNeeded
     
     [AgentParameters]
+    Method: Linear # Determines how costs are treated.
+    # If linear then costs are substracted from rewards.
+    # if discount then costs are treated as future discounts over rewards.
     # Prior over costs and rewards.
     Prior: ScaledUniform
     # Force terrain 0 to be always less costly than the rest?
