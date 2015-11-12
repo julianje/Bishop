@@ -155,6 +155,16 @@ Bishop/Maps/OneRewardMaps/Tatik_T3_L1_OR.ini
 Bishop/Maps/OneRewardMaps/Tatik_T3_L2_OR.ini
 Bishop/Maps/OneRewardMaps/Tatik_T3_L3_OR.ini
 Bishop/Maps/OneRewardMaps/Tatik_T3_L4_OR.ini
+Bishop/Maps/PondDiscount/P_Disc_OT_ORC.ini
+Bishop/Maps/PondDiscount/P_Disc_OT_ORE.ini
+Bishop/Maps/PondDiscount/P_Disc_OT_TRC.ini
+Bishop/Maps/PondDiscount/P_Disc_OT_TRE.ini
+Bishop/Maps/PondDiscount/P_Disc_TT_ORC.ini
+Bishop/Maps/PondDiscount/P_Disc_TT_ORE.ini
+Bishop/Maps/PondDiscount/P_Disc_TT_TRC.ini
+Bishop/Maps/PondDiscount/P_Disc_TT_TRE.ini
+Bishop/Maps/PondDiscount/Pond_OT
+Bishop/Maps/PondDiscount/Pond_TT
 Bishop/Maps/PondMaps/.DS_Store
 Bishop/Maps/PondMaps/P_OT_ORC.ini
 Bishop/Maps/PondMaps/P_OT_ORC_FC.ini

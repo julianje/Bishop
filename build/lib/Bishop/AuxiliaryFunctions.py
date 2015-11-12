@@ -212,11 +212,12 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
     if Revise:
         temp = raw_input(
             "Planning method (Discount or Linear. Current=" + str(Method) + "):")
-        if temp == 'Linear' or temp == 'Discount':
-            Method = temp
-        else:
-            print "Not valid. Setting Method to Linear"
-            Method = "Linear"
+        if temp != '':
+            if temp == 'Linear' or temp == 'Discount':
+                Method = temp
+            else:
+                print "Not valid. Setting Method to Linear"
+                Method = "Linear"
     if Config.has_option("AgentParameters", "Prior"):
         CostPrior = Config.get("AgentParameters", "Prior")
         RewardPrior = CostPrior
@@ -271,7 +272,7 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
     if Config.has_option("AgentParameters", "Restrict"):
         Restrict = Config.getboolean("AgentParameters", "Restrict")
     else:
-        print "Setting restrict to false (i.e., all terrains are equal)"
+        print "Setting restrict to false (i.e., uncertainty over which terrain is the easiest)"
         Restrict = False
     if Config.has_option("AgentParameters", "SoftmaxChoice"):
         SoftmaxChoice = Config.getboolean("AgentParameters", "SoftmaxChoice")
