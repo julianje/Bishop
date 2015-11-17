@@ -311,7 +311,7 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
         else:
             # Doesn't matter; won't be used.
             choiceTau = 0
-    if Revise:
+    if (Revise and SoftmaxChoice):
         temp = raw_input("Choice tau (" + str(choiceTau) + "):")
         if temp != '':
             choiceTau = float(temp)
@@ -324,7 +324,7 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
         else:
             # Doesn't matter; won't be used.
             actionTau = 0
-    if Revise:
+    if (Revise and SoftmaxChoice):
         temp = raw_input("Action tau (" + str(actionTau) + "):")
         if temp != '':
             actionTau = float(temp)
