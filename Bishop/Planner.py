@@ -167,7 +167,7 @@ class Planner(object):
                 else:
                     TotalCost = sum(
                         [self.MDP.R[Actions[i]][StateSequence[i]] for i in range(len(Actions))])
-                CostMatrix[OriginalPointIndex][TargetStateIndex] = np.abs(TotalCost)
+                CostMatrix[OriginalPointIndex][TargetStateIndex] = np.abs(TotalCost) if self.Method == "Discount" else TotalCost
         return [Policies, CostMatrix]
 
     def SimulatePathUntil(self, StartingPoint, StopStates, inputMDP, Limit=300, Simple=False):
