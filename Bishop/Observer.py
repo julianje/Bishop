@@ -168,6 +168,79 @@ class Observer(object):
             return None
         self.Plr.Prepare(self.Validate)
 
+    def InferAgentUsingPC(self, ActionSequence, PC, Feedback=False):
+        """
+        Compute the posterior of an action sequence using a set of samples from a PC and their loglikelihoods.
+        This let's you take the posterior from one map and use it as a prior for another map.
+
+        Args:
+            ActionSequence (list): Sequence of actions
+            PC (PosteriorContainer): PosteriorContainer object
+            Feedback (bool): When true, function gives feedback on percentage complete.
+        """
+        if not all(isinstance(x, int) for x in ActionSequence):
+            if all(isinstance(x, str) for x in ActionSequence):
+                ActionSequence = self.Plr.Map.GetActionList(ActionSequence)
+            else:
+                print "ERROR: Action sequence must contains the indices of actions or their names."
+                return None
+        Samples = PC.Samples
+        Costs = [0] * Samples
+        Rewards = [0] * Samples
+        LogLikelihoods = [0] * Samples
+        if Feedback:
+            sys.stdout.write("\n")
+        for i in range(Samples):
+            if Feedback:
+                Percentage = round(i * 100.0 / Samples, 2)
+                sys.stdout.write("\rProgress |")
+                roundper = int(math.floor(Percentage / 5))
+                sys.stdout.write(
+                    self.begincolor + self.block * roundper + self.endcolor)
+                sys.stdout.write(" " * (20 - roundper))
+                sys.stdout.write("| " + str(Percentage) + "%")
+                sys.stdout.flush()
+            # Take a sample from the PC object and set it to the observer.
+            Costs[i] = PC.CostSamples[i, :].tolist()[0]
+            Rewards[i] = PC.RewardSamples[i, :].tolist()[0]
+            self.SetCR(Costs[i], Rewards[i])
+            # Replan
+            self.Plr.Prepare(self.Validate)
+            # Get log-likelihood
+            LogLik = self.Plr.Likelihood(ActionSequence)
+            # If anything went wrong just stop
+            if LogLik is None:
+                print "ERROR: Failed to compute likelihood. OBSERVER-001"
+                return None
+            # Add the prior
+            prior = PC.LogLikelihoods[i]
+            if (LogLik == (-sys.maxint - 1) or prior == (-sys.maxint - 1)):
+                LogLikelihoods[i] = (-sys.maxint - 1)
+            else:
+                if ((LogLik + prior) < (-sys.maxint - 1)):
+                    LogLikelihoods[i] = (-sys.maxint - 1)
+                else:
+                    LogLikelihoods[i] = LogLik + prior
+        # Finish printing progress bar
+        if Feedback:
+            # Print complete progress bar
+            sys.stdout.write("\rProgress |")
+            sys.stdout.write(self.begincolor + self.block * 20 + self.endcolor)
+            sys.stdout.write("| 100.0%")
+            sys.stdout.flush()
+        # Normalize LogLikelihoods
+        Normalize = scipy.misc.logsumexp(LogLikelihoods)
+        if np.exp(Normalize) == 0:
+            sys.stdout.write("\nWARNING: All likelihoods are 0.\n")
+        NormLogLikelihoods = LogLikelihoods - Normalize
+        Results = PosteriorContainer.PosteriorContainer(np.matrix(Costs), np.matrix(
+            Rewards), NormLogLikelihoods, ActionSequence, self.Plr)
+        if Feedback:
+            sys.stdout.write("\n\n")
+            Results.Summary()
+            sys.stdout.write("\n")
+        return Results
+
     def InferAgent(self, ActionSequence, Samples, Feedback=False, Method="Importance"):
         """
         Compute a series of samples with their likelihoods.
@@ -176,7 +249,7 @@ class Observer(object):
             ActionSequence (list): Sequence of actions
             Samples (int): Number of samples to use
             Feedback (bool): When true, function gives feedback on percentage complete.
-            Method (string): "Importance" or "MH". What sampling algorithm should I use to esimate the posterior?
+            Method (string): "Importance" or "MCMC". What sampling algorithm should I use to esimate the posterior?
         """
         ActionSequence = self.GetActionIDs(ActionSequence)
         if Method == "Importance":
@@ -283,7 +356,7 @@ class Observer(object):
             self.Plr.Prepare(self.Validate)
             # Get log-likelihood
             LogLikelihoods[i] = self.Plr.Likelihood(ActionSequence)
-            # If anything went wrong just stope
+            # If anything went wrong just stop
             if LogLikelihoods[i] is None:
                 print "ERROR: Failed to compute likelihood. OBSERVER-001"
                 return None
