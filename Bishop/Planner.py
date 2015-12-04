@@ -423,9 +423,14 @@ class Planner(object):
         # subtract one.
         objectscollected = [i - 1 for i in objectscollected]
         # Check that objects collected lies within the range of the map.
-        if (len(objectscollected) < self.Agent.Minimum) or (len(objectscollected) > self.Agent.Capacity):
-            print "ERROR: Number of objects agent collected is outside the range specified in the map."
-            return None
+        if Complete:
+            if (len(objectscollected) < self.Agent.Minimum) or (len(objectscollected) > self.Agent.Capacity):
+                print "\nERROR: Number of objects agent collected is outside the range specified in the map."
+                return None
+        else:
+            if (len(objectscollected) > self.Agent.Capacity):
+                print "\nERROR: Number of objects agent collected is outside the range specified in the map."
+                return None
         # Find all action sequences that are consistent with the observations:
         if Complete:
             goalindex = [self.goalindices.index(objectscollected)]
