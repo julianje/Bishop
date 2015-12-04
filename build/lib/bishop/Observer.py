@@ -342,7 +342,7 @@ class Observer(object):
         Args:
             Samples (int): Number of agents to Simulate
             HumanReadable (bool): When true, function prints action names rather than action ids.
-            ResampleAgent (bool): When true simulation uses the same agent.
+            ResampleAgent (bool): When false simulation uses the same agent.
                                   If agent is not softmaxing utilities or actions then all action sequences will be identical.
             Simple (bool): When the agent finds more than one equally-valuable action is takes one at random.
                             If simple is set to true it instead chooses the first action in the set.
