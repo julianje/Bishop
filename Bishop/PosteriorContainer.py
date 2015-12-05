@@ -41,6 +41,7 @@ class PosteriorContainer(object):
         self.Samples = self.RewardSamples.shape[0]
         self.Actions = ActionSequence
         self.MapFile = None
+        # Extract information from the planner object
         if Planner is not None:
             self.CostNames = Planner.Map.StateNames
             self.StartingPoint = Planner.Map.StartingPoint
@@ -52,6 +53,7 @@ class PosteriorContainer(object):
             self.SoftAction = Planner.Agent.SoftmaxAction
             self.actionTau = Planner.Agent.actionTau
             self.choiceTau = Planner.Agent.choiceTau
+            self.Method = Planner.Method
         else:
             self.CostNames = None
             self.StartingPoint = None
@@ -63,6 +65,7 @@ class PosteriorContainer(object):
             self.SoftAction = None
             self.actionTau = None
             self.choiceTau = None
+            self.Method = "Unknown"
 
     def SaveCSV(self, filename, overwrite=False):
         """
@@ -271,20 +274,27 @@ class PosteriorContainer(object):
         plt.title("Posterior distribution of rewards")
         plt.show()
 
-    def Summary(self, human=True):
+    def Summary(self, human=True, Id=None):
         """
         Print summary of samples.
 
         Args:
             human (bool): When true function prints a human-readable format.
                           When false it prints a compressed csv format (suitable for merging many runs)
+            Id (string): Optional string. When provided the function simply adds it to the summary (Helpful for adding names to certain action sequences).
         """
         ExpectedRewards = self.GetExpectedRewards()
         RewardMatrix = self.CompareRewards()
         ExpectedCosts = self.GetExpectedCosts()
         CostMatrix = self.CompareCosts()
         # Combine all functions to print summary
+        if not np.any(self.LogLikelihoods):
+            sys.stdout.write(
+                "All samples have likelihood 0. Ensure the observed path is rational or raise the choice and/or action softmax parameters")
+            return None
         if human:
+            if Id is not None:
+                sys.stdout.write("Id: " + str(Id) + "\n")
             if self.MapFile is not None:
                 sys.stdout.write("Map: " + str(self.MapFile) + "\n")
                 sys.stdout.write(
@@ -308,6 +318,10 @@ class PosteriorContainer(object):
                 sys.stdout.write("Softmaxed actions.\n")
             else:
                 sys.stdout.write("Optimal actions.\n")
+            usefulsamples = len(
+                [i for i in self.LogLikelihoods if i != (- sys.maxint - 1)])
+            sys.stdout.write("\nNumber of useful samples: " +
+                             str(usefulsamples) + "(" + str(usefulsamples * 100.0 / self.Samples) + "%)\n")
             sys.stdout.write("\n Maximum likelihood result\n\n")
             self.ML()
             sys.stdout.write("\nINFERRED REWARDS\n\n")
@@ -335,6 +349,8 @@ class PosteriorContainer(object):
         else:
             # Print file header
             ###################
+            if Id is not None:
+                sys.stdout.write("Id,")
             sys.stdout.write(
                 "Samples,StartingPoint,ObjectLocations,ObjectTypes,SoftmaxAction,ActionTau,SoftmaxChoice,ChoiceTau,Actions")
             # Add names for objects and terrains
@@ -370,40 +386,42 @@ class PosteriorContainer(object):
                     if i != j:
                         if self.ObjectNames is not None:
                             sys.stdout.write(
-                                "," + str(self.ObjectNames[i]) + "-" + str(self.ObjectNames[j]))
+                                "," + str(self.ObjectNames[i]) + "." + str(self.ObjectNames[j]))
                         else:
-                            sys.stdout.write(",R" + str(i) + "-R" + str(j))
+                            sys.stdout.write(",R" + str(i) + ".R" + str(j))
             # Names for cost tradeoffs
             for i in range(self.CostDimensions):
                 for j in range(i + 1, self.CostDimensions):
                     if i != j:
                         if self.CostNames is not None:
                             sys.stdout.write(
-                                "," + str(self.CostNames[i]) + "-" + str(self.CostNames[j]))
+                                "," + str(self.CostNames[i]) + "." + str(self.CostNames[j]))
                         else:
-                            sys.stdout.write(",O" + str(i) + "-O" + str(j))
+                            sys.stdout.write(",O" + str(i) + ".O" + str(j))
             sys.stdout.write("\n")
             # Print results
             ###############
             # Print general info
+            if Id is not None:
+                sys.stdout.write(str(Id) + ",")
             sys.stdout.write(
                 str(self.Samples) + "," + str(self.StartingPoint) + ",")
             for i in range(len(self.ObjectLocations)):
                 if i < (len(self.ObjectLocations) - 1):
-                    sys.stdout.write(str(self.ObjectLocations[i]) + "-")
+                    sys.stdout.write(str(self.ObjectLocations[i]) + ".")
                 else:
                     sys.stdout.write(str(self.ObjectLocations[i]))
             sys.stdout.write(",")
             for i in range(len(self.ObjectTypes)):
                 if i < (len(self.ObjectTypes) - 1):
-                    sys.stdout.write(str(self.ObjectTypes[i]) + "-")
+                    sys.stdout.write(str(self.ObjectTypes[i]) + ".")
                 else:
                     sys.stdout.write(str(self.ObjectTypes[i]))
             sys.stdout.write("," + str(self.SoftAction) + "," + str(
                 self.actionTau) + "," + str(self.SoftChoice) + "," + str(self.choiceTau) + ",")
             for i in range(len(self.Actions)):
                 if i < (len(self.Actions) - 1):
-                    sys.stdout.write(str(self.Actions[i]) + "-")
+                    sys.stdout.write(str(self.Actions[i]) + ".")
                 else:
                     sys.stdout.write(str(self.Actions[i]))
             # Print expected costs and rewards
@@ -439,6 +457,10 @@ class PosteriorContainer(object):
         Args:
             jump (int): Number of skips between each sample.
         """
+        NL = np.exp(self.LogLikelihoods)
+        if sum(NL) == 0:
+            print "ERROR: All likelihoods are zero up to this point. Cannot analyze convergence POSTERIORCONTAINER-002"
+            return None
         # jump indicates how often to recompute the expected value
         if jump is None:
             if self.Samples > 100:

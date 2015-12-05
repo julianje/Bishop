@@ -23,7 +23,7 @@ from itertools import product, repeat, permutations
 
 class Planner(object):
 
-    def __init__(self, Agent, Map, Validate=True):
+    def __init__(self, Agent, Map, Method="Linear", Validate=True):
         """
         Build a Planner.
 
@@ -32,10 +32,15 @@ class Planner(object):
         Args:
             Agent (Agent): Agent object
             Map (Map): Map object
-            Validate (bool): Run object validation? Helps find bugs.
+            Method (str): "Discount" or "Linear" for type of cost
+            Validate (bool): Run object validation? Helps find bugs
         """
+        self.Method = Method
         self.Agent = Agent
         self.Map = Map
+        # Check if you need to set Agent's capacity
+        if self.Agent.Capacity == -1:
+            self.Agent.Capacity = len(self.Map.ObjectLocations)
         self.MDP = []
         # Policies is a list of lists, where policies[i] contains the MDPs policy for reaching position CriticalStates[i]
         # Note that here i and j are not MDP raw state numbers, but the
@@ -49,7 +54,8 @@ class Planner(object):
         self.planningreward = 500
         self.gamma = 0.95  # Internal future discount to plan between goals
         self.Prepare(Validate)
-        # Internal save to avoid recomputing things in self.Likelihood() when not necessary
+        # Internal save to avoid recomputing things in self.Likelihood() when
+        # not necessary
         self.LastActionSequence = None
         self.LastStateSquence = None
         self.LastVisitedIndices = None
@@ -155,9 +161,13 @@ class Planner(object):
                     OriginalPointIndex], self.CriticalStates[TargetStateIndex], subMDP)
                 # Get the cost associated with each combination of actions and states
                 # and sum them to get the total cost.
-                TotalCost = sum(
-                    [self.MDP.R[Actions[i]][StateSequence[i]] for i in range(len(Actions))])
-                CostMatrix[OriginalPointIndex][TargetStateIndex] = TotalCost
+                if self.Method == "Discount":
+                    TotalCost = np.prod(
+                        [self.MDP.R[Actions[i]][StateSequence[i]] for i in range(len(Actions))])
+                else:
+                    TotalCost = sum(
+                        [self.MDP.R[Actions[i]][StateSequence[i]] for i in range(len(Actions))])
+                CostMatrix[OriginalPointIndex][TargetStateIndex] = np.abs(TotalCost) if self.Method == "Discount" else TotalCost
         return [Policies, CostMatrix]
 
     def SimulatePathUntil(self, StartingPoint, StopStates, inputMDP, Limit=300, Simple=False):
@@ -247,6 +257,14 @@ class Planner(object):
         for i in range(len(subsets)):
             for j in permutations(subsets[i]):
                 goalindices.append(list(j))
+        # Reduce goal indices to the ones that the agent has capacity for.
+        goalindices_temp = [i for i in goalindices if len(
+            i) <= self.Agent.Capacity and len(i) >= self.Agent.Minimum]
+        # Remove duplicates
+        goalindices = []
+        for i in goalindices_temp:
+            if i not in goalindices:
+                goalindices.append(i)
         utility = [0] * len(goalindices)
         # For each sequence of goals
         for i in range(len(goalindices)):
@@ -255,13 +273,24 @@ class Planner(object):
             # (because it includes the starting state)
             goals = [0] + [j + 1 for j in goalindices[i]] + \
                 [len(self.CriticalStates) - 1]
-            # Compute the costs
-            costs = sum([self.CostMatrix[goals[j - 1], goals[j]]
-                         for j in range(1, len(goals))])
-            # Compute the rewards
-            rewards = sum(
-                [self.Agent.rewards[self.Map.ObjectTypes[j]] for j in goalindices[i]])
-            # Costs are already negative here!
+            if self.Method == "Discount":
+                # Set the cost to 0
+                costs = 0
+                # Discount the rewards based on the cost-matrix
+                rawrewards = [self.Agent.rewards[self.Map.ObjectTypes[j]]
+                              for j in goalindices[i]] + [1]  # Add a reward of 1 for reaching home.
+                discounts = [self.CostMatrix[goals[j - 1], goals[j]]
+                             for j in range(1, len(goals))]
+                rewards = sum([rawrewards[j] * discounts[j]
+                               for j in range(len(rawrewards))])
+            else:
+                # Compute the costs
+                costs = sum([self.CostMatrix[goals[j - 1], goals[j]]
+                             for j in range(1, len(goals))])
+                # Compute the rewards
+                rewards = sum(
+                    [self.Agent.rewards[self.Map.ObjectTypes[j]] for j in goalindices[i]])
+                # Costs are already negative here.
             utility[i] = rewards + costs
         self.Utilities = utility
         self.goalindices = goalindices
@@ -393,6 +422,15 @@ class Planner(object):
         # Now we want to compare them to the goal indices so we need to
         # subtract one.
         objectscollected = [i - 1 for i in objectscollected]
+        # Check that objects collected lies within the range of the map.
+        if Complete:
+            if (len(objectscollected) < self.Agent.Minimum) or (len(objectscollected) > self.Agent.Capacity):
+                print "\nERROR: Number of objects agent collected is outside the range specified in the map."
+                return None
+        else:
+            if (len(objectscollected) > self.Agent.Capacity):
+                print "\nERROR: Number of objects agent collected is outside the range specified in the map."
+                return None
         # Find all action sequences that are consistent with the observations:
         if Complete:
             goalindex = [self.goalindices.index(objectscollected)]

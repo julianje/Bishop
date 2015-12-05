@@ -199,14 +199,35 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
     if not Config.has_section("AgentParameters"):
         print "ERROR: AgentParameters block missing."
         return None
+    if Config.has_option("AgentParameters", "Method"):
+        temp = Config.get("AgentParameters", "Method")
+        if temp == 'Linear' or temp == 'Discount':
+            Method = temp
+        else:
+            print "ERROR: Unknown method. Setting to linear."
+            Method = "Linear"
+    else:
+        print "No method. Setting to Linear."
+        Method = "Linear"
+    if Revise:
+        temp = raw_input(
+            "Planning method (Discount or Linear. Current=" + str(Method) + "):")
+        if temp != '':
+            if temp == 'Linear' or temp == 'Discount':
+                Method = temp
+            else:
+                print "Not valid. Setting Method to Linear"
+                Method = "Linear"
     if Config.has_option("AgentParameters", "Prior"):
         CostPrior = Config.get("AgentParameters", "Prior")
         RewardPrior = CostPrior
         if Revise:
-            temp = raw_input("Prior (" + str(Prior) + "):")
+            temp = raw_input("CostPrior (" + str(CostPrior) + "):")
             if temp != '':
                 CostPrior = str(temp)
-                RewardPrior = CostPrior
+            temp = raw_input("RewardPrior (" + str(RewardPrior) + "):")
+            if temp != '':
+                RewardPrior = str(temp)
     else:
         if Config.has_option("AgentParameters", "CostPrior"):
             CostPrior = Config.get("AgentParameters", "CostPrior")
@@ -226,10 +247,32 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
         else:
             print "WARNING: No reward prior specified in AgentParameters. Use Agent.Priors() to see list of priors"
             return None
+    if Config.has_option("AgentParameters", "Minimum"):
+        Minimum = Config.getint("AgentParameters", "Minimum")
+    else:
+        Minimum = 0
+    if Revise:
+        temp = raw_input(
+            "Minimum objects to collect (" + str(Minimum) + "):")
+        if temp != '':
+            Minimum = int(temp)
+    if Config.has_option("AgentParameters", "Capacity"):
+        Capacity = Config.getint("AgentParameters", "Capacity")
+    else:
+        Capacity = -1
+    if Revise:
+        temp = raw_input(
+            "Agent capacity (" + str(Capacity) + "; -1 = unlimited):")
+        if temp != '':
+            Capacity = int(temp)
+    if Capacity != -1 and Minimum > Capacity:
+        sys.stdout.write(
+            "ERROR: Agent's minimum number of elements exceed capacity.")
+        return None
     if Config.has_option("AgentParameters", "Restrict"):
         Restrict = Config.getboolean("AgentParameters", "Restrict")
     else:
-        print "Setting restrict to false (i.e., all terrains are equal)"
+        print "Setting restrict to false (i.e., uncertainty over which terrain is the easiest)"
         Restrict = False
     if Config.has_option("AgentParameters", "SoftmaxChoice"):
         SoftmaxChoice = Config.getboolean("AgentParameters", "SoftmaxChoice")
@@ -268,7 +311,7 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
         else:
             # Doesn't matter; won't be used.
             choiceTau = 0
-    if Revise:
+    if (Revise and SoftmaxChoice):
         temp = raw_input("Choice tau (" + str(choiceTau) + "):")
         if temp != '':
             choiceTau = float(temp)
@@ -281,7 +324,7 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
         else:
             # Doesn't matter; won't be used.
             actionTau = 0
-    if Revise:
+    if (Revise and SoftmaxChoice):
         temp = raw_input("Action tau (" + str(actionTau) + "):")
         if temp != '':
             actionTau = float(temp)
@@ -447,9 +490,9 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
         if not Silent:
             sys.stdout.write("\n")
             MyMap.PrintMap()
-        MyAgent = Agent(MyMap, CostPrior, RewardPrior, CostParameters, RewardParameters,
-                        SoftmaxChoice, SoftmaxAction, choiceTau, actionTau, CNull, RNull, Restrict)
-        return Observer(MyAgent, MyMap)
+        MyAgent = Agent(MyMap, CostPrior, RewardPrior, CostParameters, RewardParameters, Capacity,
+                        Minimum, SoftmaxChoice, SoftmaxAction, choiceTau, actionTau, CNull, RNull, Restrict)
+        return Observer(MyAgent, MyMap, Method)
     except Exception as error:
         print error
 

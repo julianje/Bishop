@@ -20,16 +20,17 @@ from scipy.stats.stats import pearsonr
 
 class Observer(object):
 
-    def __init__(self, A, M, Validate=False):
+    def __init__(self, A, M, Method="Linear", Validate=False):
         """
         Build an observed object
 
         Args:
             A (Agent): Agent object
             M (Map): Map objects
+            Method (str): What type of planner? "Discount" or "Linear"
             Validate (bool): Should objects be validated?
         """
-        self.Plr = Planner.Planner(A, M, Validate)
+        self.Plr = Planner.Planner(A, M, Method, Validate)
         self.Validate = Validate
         # hidden variables for progress bar
         self.begincolor = '\033[91m'
@@ -93,7 +94,8 @@ class Observer(object):
         # For each sample get the sequence of actions with the highest
         # likelihood
         if Verbose:
-            sys.stdout.write("Using inferred expected values to predict actions...\n")
+            sys.stdout.write(
+                "Using inferred expected values to predict actions...\n")
         PredictedActions = [0] * Simulations
         MatchingActions = [0] * Simulations
         for i in range(Simulations):
@@ -161,8 +163,94 @@ class Observer(object):
             return None
         if len(rewards) == len(self.Plr.Agent.rewards):
             self.Plr.Agent.rewards = rewards
+        else:
+            print "Reward list does not match number of terrains."
             return None
         self.Plr.Prepare(self.Validate)
+
+    def InferAgentUsingPC(self, ActionSequence, PC, Feedback=False):
+        """
+        Compute the posterior of an action sequence using a set of samples from a PC and their loglikelihoods.
+        This let's you take the posterior from one map and use it as a prior for another map.
+
+        Args:
+            ActionSequence (list): Sequence of actions
+            PC (PosteriorContainer): PosteriorContainer object
+            Feedback (bool): When true, function gives feedback on percentage complete.
+        """
+        if not all(isinstance(x, int) for x in ActionSequence):
+            if all(isinstance(x, str) for x in ActionSequence):
+                ActionSequence = self.Plr.Map.GetActionList(ActionSequence)
+            else:
+                print "ERROR: Action sequence must contains the indices of actions or their names."
+                return None
+        Samples = PC.Samples
+        Costs = [0] * Samples
+        Rewards = [0] * Samples
+        LogLikelihoods = [0] * Samples
+        # Find what samples we already have.
+        RIndices = [PC.ObjectNames.index(
+            i) if i in PC.ObjectNames else -1 for i in self.Plr.Map.ObjectNames]
+        CIndices = [PC.CostNames.index(
+            i) if i in PC.CostNames else -1 for i in self.Plr.Map.StateNames]
+        if Feedback:
+            sys.stdout.write("\n")
+        for i in range(Samples):
+            if Feedback:
+                Percentage = round(i * 100.0 / Samples, 2)
+                sys.stdout.write("\rProgress |")
+                roundper = int(math.floor(Percentage / 5))
+                sys.stdout.write(
+                    self.begincolor + self.block * roundper + self.endcolor)
+                sys.stdout.write(" " * (20 - roundper))
+                sys.stdout.write("| " + str(Percentage) + "%")
+                sys.stdout.flush()
+            # Resample the agent
+            self.Plr.Agent.ResampleAgent()
+            # and overwrite sample sections that we already have
+            self.Plr.Agent.costs = [PC.CostSamples[i, CIndices[
+                j]] if CIndices[j] != -1 else self.Plr.Agent.costs[j] for j in range(len(self.Plr.Agent.costs))]
+            self.Plr.Agent.rewards = [PC.RewardSamples[i, RIndices[
+                j]] if RIndices[j] != -1 else self.Plr.Agent.rewards[j] for j in range(len(self.Plr.Agent.rewards))]
+            # save samples
+            Costs[i] = self.Plr.Agent.costs
+            Rewards[i] = self.Plr.Agent.rewards
+            # Replan
+            self.Plr.Prepare(self.Validate)
+            # Get log-likelihood
+            LogLik = self.Plr.Likelihood(ActionSequence)
+            # If anything went wrong just stop
+            if LogLik is None:
+                print "ERROR: Failed to compute likelihood. OBSERVER-001"
+                return None
+            # Add the prior
+            prior = PC.LogLikelihoods[i]
+            if (LogLik == (-sys.maxint - 1) or prior == (-sys.maxint - 1)):
+                LogLikelihoods[i] = (-sys.maxint - 1)
+            else:
+                if ((LogLik + prior) < (-sys.maxint - 1)):
+                    LogLikelihoods[i] = (-sys.maxint - 1)
+                else:
+                    LogLikelihoods[i] = LogLik + prior
+        # Finish printing progress bar
+        if Feedback:
+            # Print complete progress bar
+            sys.stdout.write("\rProgress |")
+            sys.stdout.write(self.begincolor + self.block * 20 + self.endcolor)
+            sys.stdout.write("| 100.0%")
+            sys.stdout.flush()
+        # Normalize LogLikelihoods
+        Normalize = scipy.misc.logsumexp(LogLikelihoods)
+        if np.exp(Normalize) == 0:
+            sys.stdout.write("\nWARNING: All likelihoods are 0.\n")
+        NormLogLikelihoods = LogLikelihoods - Normalize
+        Results = PosteriorContainer.PosteriorContainer(np.matrix(Costs), np.matrix(
+            Rewards), NormLogLikelihoods, ActionSequence, self.Plr)
+        if Feedback:
+            sys.stdout.write("\n\n")
+            Results.Summary()
+            sys.stdout.write("\n")
+        return Results
 
     def InferAgent(self, ActionSequence, Samples, Feedback=False, Method="Importance"):
         """
@@ -172,8 +260,9 @@ class Observer(object):
             ActionSequence (list): Sequence of actions
             Samples (int): Number of samples to use
             Feedback (bool): When true, function gives feedback on percentage complete.
-            Method (string): "Importance" or "MH". What sampling algorithm should I use to esimate the posterior?
+            Method (string): "Importance" or "MCMC". What sampling algorithm should I use to esimate the posterior?
         """
+        ActionSequence = self.GetActionIDs(ActionSequence)
         if Method == "Importance":
             return self.InferAgent_ImportanceSampling(ActionSequence, Samples, Feedback)
         if Method == "MCMC":
@@ -190,6 +279,55 @@ class Observer(object):
         """
         print "ERROR: MCMC not implemented yet."
         return None
+
+    def GetActionIDs(self, ActionSequence):
+        if not all(isinstance(x, int) for x in ActionSequence):
+            if all(isinstance(x, str) for x in ActionSequence):
+                return self.Plr.Map.GetActionList(ActionSequence)
+            else:
+                print "ERROR: Action sequence must contains the indices of actions or their names."
+                return None
+        return ActionSequence
+
+    def FindHit(self, ActionSequence, Limit):
+        """
+        Sample costs and rewards and only produce higher likelihoods
+
+        Args:
+        ActionSequence (list): Sequence of actions
+        Limit (int): Number of samples to search for
+        """
+        ActionSequence = self.GetActionIDs(ActionSequence)
+        ML = 0
+        # Print header
+        sys.stdout.write("Sample\t")
+        if self.Plr.Map.StateNames is not None:
+            for i in self.Plr.Map.StateNames:
+                sys.stdout.write(str(i) + "\t")
+        else:
+            for i in range(self.Plr.Agent.CostDimensions):
+                sys.stdout.write("Terrain" + str(i) + "\t")
+        if self.Plr.Map.ObjectNames is not None:
+            for i in self.Plr.Map.ObjectNames:
+                sys.stdout.write(str(i) + "\t")
+        else:
+            for i in range(self.Plr.Map.RewardDimensions):
+                sys.stdout.write("Object" + str(i) + "\t")
+        sys.stdout.write("Likelihood\n")
+        for i in range(Limit):
+            self.Plr.Agent.ResampleAgent()
+            self.Plr.Prepare(self.Validate)
+            Loglik = self.Plr.Likelihood(ActionSequence)
+            if np.exp(Loglik) > ML:
+                ML = np.exp(Loglik)
+                sys.stdout.write(str(i + 1) + "\t")
+                for j in range(self.Plr.Agent.CostDimensions):
+                    sys.stdout.write(
+                        str(np.round(self.Plr.Agent.costs[j], 2)) + "\t")
+                for j in range(self.Plr.Agent.RewardDimensions):
+                    sys.stdout.write(
+                        str(np.round(self.Plr.Agent.rewards[j], 2)) + "\t")
+                sys.stdout.write(str(ML) + "\n")
 
     def InferAgent_ImportanceSampling(self, ActionSequence, Samples, Feedback=False):
         """
@@ -229,7 +367,7 @@ class Observer(object):
             self.Plr.Prepare(self.Validate)
             # Get log-likelihood
             LogLikelihoods[i] = self.Plr.Likelihood(ActionSequence)
-            # If anything went wrong just stope
+            # If anything went wrong just stop
             if LogLikelihoods[i] is None:
                 print "ERROR: Failed to compute likelihood. OBSERVER-001"
                 return None
@@ -288,7 +426,7 @@ class Observer(object):
         Args:
             Samples (int): Number of agents to Simulate
             HumanReadable (bool): When true, function prints action names rather than action ids.
-            ResampleAgent (bool): When true simulation uses the same agent.
+            ResampleAgent (bool): When false simulation uses the same agent.
                                   If agent is not softmaxing utilities or actions then all action sequences will be identical.
             Simple (bool): When the agent finds more than one equally-valuable action is takes one at random.
                             If simple is set to true it instead chooses the first action in the set.

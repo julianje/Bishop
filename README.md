@@ -22,7 +22,8 @@ Simulate agents:
 
 To see a list of available maps:
 	
-	ShowAvailableMaps()
+	ShowAvailableMaps() # Print all maps
+    ShowAvailableMaps("Flag") # Print maps that contain "Flag"
 
 #### Cost-reward inference given observable actions
 
@@ -41,11 +42,11 @@ uses the FlagSetup file (in Bishop's library) to load the map and places an agen
 The Observer.InferAgent returns a __PosteriorContainer__ object. Here are some things you can do with it
 
 	Res.Summary()
-	Res.Summary(Human=False) # Or print it in csv-format
+	Res.Summary(human=False) # Or print it in csv-format
 	Res.AnalyzeConvergence() # Visually check if sampling converged
 	Res.PlotCostPosterior()
 	Res.PlotRewardPosterior()
-	Res.Summary(Human=False)
+    Res.LongSummary() # Do everything above.
 	SaveSamples(Res, "MyResults")
 
 You can reload the samples and the observer model later with
@@ -79,6 +80,9 @@ __FlagSetup.ini__
     # ObjectNames: OnlyOneNameNeeded
     
     [AgentParameters]
+    Method: Linear # Determines how costs are treated.
+    # If linear then costs are substracted from rewards.
+    # if discount then costs are treated as future discounts over rewards.
     # Prior over costs and rewards.
     Prior: ScaledUniform
     # Force terrain 0 to be always less costly than the rest?
@@ -126,23 +130,25 @@ This creates a 5 by 3 map that can be navigated diagonally. Terrain type is stor
 
 added a 2x3 square with the top-left corner positioned on (2,1). Both coordinates begin in 1 and the y-axis is counted from top to bottom. The last argument (1) gives the terrain code. Inserting overlapping squares always rewrites past terrain. You can then add terrain names
 
-	MyMap.AddStateNames(["Water","Jungle"])
+	MyMap.AddTerrainNames(["Water","Jungle"])
 
 To see what your map looks like type
 
 	MyMap.PrintMap()
 
-##### Adding targets
+##### Adding starting point, exit point, and objects
 
-SOON
+See docstrings for
 
-##### Saving the map
-
-SOON
+    MyMap.AddStartingPoint()
+    MyMap.AddExitState()
+    MyMap.InsertObjects()
 
 ##### Using the map
 
 Once you have a map, you need to create an agent, and use both to create an observer
 
-	MyAgent = Agent(MyMap, CostParam, RewardParam)
+	MyAgent = Agent(MyMap, CostPrior, RewardPrior, CostPriorParameters, RewardPriorParameters)
 	MyObserver = Observer(MyMap, MyAgent)
+
+See Agent's constructor docstring for list of all parameters agent can take and more details.

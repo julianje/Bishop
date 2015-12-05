@@ -13,7 +13,7 @@ import numpy as np
 
 class Agent(object):
 
-    def __init__(self, Map, CostPrior, RewardPrior, CostParams, RewardParams, SoftmaxChoice=True, SoftmaxAction=True, choiceTau=1, actionTau=0.01, CNull=0, RNull=0, Restrict=False):
+    def __init__(self, Map, CostPrior, RewardPrior, CostParams, RewardParams, Capacity=-1, Minimum=0, SoftmaxChoice=True, SoftmaxAction=True, choiceTau=1, actionTau=0.01, CNull=0, RNull=0, Restrict=False):
         """
         Agent class.
 
@@ -26,6 +26,9 @@ class Agent(object):
             RewardPrior (str): String indicating Reward prior's name. Run Agent.Priors() to see list
             CostParams (list): List of parameters for sampling costs.
             RewardParams (list): List of parameters for sampling rewards.
+            Capacity (int): Number of objects agent can carry. If set to -1 Planner adjusts
+                            it to the total number of objects in the map.
+            Minimum (int): Minimum number of objects must take before leaving.
             SoftmaxChoice (bool): Does the agent select goals optimally?
             SoftmaxAction (bool): Does the agent act upong goals optimally?
             choiceTau (float): Softmax parameter for goal selection.
@@ -51,6 +54,8 @@ class Agent(object):
         self.CostDimensions = len(np.unique(Map.StateTypes))
         # Get dimensions over which you'll build your simplex
         self.RewardDimensions = len(set(Map.ObjectTypes))
+        self.Capacity = Capacity
+        self.Minimum = Minimum
         self.SoftmaxChoice = SoftmaxChoice
         self.SoftmaxAction = SoftmaxAction
         if SoftmaxAction:
@@ -146,15 +151,37 @@ class Agent(object):
             return [0.5 * SamplingParam[0]] * dimensions
         if (Kind == "Empirical"):
             return [random.choice(SamplingParam) for i in range(dimensions)]
+        if (Kind == "PartialUniform"):
+            # Generate random samples and scale them by the first parameter.
+            samples = np.random.rand(dimensions) * SamplingParam[0]
+            # Now iterate over the sampling parameters and push in static
+            # values.
+            for i in range(1, len(SamplingParam)):
+                if SamplingParam[i] != -1:
+                    samples[i - 1] = SamplingParam[i]
+            return samples
 
     def Priors(self, human=True):
         """
-        Print list of supported priors. This is hardcoded for now.
+        Print list of supported priors.
+
+        PRIORS:
+        Simplex: No arguments needed.
+        IntegerUniform: argument is one real/int that scales the vector
+        ScaledUniform: argument is one real/int that scales the vector
+        Gaussian: First argument is the mean and second argument is the standard deviation.
+        Exponential: First parameter is lambda
+        Constant: First parameter is the constant value.
+        PartialUniform: First parameter as a real/int that scales the vector. This argument should be followed by a list of numbers
+            that matches the number of terrains. If the entry for terrain i is -1 that terrain get resampled and scaled, if it contains any value
+            then the terrain is left constant at that value. E.g., a two terrain world with a PartialUniform prior and parameters 10 -1 0.25
+            generates priors where the first terrain is uniform between 0 and 10, and the second paramter is always 0.25
 
         Args:
             human (bool): If true function prints names, otherwise it returns a list.
         """
-        Priors = ['Simplex', 'IntegerUniform', 'ScaledUniform', 'Gaussian', 'Exponential', 'Constant', 'Empirical']
+        Priors = ['Simplex', 'IntegerUniform', 'ScaledUniform',
+                  'Gaussian', 'Exponential', 'Constant', 'Empirical', 'PartialUniform']
         if human:
             for Prior in Priors:
                 print Prior

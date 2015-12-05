@@ -55,9 +55,13 @@ class MDP(object):
         while True:
             V2 = self.values.copy()
             for i in range(0, len(self.S)):
-                options = [(self.R[j, i] + self.gamma * (np.mat(self.T[i, :, :]))
-                            * np.mat(V2.transpose())).max() for j in range(len(self.A))]
-                self.values[0, i] = max(options)
+                prod = self.gamma * \
+                    (np.mat(self.T[i, :, :]) * np.mat(V2.transpose()))
+                self.values[0, i] = max(prod[j] + self.R[j, i]
+                                        for j in range(len(self.A)))
+                # options = [(self.R[j, i] + self.gamma * (np.mat(self.T[i, :, :]))
+                #            * np.mat(V2.transpose())).max() for j in range(len(self.A))]
+                #self.values[0, i] = max(options)
             if (self.values - V2).max() <= epsilon:
                 break
 

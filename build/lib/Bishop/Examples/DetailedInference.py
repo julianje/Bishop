@@ -4,7 +4,7 @@ from Bishop import *
 
 MapName = "Tatik_T1"
 
-Observer = Bishop.LoadEnvironment(MapName)
+Observer = Bishop.LoadObserver(MapName)
 
 Res = Observer.InferAgent(
     ActionSequence=['UL', 'R'], Samples=500, Feedback=True)
@@ -37,4 +37,4 @@ Res = LoadSamples("MyResults.p")
 # Or just look at the long summary without returning the files to the workspace
 AnalyzeSamples("MyResults.p")
 # Load the observer model associated with samples
-Observer = LoadObserver(Res)  # Only works if Results had a map associated
+Observer = LoadObserverFromPC(Res)  # Only works if Results had a map associated
