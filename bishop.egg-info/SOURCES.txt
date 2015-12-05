@@ -102,6 +102,7 @@ Bishop/Maps/FlagMaps/Flag_Asym_TwoRB.ini
 Bishop/Maps/FlagMaps/Flag_Asym_TwoR_Dist.ini
 Bishop/Maps/FlagMaps/Flag_Asym_TwoR_DistB.ini
 Bishop/Maps/FlagMaps/Flag_Asym_TwoR_DistInv.ini
+Bishop/Maps/FlagMaps/Flag_Asym_TwoR_InvertedR.ini
 Bishop/Maps/FlagMaps/Flag_Map
 Bishop/Maps/FlagMaps/Flag_Sym_OneR.ini
 Bishop/Maps/FlagMaps/Flag_Sym_OneRB.ini
