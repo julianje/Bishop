@@ -188,6 +188,11 @@ class Observer(object):
         Costs = [0] * Samples
         Rewards = [0] * Samples
         LogLikelihoods = [0] * Samples
+        # Find what samples we already have.
+        RIndices = [PC.ObjectNames.index(
+            i) if i in PC.ObjectNames else -1 for i in self.Plr.Map.ObjectNames]
+        CIndices = [PC.CostNames.index(
+            i) if i in PC.CostNames else -1 for i in self.Plr.Map.StateNames]
         if Feedback:
             sys.stdout.write("\n")
         for i in range(Samples):
@@ -200,10 +205,16 @@ class Observer(object):
                 sys.stdout.write(" " * (20 - roundper))
                 sys.stdout.write("| " + str(Percentage) + "%")
                 sys.stdout.flush()
-            # Take a sample from the PC object and set it to the observer.
-            Costs[i] = PC.CostSamples[i, :].tolist()[0]
-            Rewards[i] = PC.RewardSamples[i, :].tolist()[0]
-            self.SetCR(Costs[i], Rewards[i])
+            # Resample the agent
+            self.Plr.Agent.ResampleAgent()
+            # and overwrite sample sections that we already have
+            self.Plr.Agent.costs = [PC.CostSamples[i, CIndices[
+                j]] if CIndices[j] != -1 else self.Plr.Agent.costs[j] for j in range(len(self.Plr.Agent.costs))]
+            self.Plr.Agent.rewards = [PC.RewardSamples[i, RIndices[
+                j]] if RIndices[j] != -1 else self.Plr.Agent.rewards[j] for j in range(len(self.Plr.Agent.rewards))]
+            # save samples
+            Costs[i] = self.Plr.Agent.costs
+            Rewards[i] = self.Plr.Agent.rewards
             # Replan
             self.Plr.Prepare(self.Validate)
             # Get log-likelihood
