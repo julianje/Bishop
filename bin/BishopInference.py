@@ -25,6 +25,7 @@ __author__ = "Julian Jara-Ettinger"
 __license__ = "MIT"
 
 from Bishop import *
+import sys
 import argparse
 
 parser = argparse.ArgumentParser()
@@ -42,18 +43,33 @@ parser.add_argument(
     "-v", "--verbose", help="Verbose?", action="store_true")
 
 args = parser.parse_args()
+
+if args.map is None:
+    sys.exit("Map file missing! Type Bishop -h for help.")
+
+if args.actions is None:
+    sys.exit("Actions missing! Type Bishop -h for help.")
+
+if args.samples is None:
+    sys.exit("How many samples should I use? Type Bishop -h for help.")
+
 # Don't print yet because we might change the starting point
 O = LoadObserver(args.map, False, True)
 if args.startingpoint is not None:
     O.SetStartingPoint(args.startingpoint, False)
 # Need to split args.Actions
-ActionSequence = [int(s) for s in args.actions.split()]
+ActionSequence = [s for s in args.actions.split()]
+if ActionSequence[0].isdigit():
+    ActionSequence = [int(s) for s in ActionSequence]
 if args.verbose:
     O.PrintMap()
 Res = O.InferAgent(ActionSequence, args.samples, args.verbose)
 Res.AssociateMap(str(args.map))
 Res.MapFile = str(args.map)
-if not args.verbose:
-    Res.Summary(False)
 if args.output is not None:
     SaveSamples(Res, args.output)
+if not args.verbose:
+    if args.output is not None:
+        Res.Summary(False, args.output)
+    else:
+        Res.Summary(False)
