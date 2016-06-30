@@ -76,7 +76,7 @@ class PosteriorContainer(object):
             overwrite (bool): Overwrite file if it exists?
         """
         if os.path.isfile(filename) and not overwrite:
-            print "ERROR: File exists, type SaveCSV(\"" + filename + "\",True) to overwrite file."
+            print("ERROR: File exists, type SaveCSV(\"" + filename + "\",True) to overwrite file.")
         else:
             f = open(filename, 'w')
             # Create header
@@ -180,7 +180,7 @@ class PosteriorContainer(object):
         for i in range(self.CostDimensions):
             NL = np.exp(self.LogLikelihoods[0:(limit + 1)])
             if sum(NL) == 0:
-                print "WARNING: All likelihoods are zero up to this point. POSTERIORCONTAINER-001"
+                print("WARNING: All likelihoods are zero up to this point. POSTERIORCONTAINER-001")
                 NL = [1.0 / NL.shape[0]]
             else:
                 NL = NL / sum(NL)
@@ -203,7 +203,7 @@ class PosteriorContainer(object):
         for i in range(self.RewardDimensions):
             NL = np.exp(self.LogLikelihoods[0:(limit + 1)])
             if sum(NL) == 0:
-                print "WARNING: All likelihoods are zero up to this point. POSTERIORCONTAINER-001"
+                print("WARNING: All likelihoods are zero up to this point. POSTERIORCONTAINER-001")
                 NL = [1.0 / NL.shape[0]]
             else:
                 NL = NL / sum(NL)
@@ -221,7 +221,7 @@ class PosteriorContainer(object):
             bins (int): Number of bins to use
         """
         if bins is None:
-            print "Number of bins not specified. Defaulting to 10."
+            print("Number of bins not specified. Defaulting to 10.")
             bins = 10
         maxval = np.amax(self.CostSamples)
         binwidth = maxval * 1.0 / bins + 0.00001
@@ -251,7 +251,7 @@ class PosteriorContainer(object):
             bins (int): Number of bins to use
         """
         if bins is None:
-            print "Number of bins not specified. Defaulting to 10."
+            print("Number of bins not specified. Defaulting to 10.")
             bins = 10
         maxval = np.amax(self.RewardSamples)
         binwidth = maxval * 1.0 / bins + 0.00001
@@ -459,15 +459,15 @@ class PosteriorContainer(object):
         """
         NL = np.exp(self.LogLikelihoods)
         if sum(NL) == 0:
-            print "ERROR: All likelihoods are zero up to this point. Cannot analyze convergence POSTERIORCONTAINER-002"
+            print("ERROR: All likelihoods are zero up to this point. Cannot analyze convergence POSTERIORCONTAINER-002")
             return None
         # jump indicates how often to recompute the expected value
         if jump is None:
             if self.Samples > 100:
-                print "Recomputing expected value after every 20 samples"
+                print("Recomputing expected value after every 20 samples")
                 jump = int(round(self.Samples * 1.0 / 20))
             else:
-                print "Recomputing expected value after every sample"
+                print("Recomputing expected value after every sample")
                 jump = 1
         rangevals = range(0, self.Samples, jump)
         ycostvals = [self.GetExpectedCosts(i) for i in rangevals]
@@ -552,7 +552,7 @@ class PosteriorContainer(object):
         """
         if Full:
             for (property, value) in vars(self).iteritems():
-                print property, ': ', value
+                print(property, ': ', value)
         else:
             for (property, value) in vars(self).iteritems():
-                print property
+                print(property)

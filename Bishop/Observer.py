@@ -144,7 +144,7 @@ class Observer(object):
             if all(isinstance(x, str) for x in ActionSequence):
                 ActionSequence = self.Plr.Map.GetActionList(ActionSequence)
             else:
-                print "ERROR: Action sequence must contains the indices of actions or their names."
+                print("ERROR: Action sequence must contains the indices of actions or their names.")
                 return None
         self.Plr.DrawMap(filename, ActionSequence, size)
 
@@ -159,12 +159,12 @@ class Observer(object):
         if len(costs) == len(self.Plr.Agent.costs):
             self.Plr.Agent.costs = costs
         else:
-            print "Cost list does not match number of terrains."
+            print("Cost list does not match number of terrains.")
             return None
         if len(rewards) == len(self.Plr.Agent.rewards):
             self.Plr.Agent.rewards = rewards
         else:
-            print "Reward list does not match number of terrains."
+            print("Reward list does not match number of terrains.")
             return None
         self.Plr.Prepare(self.Validate)
 
@@ -182,7 +182,7 @@ class Observer(object):
             if all(isinstance(x, str) for x in ActionSequence):
                 ActionSequence = self.Plr.Map.GetActionList(ActionSequence)
             else:
-                print "ERROR: Action sequence must contains the indices of actions or their names."
+                print("ERROR: Action sequence must contains the indices of actions or their names.")
                 return None
         Samples = PC.Samples
         Costs = [0] * Samples
@@ -221,7 +221,7 @@ class Observer(object):
             LogLik = self.Plr.Likelihood(ActionSequence)
             # If anything went wrong just stop
             if LogLik is None:
-                print "ERROR: Failed to compute likelihood. OBSERVER-001"
+                print("ERROR: Failed to compute likelihood. OBSERVER-001")
                 return None
             # Add the prior
             prior = PC.LogLikelihoods[i]
@@ -277,7 +277,7 @@ class Observer(object):
             Samples (int): Number of samples to use
             Feedback (bool): When true, function gives feedback on percentage complete.
         """
-        print "ERROR: MCMC not implemented yet."
+        print("ERROR: MCMC not implemented yet.")
         return None
 
     def GetActionIDs(self, ActionSequence):
@@ -285,7 +285,7 @@ class Observer(object):
             if all(isinstance(x, str) for x in ActionSequence):
                 return self.Plr.Map.GetActionList(ActionSequence)
             else:
-                print "ERROR: Action sequence must contains the indices of actions or their names."
+                print("ERROR: Action sequence must contains the indices of actions or their names.")
                 return None
         return ActionSequence
 
@@ -342,7 +342,7 @@ class Observer(object):
             if all(isinstance(x, str) for x in ActionSequence):
                 ActionSequence = self.Plr.Map.GetActionList(ActionSequence)
             else:
-                print "ERROR: Action sequence must contains the indices of actions or their names."
+                print("ERROR: Action sequence must contains the indices of actions or their names.")
                 return None
         Costs = [0] * Samples
         Rewards = [0] * Samples
@@ -369,7 +369,7 @@ class Observer(object):
             LogLikelihoods[i] = self.Plr.Likelihood(ActionSequence)
             # If anything went wrong just stop
             if LogLikelihoods[i] is None:
-                print "ERROR: Failed to compute likelihood. OBSERVER-001"
+                print("ERROR: Failed to compute likelihood. OBSERVER-001")
                 return None
         # Finish printing progress bar
         if Feedback:
@@ -404,15 +404,15 @@ class Observer(object):
             if all(isinstance(x, str) for x in ActionSequence):
                 ActionSequence = self.Plr.Map.GetActionList(ActionSequence)
             else:
-                print "ERROR: Action sequence must contains the indices of actions or their names."
+                print("ERROR: Action sequence must contains the indices of actions or their names.")
                 return None
         if len(costs) != self.Plr.Agent.CostDimensions:
-            print "ERROR: Number of cost samples does not match number of terrains"
+            print("ERROR: Number of cost samples does not match number of terrains")
             return None
         else:
             self.Plr.Agent.costs = costs
         if len(rewards) != self.Plr.Agent.RewardDimensions:
-            print "ERROR: Number of reward samples does not match number of object types"
+            print("ERROR: Number of reward samples does not match number of object types")
             return None
         else:
             self.Plr.Agent.rewards = rewards
@@ -531,7 +531,7 @@ class Observer(object):
         """
         if Full:
             for (property, value) in vars(self).iteritems():
-                print property, ': ', value
+                print(property, ': ', value)
         else:
             for (property, value) in vars(self).iteritems():
-                print property
+                print(property)

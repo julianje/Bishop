@@ -43,12 +43,12 @@ class Agent(object):
         if CostPrior in Priors:
             self.CostPrior = CostPrior
         else:
-            print "WARNING: Cost prior not found! Setting to uniform"
+            print("WARNING: Cost prior not found! Setting to uniform")
             self.CostPrior = "ScaledUniform"
         if RewardPrior in Priors:
             self.RewardPrior = RewardPrior
         else:
-            print "WARNING; Reward prior not found! Setting to uniform"
+            print("WARNING; Reward prior not found! Setting to uniform")
             self.RewardPrior = "ScaledUniform"
         self.Restrict = Restrict
         self.CostDimensions = len(np.unique(Map.StateTypes))
@@ -67,7 +67,7 @@ class Agent(object):
         else:
             self.choiceTau = None
         if self.RewardDimensions == 0:
-            print "WARNING: No rewards on map. AGENT-001"
+            print("WARNING: No rewards on map. AGENT-001")
         if isinstance(CostParams, list):
             self.CostParams = CostParams
         else:
@@ -184,7 +184,7 @@ class Agent(object):
                   'Gaussian', 'Exponential', 'Constant', 'Empirical', 'PartialUniform']
         if human:
             for Prior in Priors:
-                print Prior
+                print(Prior)
         else:
             return Priors
 
@@ -204,7 +204,7 @@ class Agent(object):
         """
         if Full:
             for (property, value) in vars(self).iteritems():
-                print property, ': ', value
+                print(property, ': ', value)
         else:
             for (property, value) in vars(self).iteritems():
-                print property
+                print(property)
