@@ -144,7 +144,8 @@ class Observer(object):
             if all(isinstance(x, str) for x in ActionSequence):
                 ActionSequence = self.Plr.Map.GetActionList(ActionSequence)
             else:
-                print("ERROR: Action sequence must contains the indices of actions or their names.")
+                print(
+                    "ERROR: Action sequence must contains the indices of actions or their names.")
                 return None
         self.Plr.DrawMap(filename, ActionSequence, size)
 
@@ -182,7 +183,8 @@ class Observer(object):
             if all(isinstance(x, str) for x in ActionSequence):
                 ActionSequence = self.Plr.Map.GetActionList(ActionSequence)
             else:
-                print("ERROR: Action sequence must contains the indices of actions or their names.")
+                print(
+                    "ERROR: Action sequence must contains the indices of actions or their names.")
                 return None
         Samples = PC.Samples
         Costs = [0] * Samples
@@ -252,6 +254,69 @@ class Observer(object):
             sys.stdout.write("\n")
         return Results
 
+    def PredictAction(self, PC, Feedback=False):
+        """
+        Return a probability distribution of the agent's next action.
+        the function generates "Samples" agents. For each agent it simulates them acting "SubSampleSize" times to build a
+        probability distribution of the actions.
+
+        Args:
+            PC (PosteriorContainer): PosteriorContainer object.
+            Feedback (bool): When true, function gives feedback on percentage complete.
+            Samples (int): Number of samples to use.
+        """
+        # Override samples if there is a PosteriorContainer.
+        Samples = PC.Samples
+        Costs = [0] * Samples
+        Rewards = [0] * Samples
+        PredictedActions = [0] * len(self.Plr.MDP.A)
+        # Find what samples we already have.
+        RIndices = [PC.ObjectNames.index(
+            i) if i in PC.ObjectNames else -1 for i in self.Plr.Map.ObjectNames]
+        CIndices = [PC.CostNames.index(
+            i) if i in PC.CostNames else -1 for i in self.Plr.Map.StateNames]
+        if Feedback:
+            sys.stdout.write("\n")
+        for i in range(Samples):
+            if Feedback:
+                Percentage = round(i * 100.0 / Samples, 2)
+                sys.stdout.write("\rProgress |")
+                roundper = int(math.floor(Percentage / 5))
+                sys.stdout.write(
+                    self.begincolor + self.block * roundper + self.endcolor)
+                sys.stdout.write(" " * (20 - roundper))
+                sys.stdout.write("| " + str(Percentage) + "%")
+                sys.stdout.flush()
+            # Resample the agent
+            self.Plr.Agent.ResampleAgent()
+            # and overwrite sample sections that we already have
+            self.Plr.Agent.costs = [PC.CostSamples[i, CIndices[
+                j]] if CIndices[j] != -1 else self.Plr.Agent.costs[j] for j in range(len(self.Plr.Agent.costs))]
+            self.Plr.Agent.rewards = [PC.RewardSamples[i, RIndices[
+                j]] if RIndices[j] != -1 else self.Plr.Agent.rewards[j] for j in range(len(self.Plr.Agent.rewards))]
+            # save samples
+            Costs[i] = self.Plr.Agent.costs
+            Rewards[i] = self.Plr.Agent.rewards
+            # Replan
+            self.Plr.Prepare(self.Validate)
+            # Get predicted actions
+            ActionDistribution = self.Plr.GetActionDistribution()
+            # Get the probability
+            probability = np.exp(PC.LogLikelihoods[i])
+            # Add all up
+            PredictedActions = [ActionDistribution[
+                x] * probability + PredictedActions[x] for x in range(len(PredictedActions))]
+        # Finish printing progress bar
+        if Feedback:
+            # Print complete progress bar
+            sys.stdout.write("\rProgress |")
+            sys.stdout.write(self.begincolor + self.block * 20 + self.endcolor)
+            sys.stdout.write("| 100.0%")
+            sys.stdout.flush()
+        # PredictedActions is a list of arrays. Make it a list of integers.
+        PredictedActions = [PredictedActions[i][0] for i in range(len(PredictedActions))]
+        return [self.Plr.Map.ActionNames, PredictedActions]
+
     def InferAgent(self, ActionSequence, Samples, Feedback=False, Method="Importance"):
         """
         Compute a series of samples with their likelihoods.
@@ -277,7 +342,7 @@ class Observer(object):
             Samples (int): Number of samples to use
             Feedback (bool): When true, function gives feedback on percentage complete.
         """
-        print("ERROR: MCMC not implemented yet.")
+        print("MCMC not implemented yet.")
         return None
 
     def GetActionIDs(self, ActionSequence):
@@ -285,7 +350,8 @@ class Observer(object):
             if all(isinstance(x, str) for x in ActionSequence):
                 return self.Plr.Map.GetActionList(ActionSequence)
             else:
-                print("ERROR: Action sequence must contains the indices of actions or their names.")
+                print(
+                    "ERROR: Action sequence must contains the indices of actions or their names.")
                 return None
         return ActionSequence
 
@@ -342,7 +408,8 @@ class Observer(object):
             if all(isinstance(x, str) for x in ActionSequence):
                 ActionSequence = self.Plr.Map.GetActionList(ActionSequence)
             else:
-                print("ERROR: Action sequence must contains the indices of actions or their names.")
+                print(
+                    "ERROR: Action sequence must contains the indices of actions or their names.")
                 return None
         Costs = [0] * Samples
         Rewards = [0] * Samples
@@ -404,7 +471,8 @@ class Observer(object):
             if all(isinstance(x, str) for x in ActionSequence):
                 ActionSequence = self.Plr.Map.GetActionList(ActionSequence)
             else:
-                print("ERROR: Action sequence must contains the indices of actions or their names.")
+                print(
+                    "ERROR: Action sequence must contains the indices of actions or their names.")
                 return None
         if len(costs) != self.Plr.Agent.CostDimensions:
             print("ERROR: Number of cost samples does not match number of terrains")
