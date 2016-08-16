@@ -188,6 +188,7 @@ Bishop/Maps/PondDiscount/P_Disc_TT_TRE.ini
 Bishop/Maps/PondDiscount/Pond_OT
 Bishop/Maps/PondDiscount/Pond_TT
 Bishop/Maps/PondMaps/.DS_Store
+Bishop/Maps/PondMaps/P_OT.ini
 Bishop/Maps/PondMaps/P_OT_ORC.ini
 Bishop/Maps/PondMaps/P_OT_ORC_FC.ini
 Bishop/Maps/PondMaps/P_OT_ORC_FR.ini
@@ -200,6 +201,7 @@ Bishop/Maps/PondMaps/P_OT_TRC_FR.ini
 Bishop/Maps/PondMaps/P_OT_TRE.ini
 Bishop/Maps/PondMaps/P_OT_TRE_FC.ini
 Bishop/Maps/PondMaps/P_OT_TRE_FR.ini
+Bishop/Maps/PondMaps/P_TT.ini
 Bishop/Maps/PondMaps/P_TT_ORC.ini
 Bishop/Maps/PondMaps/P_TT_ORC_FC.ini
 Bishop/Maps/PondMaps/P_TT_ORC_FR.ini
