@@ -73,7 +73,7 @@ class Planner(object):
             self.BuildPlanner(Validate)
             self.ComputeUtilities()
         except Exception as error:
-            print error
+            print(error)
 
     def BuildPlanner(self, Validate=True):
         """
@@ -85,14 +85,16 @@ class Planner(object):
         if Validate:
             # Check that map has all it needs
             if not self.Map.Validate():
-                print "ERROR: Map failed to validate. PLANNER-001"
+                print("ERROR: Map failed to validate. PLANNER-001")
                 return None
             # Check that agent's cost and reward dimensions match map.
             if self.Agent.CostDimensions != len(np.unique(self.Map.StateTypes)):
-                print "ERROR: Agent's cost dimensions do not match map object. PLANNER-002"
+                print(
+                    "ERROR: Agent's cost dimensions do not match map object. PLANNER-002")
                 return None
             if self.Agent.RewardDimensions != len(set(self.Map.ObjectLocations)):
-                print "ERROR: Agent's reward dimensions do not match map object. PLANNER-003"
+                print(
+                    "ERROR: Agent's reward dimensions do not match map object. PLANNER-003")
                 return None
         # Create main MDP object.
         # This assumes that the Map object has a dead exit state.
@@ -167,7 +169,8 @@ class Planner(object):
                 else:
                     TotalCost = sum(
                         [self.MDP.R[Actions[i]][StateSequence[i]] for i in range(len(Actions))])
-                CostMatrix[OriginalPointIndex][TargetStateIndex] = np.abs(TotalCost) if self.Method == "Discount" else TotalCost
+                CostMatrix[OriginalPointIndex][TargetStateIndex] = np.abs(
+                    TotalCost) if self.Method == "Discount" else TotalCost
         return [Policies, CostMatrix]
 
     def SimulatePathUntil(self, StartingPoint, StopStates, inputMDP, Limit=300, Simple=False):
@@ -204,7 +207,7 @@ class Planner(object):
             StateSequence.append(State)
             iterations += 1
             if (iterations > Limit):
-                print "ERROR: Simulation exceeded timelimit. PLANNER-009"
+                print("ERROR: Simulation exceeded timelimit. PLANNER-009")
                 return [Actions, StateSequence]
         return [Actions, StateSequence]
 
@@ -295,9 +298,61 @@ class Planner(object):
         self.Utilities = utility
         self.goalindices = goalindices
 
+    def GetActionDistribution(self):
+        """
+        Return the probability distribution of the next action by integrating over
+        all possible plans.
+        That is,
+
+        p(a) = \sum_{plans} p(a|plan)p(plan)
+        """
+        if self.Utilities is None:
+            print("ERROR: Missing utilities. PLANNER-013")
+            return None
+        if self.goalindices is None:
+            print("ERROR: Mising goal space. PLANNER-014")
+            return None
+        options = self.Utilities
+        options = options - abs(max(options))
+        try:
+            options = [
+                math.exp(options[j] / self.Agent.choiceTau) for j in range(len(options))]
+        except OverflowError:
+            print("ERROR: Failed to softmax utility function. PLANNER-008")
+            return None
+        if sum(options) == 0:
+            # Make uniform distribution
+            planprobabilities = [1.0 / len(options)] * len(options)
+        else:
+            planprobabilities = [options[j] /
+                                 sum(options) for j in range(len(options))]
+        # Now iterate over each plan, get the probability distribution of actions,
+        # and weight by the planprobabilities.
+        ActionDistribution = [0] * len(self.goalindices)
+        CurrentState = [self.CriticalStates[0]]
+        for CurrentPlanIndex in range(len(self.goalindices)):
+            planindices = [
+                0] + [j + 1 for j in self.goalindices[CurrentPlanIndex]] + [len(self.CriticalStates) - 1]
+            # [0] is just the starting state, so agent starts by executing first policy after that.
+            # Load the policy onto the MDP
+            self.MDP.policy = self.Policies[planindices[1]]
+            # Get the action distribution vector
+            ActionDistribution[CurrentPlanIndex] = self.MDP.policy[
+                :, CurrentState]
+            # Weight them by the utility.
+            ActionDistribution[CurrentPlanIndex] = [ActionProb * planprobabilities[
+                CurrentPlanIndex] for ActionProb in ActionDistribution[CurrentPlanIndex]]
+        # Now integrate all of them!
+        NumberofActions = np.shape(ActionDistribution)[1]
+        NumberofPlans = np.shape(ActionDistribution)[0]
+        FinalActionDistribution = [0] * NumberofActions
+        for i in range(NumberofActions):
+            FinalActionDistribution[i] = sum([ActionDistribution[j][i] for j in range(NumberofPlans)])
+        return(FinalActionDistribution)
+
     def Simulate(self, Simple=True):
         """
-        Simulate an agent until it reaches the exit state of time runs out.
+        Simulate an agent until it reaches the exit state or time runs out.
         IMPORTANT: THIS FUNCTION SIMULATES THROUGH THE NAIVE UTILITY CALCULUS.
         SimulatePathUntil() USES LOCAL MDPS.
 
@@ -305,10 +360,10 @@ class Planner(object):
             Simple (bool): When more than one action is highest value, take the first one?
         """
         if self.Utilities is None:
-            print "ERROR: Missing utilities. PLANNER-006"
+            print("ERROR: Missing utilities. PLANNER-006")
             return None
         if self.goalindices is None:
-            print "ERROR: Missing goal space. PLANNER-007"
+            print("ERROR: Missing goal space. PLANNER-007")
             return None
         if self.Agent.SoftmaxChoice:
             options = self.Utilities
@@ -317,7 +372,7 @@ class Planner(object):
                 options = [
                     math.exp(options[j] / self.Agent.choiceTau) for j in range(len(options))]
             except OverflowError:
-                print "ERROR: Failed to softmax utility function. PLANNER-008"
+                print("ERROR: Failed to softmax utility function. PLANNER-008")
                 return None
             if sum(options) == 0:
                 # If all utilities are equal
@@ -425,11 +480,13 @@ class Planner(object):
         # Check that objects collected lies within the range of the map.
         if Complete:
             if (len(objectscollected) < self.Agent.Minimum) or (len(objectscollected) > self.Agent.Capacity):
-                print "\nERROR: Number of objects agent collected is outside the range specified in the map."
+                print(
+                    "\nERROR: Number of objects agent collected is outside the range specified in the map.")
                 return None
         else:
             if (len(objectscollected) > self.Agent.Capacity):
-                print "\nERROR: Number of objects agent collected is outside the range specified in the map."
+                print(
+                    "\nERROR: Number of objects agent collected is outside the range specified in the map.")
                 return None
         # Find all action sequences that are consistent with the observations:
         if Complete:
@@ -455,7 +512,7 @@ class Planner(object):
                 options[:] = 0
                 options[bestactions] = 1
         except OverflowError:
-            print "ERROR: Failed to softmax utility function. PLANNER-011"
+            print("ERROR: Failed to softmax utility function. PLANNER-011")
         if sum(options) == 0:
             softutilities = [1.0 / len(options)] * len(options)
         else:
@@ -495,7 +552,7 @@ class Planner(object):
         NewActions = ActionSequence[StateSequence.index(NewStartingPoint):]
         # Check
         if (len(NewStates)) != (len(NewActions) + 1):
-            print "ERROR: New states do not align with new actions. PLANNER-012"
+            print("ERROR: New states do not align with new actions. PLANNER-012")
             return None
         # For each goal compute the probability of the actions past the last
         # critical state
@@ -550,7 +607,8 @@ class Planner(object):
                         "#740AFF", "#00998F", "#426600", "#003380", "#C20088", "#94FFB5",
                         "#2BCE48", "#5EF1F2"]
         if not self.Map.Validate():
-            print "WARNING: Map is not well formed. May fail to render image. PLANNER-013"
+            print(
+                "WARNING: Map is not well formed. May fail to render image. PLANNER-013")
         # Draw map first:
         im = Image.new(
             "RGB", [self.Map.mapwidth * size, self.Map.mapheight * size])
@@ -612,7 +670,7 @@ class Planner(object):
         # Print class properties
         if Full:
             for (property, value) in vars(self).iteritems():
-                print property, ': ', value
+                print(property, ': ', value)
         else:
             for (property, value) in vars(self).iteritems():
-                print property
+                print(property)

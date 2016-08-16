@@ -49,7 +49,7 @@ class AgentSimulation(object):
             overwrite (bool): Overwrite file if it exists?
         """
         if os.path.isfile(filename) and not overwrite:
-            print "ERROR: File exists, type SaveCSV(\"" + filename + "\",True) to overwrite file."
+            print("ERROR: File exists, type SaveCSV(\"" + filename + "\",True) to overwrite file.")
         else:
             f = open(filename, 'w')
             # Create header
@@ -110,7 +110,7 @@ class AgentSimulation(object):
         """
         if Full:
             for (property, value) in vars(self).iteritems():
-                print property, ': ', value
+                print(property, ': ', value)
         else:
             for (property, value) in vars(self).iteritems():
-                print property
+                print(property)

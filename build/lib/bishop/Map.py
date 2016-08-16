@@ -63,53 +63,53 @@ class Map(object):
         Success = True
         Tshape = self.T.shape
         if Tshape[0] != Tshape[2]:
-            print "ERROR: Transition matrix has wrong dimensions. MAP-001"
+            print("ERROR: Transition matrix has wrong dimensions. MAP-001")
             Success = False
         if Tshape[0] != len(self.S) + 1:  # 1 for the dead state!
-            print "ERROR: Transition matrix does not match number of states. MAP-002"
+            print("ERROR: Transition matrix does not match number of states. MAP-002")
             Success = False
         if Tshape[1] != len(self.A):
-            print "ERROR: Transition matrix does not match number of actions. MAP-003"
+            print("ERROR: Transition matrix does not match number of actions. MAP-003")
             Success = False
         # Check that location and locationtype match
         if len(self.ObjectLocations) == 0 or len(self.ObjectTypes) == 0:
-            print "ERROR: Missing object locations. MAP-004"
+            print("ERROR: Missing object locations. MAP-004")
             Success = False
         if len(self.ObjectLocations) != len(self.ObjectTypes):
-            print "ERROR: List of locations and list of location types are of different length. MAP-005"
+            print("ERROR: List of locations and list of location types are of different length. MAP-005")
             Success = False
         # Check that location types are ordered
         #  from 0 to len(self.ObjectTypes).
         LocTypes = list(set(self.ObjectTypes))
         if range(max(LocTypes) + 1) != LocTypes:
-            print "ERROR: Location types are not ordered correctly (They should be ordered from 0 to N, consecutively). MAP-018"
+            print("ERROR: Location types are not ordered correctly (They should be ordered from 0 to N, consecutively). MAP-018")
             Success = False
         # Check that objectnames match number of objects
         if self.ObjectNames is not None:
             if len(self.ObjectNames) != len(set(self.ObjectTypes)):
-                print "ERROR: Object names do not match number of objects. MAP-006"
+                print("ERROR: Object names do not match number of objects. MAP-006")
                 Success = False
         # Check that starting point and exit state are in map
         if self.StartingPoint is not None:
             if self.StartingPoint < 0 or self.StartingPoint >= len(self.S):
-                print "ERROR: Starting point is not a state number. MAP-007"
+                print("ERROR: Starting point is not a state number. MAP-007")
                 Success = False
         else:
-            print "ERROR: Missing starting point. MAP-008"
+            print("ERROR: Missing starting point. MAP-008")
             Success = False
         if self.ExitState is not None:
             if self.ExitState < 0 or self.ExitState >= len(self.S):
-                print "ERROR: Exit state is not a state number. MAP-009"
+                print("ERROR: Exit state is not a state number. MAP-009")
                 Success = False
         else:
-            print "ERROR: Missing exit states. MAP-010"
+            print("ERROR: Missing exit states. MAP-010")
             Success = False
         # Check that there are no object in exit state.
         if self.ExitState in self.ObjectLocations:
-            print "ERROR: Cannot have object on exit state. MAP-022"
+            print("ERROR: Cannot have object on exit state. MAP-022")
         # Check that transition matrix makes sense
         if sum([np.all(np.sum(self.T[:, i, :], axis=1) == 1) for i in range(len(self.A))]) != len(self.A):
-            print "ERROR: Transition matrix is not well formed. MAP-011"
+            print("ERROR: Transition matrix is not well formed. MAP-011")
             Success = False
         return Success
 
@@ -199,7 +199,7 @@ class Map(object):
         """
 
         if ((topleftx + width - 1) > self.mapwidth) or ((toplefty + height - 1) > self.mapheight):
-            print "ERROR: Square doesn't fit in map. MAP-012"
+            print("ERROR: Square doesn't fit in map. MAP-012")
             return None
         TopLeftState = (toplefty - 1) * self.mapwidth + (topleftx) - 1
         for i in range(height):
@@ -275,10 +275,10 @@ class Map(object):
         xval = Coordinates[0]
         yval = Coordinates[1]
         if (xval <= 0) or (xval > self.mapwidth):
-            print "ERROR: x-coordinate out of bounds (Numbering starts at 1). MAP-013"
+            print("ERROR: x-coordinate out of bounds (Numbering starts at 1). MAP-013")
             return None
         if (yval <= 0) or (yval > self.mapheight):
-            print "EROOR: y-coordinate out of bounds (Numbering starts at 1). MAP-014"
+            print("EROOR: y-coordinate out of bounds (Numbering starts at 1). MAP-014")
         return (yval - 1) * self.mapwidth + xval - 1
 
     def GetCoordinates(self, State):
@@ -292,7 +292,7 @@ class Map(object):
             Coordinates (list): x and y coordinates ([x,y])
         """
         if (State >= len(self.S)):
-            print "ERROR: State out of bound. MAP-015"
+            print("ERROR: State out of bound. MAP-015")
             return None
         yval = int(math.floor(State * 1.0 / self.mapwidth)) + 1
         xval = State - self.mapwidth * (yval - 1) + 1
@@ -315,12 +315,12 @@ class Map(object):
         """
         # Check that location and locationtype match
         if len(Locations) != len(ObjectTypes):
-            print "ERROR: List of locations and list of location types are of different length. MAP-016"
+            print("ERROR: List of locations and list of location types are of different length. MAP-016")
             return None
         # Check that object names match number of objects
         if ObjectNames is not None:
             if len(ObjectNames) != len(set(ObjectTypes)):
-                print "ERROR: Object names do not match number of objects. MAP-017"
+                print("ERROR: Object names do not match number of objects. MAP-017")
                 return None
         # Not useful to validate object types because user might add targets in more than one step.
         # That can be checked later through the validate() method
@@ -348,7 +348,7 @@ class Map(object):
             StateNames (list): List of strings with state names
         """
         if len(StateNames) != len(set(self.StateTypes)):
-            print "ERROR: List of state names does not match number of state types. MAP-018"
+            print("ERROR: List of state names does not match number of state types. MAP-018")
             return None
         self.StateNames = StateNames
 
@@ -357,7 +357,7 @@ class Map(object):
         Add exit state to map
         """
         if ExitState < 0 or ExitState >= len(self.S):
-            print "ERROR: Exit state is not a state in the map. MAP-019"
+            print("ERROR: Exit state is not a state in the map. MAP-019")
             return None
         self.ExitState = ExitState
 
@@ -366,7 +366,7 @@ class Map(object):
         Add starting point to map
         """
         if StartingPoint < 0 or StartingPoint >= len(self.S):
-            print "ERROR: Starting point is not a state in the map. MAP-020"
+            print("ERROR: Starting point is not a state in the map. MAP-020")
             return None
         self.StartingPoint = StartingPoint
 
@@ -380,7 +380,7 @@ class Map(object):
         >> MyMap.PrintMap()
         """
         if not self.Validate():
-            print "WARNING: Map isn't well formed. May fail to print. MAP-021"
+            print("WARNING: Map isn't well formed. May fail to print. MAP-021")
         colors = ['\033[94m', '\033[92m', '\033[93m',
                   '\033[91m', '\033[1m', '\033[4m', '\033[95m']
         endcolor = '\033[0m'
@@ -447,7 +447,7 @@ class Map(object):
         """
         if Full:
             for (property, value) in vars(self).iteritems():
-                print property, ': ', value
+                print(property, ': ', value)
         else:
             for (property, value) in vars(self).iteritems():
-                print property
+                print(property)

@@ -30,7 +30,7 @@ def SaveSamples(Container, Name):
             Name = Name + ".p"
         pickle.dump(Container, open(Name, "wb"))
     except Exception as error:
-        print error
+        print(error)
 
 
 def LoadSamples(FileName):
@@ -47,7 +47,7 @@ def LoadSamples(FileName):
         Samples = pickle.load(open(FileName, "rb"))
         return Samples
     except Exception as error:
-        print error
+        print(error)
 
 
 def AnalyzeSamples(FileName):
@@ -61,7 +61,7 @@ def AnalyzeSamples(FileName):
         Samples = pickle.load(open(FileName, "rb"))
         Samples.LongSummary()
     except Exception as error:
-        print error
+        print(error)
 
 
 def LoadObserverFromPC(PostCont):
@@ -75,7 +75,7 @@ def LoadObserverFromPC(PostCont):
         Observer object
     """
     if PostCont.MapFile is None:
-        print "No map associated with samples. Cannot load observer."
+        print("No map associated with samples. Cannot load observer.")
         return None
     else:
         try:
@@ -84,7 +84,7 @@ def LoadObserverFromPC(PostCont):
             Observer.PrintMap()
             return Observer
         except Exception as error:
-            print error
+            print(error)
 
 
 def GetMapList(CurrDir):
@@ -184,30 +184,30 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
         ## Load .ini map first ##
         #########################
         else:
-            print "Map not in library. Checking local directory..."
+            print("Map not in library. Checking local directory...")
             FilePath = MapConfig + ".ini"
             Local = True
             if not os.path.isfile(FilePath):
-                print "ERROR: Map not found."
+                print("ERROR: Map not found.")
                 return None
         Config.read(FilePath)
     except Exception as error:
-        print error
+        print(error)
 
     # Agent parameter section
     #########################
     if not Config.has_section("AgentParameters"):
-        print "ERROR: AgentParameters block missing."
+        print("ERROR: AgentParameters block missing.")
         return None
     if Config.has_option("AgentParameters", "Method"):
         temp = Config.get("AgentParameters", "Method")
         if temp == 'Linear' or temp == 'Discount':
             Method = temp
         else:
-            print "ERROR: Unknown method. Setting to linear."
+            print("ERROR: Unknown method. Setting to linear.")
             Method = "Linear"
     else:
-        print "No method. Setting to Linear."
+        print("No method. Setting to Linear.")
         Method = "Linear"
     if Revise:
         temp = raw_input(
@@ -216,7 +216,7 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
             if temp == 'Linear' or temp == 'Discount':
                 Method = temp
             else:
-                print "Not valid. Setting Method to Linear"
+                print("Not valid. Setting Method to Linear")
                 Method = "Linear"
     if Config.has_option("AgentParameters", "Prior"):
         CostPrior = Config.get("AgentParameters", "Prior")
@@ -236,7 +236,7 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
                 if temp != '':
                     CostPrior = str(temp)
         else:
-            print "WARNING: No cost prior specified in AgentParameters. Use Agent.Priors() to see list of priors"
+            print("WARNING: No cost prior specified in AgentParameters. Use Agent.Priors() to see list of priors")
             return None
         if Config.has_option("AgentParameters", "RewardPrior"):
             RewardPrior = Config.get("AgentParameters", "RewardPrior")
@@ -245,7 +245,7 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
                 if temp != '':
                     RewardPrior = str(temp)
         else:
-            print "WARNING: No reward prior specified in AgentParameters. Use Agent.Priors() to see list of priors"
+            print("WARNING: No reward prior specified in AgentParameters. Use Agent.Priors() to see list of priors")
             return None
     if Config.has_option("AgentParameters", "Minimum"):
         Minimum = Config.getint("AgentParameters", "Minimum")
@@ -272,12 +272,12 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
     if Config.has_option("AgentParameters", "Restrict"):
         Restrict = Config.getboolean("AgentParameters", "Restrict")
     else:
-        print "Setting restrict to false (i.e., uncertainty over which terrain is the easiest)"
+        print("Setting restrict to false (i.e., uncertainty over which terrain is the easiest)")
         Restrict = False
     if Config.has_option("AgentParameters", "SoftmaxChoice"):
         SoftmaxChoice = Config.getboolean("AgentParameters", "SoftmaxChoice")
     else:
-        print "Softmaxing choices"
+        print("Softmaxing choices")
         SoftmaxChoice = True
     if Revise:
         temp = raw_input("Softmax choices (" + str(SoftmaxChoice) + "):")
@@ -291,7 +291,7 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
     if Config.has_option("AgentParameters", "SoftmaxAction"):
         SoftmaxAction = Config.getboolean("AgentParameters", "SoftmaxAction")
     else:
-        print "Softmaxing actions"
+        print("Softmaxing actions")
         SoftmaxAction = True
     if Revise:
         temp = raw_input("Softmax actions (" + str(SoftmaxAction) + "):")
@@ -306,7 +306,7 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
         choiceTau = Config.getfloat("AgentParameters", "choiceTau")
     else:
         if SoftmaxChoice:
-            print "Setting choice softmax to 0.01"
+            print("Setting choice softmax to 0.01")
             choiceTau = 0.01
         else:
             # Doesn't matter; won't be used.
@@ -319,7 +319,7 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
         actionTau = Config.getfloat("AgentParameters", "actionTau")
     else:
         if SoftmaxAction:
-            print "Setting action softmax to 0.01"
+            print("Setting action softmax to 0.01")
             actionTau = 0.01
         else:
             # Doesn't matter; won't be used.
@@ -337,7 +337,7 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
         CostParameters = CostParameters.split()
         CostParameters = [float(i) for i in CostParameters]
     else:
-        print "ERROR: Missing cost parameters for prior sampling in AgentParameters block."
+        print("ERROR: Missing cost parameters for prior sampling in AgentParameters block.")
         return None
     if Config.has_option("AgentParameters", "RewardParameters"):
         RewardParameters = Config.get("AgentParameters", "RewardParameters")
@@ -348,7 +348,7 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
                 RewardParameters = temp
         RewardParameters = [float(i) for i in RewardParameters.split()]
     else:
-        print "ERROR: Missing cost parameters for prior sampling in AgentParameters block."
+        print("ERROR: Missing cost parameters for prior sampling in AgentParameters block.")
         return None
     if Config.has_option("AgentParameters", "PNull"):
         CNull = Config.getfloat("AgentParameters", "PNull")
@@ -357,12 +357,12 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
         if Config.has_option("AgentParameters", "CNull"):
             CNull = Config.getfloat("AgentParameters", "CNull")
         else:
-            print "WARNING: No probability of terrains having null cost. Setting to 0."
+            print("WARNING: No probability of terrains having null cost. Setting to 0.")
             CNull = 0
         if Config.has_option("AgentParameters", "RNull"):
             RNull = Config.getfloat("AgentParameters", "RNull")
         else:
-            print "WARNING: No probability of terrains having null cost. Setting to 0."
+            print("WARNING: No probability of terrains having null cost. Setting to 0.")
             RNull = 0
     if Revise:
         temp = raw_input("Null cost paramter (" + str(CNull) + "):")
@@ -374,13 +374,13 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
     # Map parameter section
     #######################
     if not Config.has_section("MapParameters"):
-        print "ERROR: MapParameters block missing."
+        print("ERROR: MapParameters block missing.")
         return None
     if Config.has_option("MapParameters", "DiagonalTravel"):
         DiagonalTravel = Config.getboolean(
             "MapParameters", "DiagonalTravel")
     else:
-        print "Allowing diagonal travel"
+        print("Allowing diagonal travel")
         DiagonalTravel = True
     if Revise:
         temp = raw_input("Diagonal travel (" + str(DiagonalTravel) + "):")
@@ -395,7 +395,7 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
         StartingPoint = Config.getint(
             "MapParameters", "StartingPoint")
     else:
-        print "ERROR: Missing starting point in MapParameters block."
+        print("ERROR: Missing starting point in MapParameters block.")
         return None
     if Revise:
         temp = raw_input("Starting point (" + str(StartingPoint) + "):")
@@ -405,7 +405,7 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
         ExitState = Config.getint(
             "MapParameters", "ExitState")
     else:
-        print "ERROR: Missing exit state in MapParameters block."
+        print("ERROR: Missing exit state in MapParameters block.")
         return None
     if Revise:
         temp = raw_input("Exit state (" + str(ExitState) + "):")
@@ -441,16 +441,16 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
             f.close()
             mapwidth = len(StateTypes) / mapheight
         else:
-            print "ERROR: Missing map name"
+            print("ERROR: Missing map name")
             return None
     except:
-        print "ERROR: Cannot load map layout."
+        print("ERROR: Cannot load map layout.")
         # raise
         return None
     # Load object information
     #########################
     if not Config.has_section("Objects"):
-        print "ERROR: Objects block missing."
+        print("ERROR: Objects block missing.")
         return None
     else:
         if Config.has_option("Objects", "ObjectLocations"):
@@ -458,17 +458,17 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
             ObjectLocations = [int(i) for i in ObjectLocations.split()]
             HasObjects = True
         else:
-            print "WARNING: No objects in map (Agent will always go straight home)."
+            print("WARNING: No objects in map (Agent will always go straight home).")
             HasObjects = False
         if HasObjects:
             if Config.has_option("Objects", "ObjectTypes"):
                 ObjectTypes = Config.get("Objects", "ObjectTypes")
                 ObjectTypes = [int(i) for i in ObjectTypes.split()]
                 if len(ObjectTypes) != len(ObjectLocations):
-                    print "Error: ObjectLocations and ObjectTypes should have the same length"
+                    print("Error: ObjectLocations and ObjectTypes should have the same length")
                     return None
             else:
-                print "WARNING: No information about object types. Setting all to same kind."
+                print("WARNING: No information about object types. Setting all to same kind.")
                 ObjectTypes = [0] * len(ObjectLocations)
             if Config.has_option("Objects", "ObjectNames"):
                 ObjectNames = Config.get("Objects", "ObjectNames")
@@ -494,7 +494,7 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
                         Minimum, SoftmaxChoice, SoftmaxAction, choiceTau, actionTau, CNull, RNull, Restrict)
         return Observer(MyAgent, MyMap, Method)
     except Exception as error:
-        print error
+        print(error)
 
 
 def AboutBishop():

@@ -72,36 +72,36 @@ class MDP(object):
         Args:
             None
         """
-        print "Validating MDP..."
+        print("Validating MDP...")
         dims = self.T.shape
         states = len(self.S)
         actions = len(self.A)
         if (dims[0] != dims[2]):
-            print "ERROR: Transition matrix is not square. MDP-001"
+            print("ERROR: Transition matrix is not square. MDP-001")
             return 0
         if (states != dims[0]):
-            print "ERROR: Transition matrix does not match number of states. MDP-002"
+            print("ERROR: Transition matrix does not match number of states. MDP-002")
             return 0
         if self.S != range(states):
-            print "ERROR: States are not correctly numbered. MDP-003"
+            print("ERROR: States are not correctly numbered. MDP-003")
             return 0
         if self.A != range(actions):
-            print "ERROR: Actions are not correctly numbered. MDP-004"
+            print("ERROR: Actions are not correctly numbered. MDP-004")
             return 0
         if (dims[1] != actions):
-            print "ERROR: Transition matrix does not match number of actions. MDP-005"
+            print("ERROR: Transition matrix does not match number of actions. MDP-005")
             return 0
         if (self.gamma >= 1) or (self.gamma <= 0):
-            print "ERROR: Invalida value of gamma. MDP-006"
+            print("ERROR: Invalida value of gamma. MDP-006")
             return 0
         if (self.tau <= 0):
             if (self.tau is not None):
-                print "ERROR: Invalida value of tau. MDP-009"
+                print("ERROR: Invalida value of tau. MDP-009")
                 return 0
         # Check that every vector adds up to 1
         res = (np.ndarray.flatten(np.sum(self.T, axis=2)) == 1)
         if len(res) != sum(res):
-            print "ERROR: Transition matrix rows do not add up to 1. MDP-007"
+            print("ERROR: Transition matrix rows do not add up to 1. MDP-007")
             return 0
         return 1
 
@@ -131,7 +131,7 @@ class MDP(object):
                     options = [math.exp(options[j] / self.tau)
                                for j in range(len(options))]
                 except OverflowError:
-                    print "ERROR: Failed to softmax policy. MDP-008"
+                    print("ERROR: Failed to softmax policy. MDP-008")
                     raise
                 # If all actions have no value then set a uniform distribution
                 if sum(options) == 0:
@@ -225,7 +225,7 @@ class MDP(object):
         """
         if Full:
             for (property, value) in vars(self).iteritems():
-                print property, ': ', value
+                print(property, ': ', value)
         else:
             for (property, value) in vars(self).iteritems():
-                print property
+                print(property)

@@ -116,8 +116,7 @@ Bishop/Maps/FlagMaps/LongFlag_Asymmetric
 Bishop/Maps/FlagMaps/LongFlag_AsymmetricB
 Bishop/Maps/FlagMaps/LongFlag_Symmetric
 Bishop/Maps/FlagMaps/LongFlag_SymmetricB
-Bishop/Maps/Hallways/AmbiguousFlag
-Bishop/Maps/Hallways/AmbiguousFlag.ini
+Bishop/Maps/Hallways/.DS_Store
 Bishop/Maps/Hallways/Hallway1
 Bishop/Maps/Hallways/Hallway1.ini
 Bishop/Maps/Hallways/Hallway10
@@ -223,6 +222,9 @@ Bishop/Maps/RecombinationMaps/Recomb_TerrainRewardFlip.ini
 Bishop/Maps/RecombinationMaps/Recomb_base
 Bishop/Maps/RecombinationMaps/Recomb_base.ini
 Bishop/Maps/RecombinationMaps/Recomb_inverse
+Bishop/Maps/SAEMaps/.DS_Store
+Bishop/Maps/SAEMaps/Mine
+Bishop/Maps/SAEMaps/Mine_Scarce_Far.ini
 Bishop/Maps/TestMaps/.DS_Store
 Bishop/Maps/TestMaps/M1
 Bishop/Maps/TestMaps/M2
