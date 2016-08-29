@@ -298,13 +298,9 @@ class Planner(object):
         self.Utilities = utility
         self.goalindices = goalindices
 
-    def GetActionDistribution(self):
+    def GetPlanDistribution(self):
         """
-        Return the probability distribution of the next action by integrating over
-        all possible plans.
-        That is,
-
-        p(a) = \sum_{plans} p(a|plan)p(plan)
+        Return the probability distribution of the selected plan. see also GetActionDistribution()
         """
         if self.Utilities is None:
             print("ERROR: Missing utilities. PLANNER-013")
@@ -315,8 +311,48 @@ class Planner(object):
         options = self.Utilities
         options = options - abs(max(options))
         try:
-            options = [
-                math.exp(options[j] / self.Agent.choiceTau) for j in range(len(options))]
+            if self.Agent.choiceTau is not None:
+                options = [math.exp(options[j] / self.Agent.choiceTau)
+                           for j in range(len(options))]
+            else:
+                options = [1 if options[j] == max(
+                    options) else 0 for j in range(len(options))]
+        except OverflowError:
+            print("ERROR: Failed to softmax utility function. PLANNER-008")
+            return None
+        if sum(options) == 0:
+            # Make uniform distribution
+            planprobabilities = [1.0 / len(options)] * len(options)
+        else:
+            planprobabilities = [options[j] /
+                                 sum(options) for j in range(len(options))]
+        return(planprobabilities)
+
+    def GetActionDistribution(self):
+        """
+        Return the probability distribution of the next action by integrating over
+        all possible plans.
+        That is,
+
+        p(a) = \sum_{plans} p(a|plan)p(plan).
+
+        see also GetPlanDistribution()
+        """
+        if self.Utilities is None:
+            print("ERROR: Missing utilities. PLANNER-013")
+            return None
+        if self.goalindices is None:
+            print("ERROR: Mising goal space. PLANNER-014")
+            return None
+        options = self.Utilities
+        options = options - abs(max(options))
+        try:
+            if self.Agent.choiceTau is not None:
+                options = [math.exp(options[j] / self.Agent.choiceTau)
+                           for j in range(len(options))]
+            else:
+                options = [1 if options[j] == max(
+                    options) else 0 for j in range(len(options))]
         except OverflowError:
             print("ERROR: Failed to softmax utility function. PLANNER-008")
             return None
@@ -347,7 +383,8 @@ class Planner(object):
         NumberofPlans = np.shape(ActionDistribution)[0]
         FinalActionDistribution = [0] * NumberofActions
         for i in range(NumberofActions):
-            FinalActionDistribution[i] = sum([ActionDistribution[j][i] for j in range(NumberofPlans)])
+            FinalActionDistribution[i] = sum(
+                [ActionDistribution[j][i] for j in range(NumberofPlans)])
         return(FinalActionDistribution)
 
     def Simulate(self, Simple=True):

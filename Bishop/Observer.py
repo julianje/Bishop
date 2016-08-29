@@ -254,18 +254,77 @@ class Observer(object):
             sys.stdout.write("\n")
         return Results
 
-    def PredictAction(self, PC, Feedback=False):
+    def PredictPlan(self, PC, Feedback=False):
         """
-        Return a probability distribution of the agent's next action.
-        the function generates "Samples" agents. For each agent it simulates them acting "SubSampleSize" times to build a
-        probability distribution of the actions.
+        Return a probability distribution of the agent's plan.
+        Use PredictionAction() to predict a single action.
 
         Args:
             PC (PosteriorContainer): PosteriorContainer object.
             Feedback (bool): When true, function gives feedback on percentage complete.
             Samples (int): Number of samples to use.
         """
-        # Override samples if there is a PosteriorContainer.
+        Samples = PC.Samples
+        Costs = [0] * Samples
+        Rewards = [0] * Samples
+        PredictedPlans = [0] * len(self.Plr.Utilities)
+        # Find what samples we already have.
+        RIndices = [PC.ObjectNames.index(
+            i) if i in PC.ObjectNames else -1 for i in self.Plr.Map.ObjectNames]
+        CIndices = [PC.CostNames.index(
+            i) if i in PC.CostNames else -1 for i in self.Plr.Map.StateNames]
+        if Feedback:
+            sys.stdout.write("\n")
+        for i in range(Samples):
+            if Feedback:
+                Percentage = round(i * 100.0 / Samples, 2)
+                sys.stdout.write("\rProgress |")
+                roundper = int(math.floor(Percentage / 5))
+                sys.stdout.write(
+                    self.begincolor + self.block * roundper + self.endcolor)
+                sys.stdout.write(" " * (20 - roundper))
+                sys.stdout.write("| " + str(Percentage) + "%")
+                sys.stdout.flush()
+            # Resample the agent
+            self.Plr.Agent.ResampleAgent()
+            # and overwrite sample sections that we already have
+            self.Plr.Agent.costs = [PC.CostSamples[i, CIndices[
+                j]] if CIndices[j] != -1 else self.Plr.Agent.costs[j] for j in range(len(self.Plr.Agent.costs))]
+            self.Plr.Agent.rewards = [PC.RewardSamples[i, RIndices[
+                j]] if RIndices[j] != -1 else self.Plr.Agent.rewards[j] for j in range(len(self.Plr.Agent.rewards))]
+            # save samples
+            Costs[i] = self.Plr.Agent.costs
+            Rewards[i] = self.Plr.Agent.rewards
+            # Replan
+            self.Plr.Prepare(self.Validate)
+            # Get predicted actions
+            PlanDistribution = self.Plr.GetPlanDistribution()
+            # Get the probability
+            probability = np.exp(PC.LogLikelihoods[i])
+            # Add all up
+            PredictedPlans = [PlanDistribution[
+                x] * probability + PredictedPlans[x] for x in range(len(PredictedPlans))]
+        # Finish printing progress bar
+        if Feedback:
+            # Print complete progress bar
+            sys.stdout.write("\rProgress |")
+            sys.stdout.write(self.begincolor + self.block * 20 + self.endcolor)
+            sys.stdout.write("| 100.0%")
+            sys.stdout.flush()
+        # PredictedPlans is a list of arrays. Make it a list of integers.
+        #PredictedPlans = [PredictedPlans[i][0] for i in range(len(PredictedPlans))]
+        return [self.Plr.goalindices, PredictedPlans]
+
+    def PredictAction(self, PC, Feedback=False):
+        """
+        Return a probability distribution of the agent's next action.
+        Use PredictPlan() to predict the overall plan.
+
+        Args:
+            PC (PosteriorContainer): PosteriorContainer object.
+            Feedback (bool): When true, function gives feedback on percentage complete.
+            Samples (int): Number of samples to use.
+        """
         Samples = PC.Samples
         Costs = [0] * Samples
         Rewards = [0] * Samples
