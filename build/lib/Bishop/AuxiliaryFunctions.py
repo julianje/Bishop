@@ -204,14 +204,14 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
         if temp == 'Linear' or temp == 'Discount':
             Method = temp
         else:
-            print("ERROR: Unknown method. Setting to linear.")
+            print("ERROR: Unknown utility type. Using a linear utility function.")
             Method = "Linear"
     else:
-        print("No method. Setting to Linear.")
+        print("Using a linear utility function (Add a Method in the AgentParameters block to change to 'Discount' utilities).")
         Method = "Linear"
     if Revise:
         temp = raw_input(
-            "Planning method (Discount or Linear. Current=" + str(Method) + "):")
+            "Utility type (Discount or Linear. Current=" + str(Method) + "):")
         if temp != '':
             if temp == 'Linear' or temp == 'Discount':
                 Method = temp

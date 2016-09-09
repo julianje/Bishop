@@ -58,3 +58,10 @@ V 2.5.0
 	- More priors.
 	- Incomplete path support.
 	- Support for using posterior samples as priors on a new map.
+
+V 2.5.3
+=======
+	- Fixed a bug with the discount utility method.
+	- Support for reusing posterior samples as the prior in a new map (if there are new terrains or objects, these dimensions get resampled).
+	- Methods for predicting future actions and future plans.
+	- High level methods for retrieving costs and rewards (O.GetCR()), and methods for running the generative model and saving the outputs as images (O.DrawSimulations())

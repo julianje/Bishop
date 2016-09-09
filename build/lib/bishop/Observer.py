@@ -149,6 +149,13 @@ class Observer(object):
                 return None
         self.Plr.DrawMap(filename, ActionSequence, size)
 
+    def GetCR(self):
+        """
+        Print current costs and rewards
+        """
+        sys.stdout.write("Costs (" + self.Plr.Map.StateNames + ")" + self.Plr.Agent.costs + "\n")
+        sys.stdout.write("Rewards (" + self.Plr.Map.ObjectNames + ")" + self.Plr.Agent.rewards + "\n")
+
     def SetCR(self, costs, rewards):
         """
         Set costs and rewards.
@@ -373,7 +380,8 @@ class Observer(object):
             sys.stdout.write("| 100.0%")
             sys.stdout.flush()
         # PredictedActions is a list of arrays. Make it a list of integers.
-        PredictedActions = [PredictedActions[i][0] for i in range(len(PredictedActions))]
+        PredictedActions = [PredictedActions[i][0]
+                            for i in range(len(PredictedActions))]
         return [self.Plr.Map.ActionNames, PredictedActions]
 
     def InferAgent(self, ActionSequence, Samples, Feedback=False, Method="Importance"):
@@ -545,6 +553,24 @@ class Observer(object):
             self.Plr.Agent.rewards = rewards
         self.Plr.Prepare(self.Validate)
         return self.Plr.Likelihood(ActionSequence)
+
+    def DrawSimulations(self, Samples, IndexSaving=0, Prefix=""):
+        """
+        Simulate agents and generate images of the resulting simulations.
+        Samples determines how many simulations to run.
+        When IndexSaving is true the images are saved numerically. This creates a lot of potential duplicate paths.
+        When IndexSaving is false, the image names indicate the paths, so there are no duplicate paths.
+
+        Prefix is a string that gets prefixed onto all saved images.
+        """
+        sys.stdout.write("Running simulation...\n")
+        Res = self.SimulateAgents(Samples, 0, 1, 0, 1)
+        # Draw results
+        for i in range(len(Res.Actions)):
+            if IndexSaving:
+                self.DrawMap(Prefix + str(i) + ".png", Res.Actions[i])
+            else:
+                self.DrawMap(Prefix + str(Res.Actions[i]) + ".png", Res.Actions[i])
 
     def SimulateAgents(self, Samples, HumanReadable=False, ResampleAgent=True, Simple=True, Verbose=True):
         """
