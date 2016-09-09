@@ -115,6 +115,7 @@ def ShowAvailableMaps(Match=""):
     # Create an empty dictionary.
     results = {}
     BaseDirectory = os.path.dirname(__file__) + "/Maps/"
+    #sys.stdout.write(BaseDirectory)
     Files = GetMapList(BaseDirectory)
     if Files != []:
         results['Bishop main maps'] = Files
@@ -127,9 +128,12 @@ def ShowAvailableMaps(Match=""):
                 results[Item] = GetMapList(TempDir)
     # print maps
     for key in results:
-        sys.stdout.write(key + ":\n")
+        HasPrinted = False
         for i in results[key]:
             if Match in i:
+                if not HasPrinted:
+                    sys.stdout.write(key + ":\n")
+                    HasPrinted = True
                 sys.stdout.write("\t" + i + "\n")
     sys.stdout.write("\n")
 

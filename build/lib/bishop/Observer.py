@@ -153,8 +153,8 @@ class Observer(object):
         """
         Print current costs and rewards
         """
-        sys.stdout.write("Costs (" + self.Plr.Map.StateNames + ")" + self.Plr.Agent.costs + "\n")
-        sys.stdout.write("Rewards (" + self.Plr.Map.ObjectNames + ")" + self.Plr.Agent.rewards + "\n")
+        sys.stdout.write("Costs (" + str(self.Plr.Map.StateNames) + ")" + str(self.Plr.Agent.costs) + "\n")
+        sys.stdout.write("Rewards (" + str(self.Plr.Map.ObjectNames) + ")" + str(self.Plr.Agent.rewards) + "\n")
 
     def SetCR(self, costs, rewards):
         """

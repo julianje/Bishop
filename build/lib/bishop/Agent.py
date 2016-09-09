@@ -149,6 +149,8 @@ class Agent(object):
             return [np.random.exponential(SamplingParam[0]) for j in range(dimensions)]
         if (Kind == "Constant"):
             return [0.5 * SamplingParam[0]] * dimensions
+        if (Kind == "Beta"):
+            return [np.random.beta(SamplingParam[0], SamplingParam[1]) for i in range(dimensions)]
         if (Kind == "Empirical"):
             return [random.choice(SamplingParam) for i in range(dimensions)]
         if (Kind == "PartialUniform"):
@@ -172,6 +174,7 @@ class Agent(object):
         Gaussian: First argument is the mean and second argument is the standard deviation.
         Exponential: First parameter is lambda
         Constant: First parameter is the constant value.
+        Beta: First parameter is alpha and second is beta.
         PartialUniform: First parameter as a real/int that scales the vector. This argument should be followed by a list of numbers
             that matches the number of terrains. If the entry for terrain i is -1 that terrain get resampled and scaled, if it contains any value
             then the terrain is left constant at that value. E.g., a two terrain world with a PartialUniform prior and parameters 10 -1 0.25
@@ -180,7 +183,7 @@ class Agent(object):
         Args:
             human (bool): If true function prints names, otherwise it returns a list.
         """
-        Priors = ['Simplex', 'IntegerUniform', 'ScaledUniform',
+        Priors = ['Simplex', 'IntegerUniform', 'ScaledUniform', 'Beta',
                   'Gaussian', 'Exponential', 'Constant', 'Empirical', 'PartialUniform']
         if human:
             for Prior in Priors:
