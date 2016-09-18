@@ -163,7 +163,8 @@ class Planner(object):
                     OriginalPointIndex], self.CriticalStates[TargetStateIndex], subMDP)
                 # Get the cost associated with each combination of actions and states
                 # and sum them to get the total cost.
-                # Note that the terminology changes a bit here. The utility function is saved inside the MDP's reward function.
+                # Note that the terminology changes a bit here. The utility
+                # function is saved inside the MDP's reward function.
                 if self.Method == "Discount":
                     TotalCost = np.prod(
                         [self.MDP.R[Actions[i]][StateSequence[i]] for i in range(len(Actions))])
@@ -294,8 +295,12 @@ class Planner(object):
                 # Compute the rewards
                 rewards = sum(
                     [self.Agent.rewards[self.Map.ObjectTypes[j]] for j in goalindices[i]])
-                # Costs are already negative here.
-            utility[i] = rewards + costs
+            if self.Method == "Discount":
+                utility[i] = rewards
+            if self.Method == "Linear":
+                utility[i] = rewards + costs  # Costs are already negative
+            if self.Method == "Rate":
+                utility[i] = rewards * 1.0 / abs(costs)  # Make rate positive
         self.Utilities = utility
         self.goalindices = goalindices
 

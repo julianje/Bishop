@@ -296,6 +296,7 @@ class Planner(object):
                     [self.Agent.rewards[self.Map.ObjectTypes[j]] for j in goalindices[i]])
                 # Costs are already negative here.
             utility[i] = rewards + costs
+            #utility[i] = rewards*1.0 / abs(costs) # Rate model
         self.Utilities = utility
         self.goalindices = goalindices
 
