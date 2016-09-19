@@ -14,7 +14,7 @@ import math
 
 class Map(object):
 
-    def __init__(self, ObjectLocations=[], ObjectTypes=[], ObjectNames=[], S=[], StateTypes=[], StateNames=[], A=[], ActionNames=[], diagonal=None, T=[], ExitState=None, StartingPoint=None):
+    def __init__(self, ObjectLocations=[], ObjectTypes=[], Organic=[], SurvivalProb=1, ObjectNames=[], S=[], StateTypes=[], StateNames=[], A=[], ActionNames=[], diagonal=None, T=[], ExitState=None, StartingPoint=None):
         """
 
         This class stores the environments states (S) and the terrain type (StateTypes), the possible actions (A), the transition matrix (T), and reward locations (ObjectLocations).
@@ -28,6 +28,8 @@ class Map(object):
         Args:
             ObjectLocations (list): List of object locations.
             ObjectTypes (list): List indicating the object type in each location.
+            Organic (list): List indicating which object types are organic (i.e. might die at any point and thus have a future discount adjustment).
+            SurvivalProb (float): Probability that organic objects survive in each time step.
             ObjectNames (list): List with object names.
             S (list): List of states.
             StateTypes (list): List indicating the terrain type of each state.
@@ -46,6 +48,8 @@ class Map(object):
         self.ActionNames = ActionNames
         self.ObjectLocations = ObjectLocations
         self.ObjectTypes = ObjectTypes
+        self.Organic = Organic
+        self.SurvivalProb = SurvivalProb
         self.ObjectNames = ObjectNames
         self.StateNames = StateNames
         self.StateTypes = StateTypes
@@ -76,7 +80,8 @@ class Map(object):
             print("ERROR: Missing object locations. MAP-004")
             Success = False
         if len(self.ObjectLocations) != len(self.ObjectTypes):
-            print("ERROR: List of locations and list of location types are of different length. MAP-005")
+            print(
+                "ERROR: List of locations and list of location types are of different length. MAP-005")
             Success = False
         # Check that location types are ordered
         #  from 0 to len(self.ObjectTypes).
@@ -298,24 +303,28 @@ class Map(object):
         xval = State - self.mapwidth * (yval - 1) + 1
         return [xval, yval]
 
-    def InsertObjects(self, Locations, ObjectTypes, ObjectNames=None):
+    def InsertObjects(self, Locations, ObjectTypes, Organic, ObjectNames=None, SurvivalProb=1):
         """
         Add objects to map.
 
         Args:
             Locations (list): List of state numbers where objects should be placed
             ObjectTypes (list): List of identifiers about object id
+            Organic (list)L List identifyng if objects are organic (organic objects have a future discount on the reward as a function of path length)
             ObjectNames (list): List of names for the objects
+            SurvivalProb (float): Probability of organic objects surviving.
 
         Returns:
             None
 
         Example: Add five objects on first five states. First two and last three objects are of the same kind, respectively.
-        >> InsertTargets([0,1,2,3,4],[0,0,1,1,1],["Object A","Object B"])
+        >> InsertTargets([0,1,2,3,4],[0,0,1,1,1],["Object A","Object B"],[False,False])
+        >> InsertTargets([22,30],[0,1],["Agent","Object"],[True,False], 0.95)
         """
         # Check that location and locationtype match
         if len(Locations) != len(ObjectTypes):
-            print("ERROR: List of locations and list of location types are of different length. MAP-016")
+            print(
+                "ERROR: List of locations and list of location types are of different length. MAP-016")
             return None
         # Check that object names match number of objects
         if ObjectNames is not None:
@@ -326,7 +335,9 @@ class Map(object):
         # That can be checked later through the validate() method
         self.ObjectLocations = Locations
         self.ObjectTypes = ObjectTypes
+        self.Organic = Organic
         self.ObjectNames = ObjectNames
+        self.SurvivalProb = SurvivalProb
 
     def PullObjectStates(self, Coordinates=True):
         """
@@ -348,7 +359,8 @@ class Map(object):
             StateNames (list): List of strings with state names
         """
         if len(StateNames) != len(set(self.StateTypes)):
-            print("ERROR: List of state names does not match number of state types. MAP-018")
+            print(
+                "ERROR: List of state names does not match number of state types. MAP-018")
             return None
         self.StateNames = StateNames
 
