@@ -27,7 +27,7 @@ class Observer(object):
         Args:
             A (Agent): Agent object
             M (Map): Map objects
-            Method (str): What type of planner? "Discount" or "Linear"
+            Method (str): What type of planner? "Rate" or "Linear"
             Validate (bool): Should objects be validated?
         """
         self.Plr = Planner.Planner(A, M, Method, Validate)
