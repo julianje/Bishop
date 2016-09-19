@@ -115,7 +115,7 @@ def ShowAvailableMaps(Match=""):
     # Create an empty dictionary.
     results = {}
     BaseDirectory = os.path.dirname(__file__) + "/Maps/"
-    #sys.stdout.write(BaseDirectory)
+    # sys.stdout.write(BaseDirectory)
     Files = GetMapList(BaseDirectory)
     if Files != []:
         results['Bishop main maps'] = Files
@@ -205,19 +205,23 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
         return None
     if Config.has_option("AgentParameters", "Method"):
         temp = Config.get("AgentParameters", "Method")
-        if temp == 'Linear' or temp == 'Discount':
+        if temp == 'Linear' or temp == 'Rate':
             Method = temp
         else:
-            print("ERROR: Unknown utility type. Using a linear utility function.")
+            if temp == 'Discount':
+                print("Discount method is now integrated with the linear utility method (2.6+). Use organic markers to mark discounts.")
+            else:
+                print("ERROR: Unknown utility type. Using a linear utility function.")
+
             Method = "Linear"
     else:
-        print("Using a linear utility function (Add a Method in the AgentParameters block to change to 'Discount' utilities).")
+        print("Using a linear utility function (Add a Method in the AgentParameters block to change to 'Rate' utilities).")
         Method = "Linear"
     if Revise:
         temp = raw_input(
-            "Utility type (Discount or Linear. Current=" + str(Method) + "):")
+            "Utility type (Rate or Linear. Current=" + str(Method) + "):")
         if temp != '':
-            if temp == 'Linear' or temp == 'Discount':
+            if temp == 'Linear' or temp == 'Rate':
                 Method = temp
             else:
                 print("Not valid. Setting Method to Linear")
@@ -240,7 +244,8 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
                 if temp != '':
                     CostPrior = str(temp)
         else:
-            print("WARNING: No cost prior specified in AgentParameters. Use Agent.Priors() to see list of priors")
+            print(
+                "WARNING: No cost prior specified in AgentParameters. Use Agent.Priors() to see list of priors")
             return None
         if Config.has_option("AgentParameters", "RewardPrior"):
             RewardPrior = Config.get("AgentParameters", "RewardPrior")
@@ -469,16 +474,45 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
                 ObjectTypes = Config.get("Objects", "ObjectTypes")
                 ObjectTypes = [int(i) for i in ObjectTypes.split()]
                 if len(ObjectTypes) != len(ObjectLocations):
-                    print("Error: ObjectLocations and ObjectTypes should have the same length")
+                    print(
+                        "Error: ObjectLocations and ObjectTypes should have the same length")
                     return None
             else:
-                print("WARNING: No information about object types. Setting all to same kind.")
+                print(
+                    "WARNING: No information about object types. Setting all to same kind.")
                 ObjectTypes = [0] * len(ObjectLocations)
             if Config.has_option("Objects", "ObjectNames"):
                 ObjectNames = Config.get("Objects", "ObjectNames")
                 ObjectNames = [str(i) for i in ObjectNames.split()]
             else:
                 ObjectNames = None
+            if Config.has_option("Objects", "Organic"):
+                Organic = Config.get("Objects", "Organic")
+                Organic = [bool(i) for i in Organic.split()]
+            else:
+                print("No organic markers. Treating all objects as dead. Add an Organic line to mark if some object types are agents (add probability of death).")
+                Organic = [False] * len(ObjectTypes)
+            if Config.has_option("Objects", "SurvivalProb"):
+                SurvivalProb = Cofig.getfloat("Objects", "SurvivalProb")
+                if sum(Organic) == 0:
+                    print("You specified a survival probability, but there are no organic objects. Model will work but maybe you specified the map incorrectly.")
+                if Revise:
+                    temp = raw_input(
+                        "Survival probability (" + str(SurvivalProb) + "):")
+                    if temp != '':
+                        SurvivalProb = float(temp)
+            else:
+                if sum(Organic) > 0:
+                    if Revise:
+                        temp = raw_input(
+                            "Survival probability (between 0 and 1):")
+                        if temp != '':
+                            SurvivalProb = float(temp)
+                    else:
+                        print("Map has organic objects but survival probability not specified. Setting to 0.95; change this by adding a Survival parameter on the Objects block.")
+                        SurvivalProb = 0.95
+                else:
+                    SurvivalProb = 1  # Just to fit in with Planner constructor.
         else:
             ObjectTypes = []
             ObjectNames = None
@@ -486,7 +520,7 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
     try:
         MyMap = Map()
         MyMap.BuildGridWorld(mapwidth, mapheight, DiagonalTravel)
-        MyMap.InsertObjects(ObjectLocations, ObjectTypes, ObjectNames)
+        MyMap.InsertObjects(ObjectLocations, ObjectTypes, Organic, ObjectNames, SurvivalProb)
         MyMap.StateTypes = StateTypes
         MyMap.StateNames = StateNames
         MyMap.AddStartingPoint(StartingPoint)
