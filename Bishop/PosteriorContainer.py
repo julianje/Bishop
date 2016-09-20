@@ -49,6 +49,8 @@ class PosteriorContainer(object):
             self.ObjectLocations = Planner.Map.ObjectLocations
             self.ObjectTypes = Planner.Map.ObjectTypes
             self.ObjectNames = Planner.Map.ObjectNames
+            self.Organic = Planner.Map.Organic
+            self.SurvivalProb = Planner.Map.SurvivalProb
             self.SoftChoice = Planner.Agent.SoftmaxChoice
             self.SoftAction = Planner.Agent.SoftmaxAction
             self.actionTau = Planner.Agent.actionTau
@@ -303,6 +305,8 @@ class PosteriorContainer(object):
                 "Object locations: " + str(self.ObjectLocations) + "\n")
             sys.stdout.write(
                 "Object types: " + str(self.ObjectTypes) + "\n")
+            sys.stdout.write(
+                "Organic: " + str(self.Organic) + " (survival probability = " + str(self.SurvivalProb) + ")\n")
             sys.stdout.write(
                 "Results using " + str(self.Samples) + " samples.\n")
             sys.stdout.write("\nPATH INFORMATION\n\n")
