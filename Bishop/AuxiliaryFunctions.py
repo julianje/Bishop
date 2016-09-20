@@ -488,12 +488,12 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
                 ObjectNames = None
             if Config.has_option("Objects", "Organic"):
                 Organic = Config.get("Objects", "Organic")
-                Organic = [bool(i) for i in Organic.split()]
+                Organic = [bool(int(i)) for i in Organic.split()]
             else:
                 print("No organic markers. Treating all objects as dead. Add an Organic line to mark if some object types are agents (add probability of death).")
                 Organic = [False] * len(ObjectTypes)
             if Config.has_option("Objects", "SurvivalProb"):
-                SurvivalProb = Cofig.getfloat("Objects", "SurvivalProb")
+                SurvivalProb = Config.getfloat("Objects", "SurvivalProb")
                 if sum(Organic) == 0:
                     print("You specified a survival probability, but there are no organic objects. Model will work but maybe you specified the map incorrectly.")
                 if Revise:
