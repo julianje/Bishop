@@ -418,7 +418,23 @@ class Map(object):
             for i in range(len(terrains)):
                 sys.stdout.write(
                     colors[i] + str(self.StateNames[i]) + endcolor + " ")
+        sys.stdout.write("\nItems: ")
+        if self.ObjectNames == []:
+            for i in range(len(self.ObjectTypes)):
+                sys.stdout.write(
+                    "Object " + str(i) + " ")
+                if self.Organic[i]:
+                    sys.stdout.write("(Organic) ")
+        else:
+            for i in range(len(self.ObjectTypes)):
+                sys.stdout.write(
+                    str(self.ObjectNames[i]) + " ")
+                if self.Organic[i]:
+                    sys.stdout.write("(Organic) ")
         sys.stdout.write("\n")
+        if sum(self.Organic) > 0:
+            sys.stdout.write("Surirval probability: " +
+                             str(self.SurvivalProb) + "\n")
         sys.stdout.write("Map labels: Exit state (E), starting point (S)")
         for i in range(len(self.ObjectNames)):
             sys.stdout.write(", " + self.ObjectNames[i] + "(" + str(i) + ")")
