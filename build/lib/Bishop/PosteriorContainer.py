@@ -356,7 +356,7 @@ class PosteriorContainer(object):
             if Id is not None:
                 sys.stdout.write("Id,")
             sys.stdout.write(
-                "Samples,StartingPoint,ObjectLocations,ObjectTypes,SoftmaxAction,ActionTau,SoftmaxChoice,ChoiceTau,Actions")
+                "Samples,UsefulSamples,StartingPoint,ObjectLocations,ObjectTypes,OrganicObjects,SurvivalProbability,SoftmaxAction,ActionTau,SoftmaxChoice,ChoiceTau,Actions")
             # Add names for objects and terrains
             if self.ObjectNames is not None:
                 for i in range(self.RewardDimensions):
@@ -403,25 +403,40 @@ class PosteriorContainer(object):
                         else:
                             sys.stdout.write(",O" + str(i) + ".O" + str(j))
             sys.stdout.write("\n")
+            ###############
+            ###############
             # Print results
+            ###############
             ###############
             # Print general info
             if Id is not None:
                 sys.stdout.write(str(Id) + ",")
+            usefulsamples = len(
+                [i for i in self.LogLikelihoods if i != (- sys.maxint - 1)])
             sys.stdout.write(
-                str(self.Samples) + "," + str(self.StartingPoint) + ",")
+                str(self.Samples) + "," + str(usefulsamples) + "," + str(self.StartingPoint) + ",")
+            # print object locations
             for i in range(len(self.ObjectLocations)):
                 if i < (len(self.ObjectLocations) - 1):
                     sys.stdout.write(str(self.ObjectLocations[i]) + ".")
                 else:
                     sys.stdout.write(str(self.ObjectLocations[i]))
             sys.stdout.write(",")
+            # print object types
             for i in range(len(self.ObjectTypes)):
                 if i < (len(self.ObjectTypes) - 1):
                     sys.stdout.write(str(self.ObjectTypes[i]) + ".")
                 else:
                     sys.stdout.write(str(self.ObjectTypes[i]))
-            sys.stdout.write("," + str(self.SoftAction) + "," + str(
+            sys.stdout.write(",")
+            # print object organicity
+            for i in range(len(self.Organic)):
+                if i < (len(self.Organic) - 1):
+                    sys.stdout.write(str(self.Organic[i]) + ".")
+                else:
+                    sys.stdout.write(str(self.Organic[i]))
+            # print survival prob and softmax information
+            sys.stdout.write("," + str(self.SurvivalProb) + "," + str(self.SoftAction) + "," + str(
                 self.actionTau) + "," + str(self.SoftChoice) + "," + str(self.choiceTau) + ",")
             for i in range(len(self.Actions)):
                 if i < (len(self.Actions) - 1):
