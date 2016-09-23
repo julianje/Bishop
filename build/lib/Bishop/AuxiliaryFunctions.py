@@ -17,6 +17,107 @@ from Map import *
 from Agent import *
 
 
+def CompareInferences(ContainerA, ContainerB, decimals=1):
+    """
+    This function takes two PosteriorContainer objects,
+    finds common variables (terrains or objects), and it
+    computes the likelihood that the underlying value is
+    the same. This likelihood is computed by binning samples
+    so the function requires a level of granularity.
+
+    Args:
+        ContainerA (PosteriorContainer)
+        ContainerB (PosteriorContainer)
+        decimals (float): How many decimals to keep in samples?
+    """
+    # Find which dimensions are shared in common.
+    SharedCosts = list(
+        set(ContainerA.CostNames).intersection(ContainerB.CostNames))
+    SharedRewards = list(
+        set(ContainerA.ObjectNames).intersection(ContainerB.ObjectNames))
+    # Print which things we're not using.
+    sys.stdout.write("Terrain that cannot be compared: ")
+    for Cost in ContainerA.CostNames:
+        if Cost not in SharedCosts:
+            sys.stdout.write(str(Cost) + " ")
+    sys.stdout.write("\n")
+    sys.stdout.write("Objects that cannot be compared: ")
+    for Object in ContainerA.ObjectNames:
+        if Object not in SharedRewards:
+            sys.stdout.write(str(Object) + " ")
+    sys.stdout.write("\n")
+    # Get aligned sampled indices.
+    # Now, the samples from SharedCost[i] can be accessed using
+    # ContainerA.CostSamples(ContainerA_CostIndices[i])
+    ContainerA_CostIndices = []
+    ContainerB_CostIndices = []
+    for Cost in SharedCosts:
+        ContainerA_CostIndices.append(ContainerA.CostNames.index(Cost))
+        ContainerB_CostIndices.append(ContainerB.CostNames.index(Cost))
+    ContainerA_RewardIndices = []
+    ContainerB_RewardIndices = []
+    for Reward in SharedRewards:
+        ContainerA_RewardIndices.append(ContainerA.ObjectNames.index(Reward))
+        ContainerB_RewardIndices.append(ContainerB.ObjectNames.index(Reward))
+    # For each shared cost, get the vectors, round them, and compute the
+    # probability
+    for i in range(len(SharedCosts)):
+        Cost = SharedCosts[i]
+        ContainerASamples = np.round(ContainerA.CostSamples[:, ContainerA_CostIndices[i]], decimals)
+        ContainerBSamples = np.round(ContainerB.CostSamples[:, ContainerB_CostIndices[i]], decimals)
+        # Create dictionaries where you add the probabilities.
+        # Get the domain.
+        Domain = list(np.unique(list(np.unique(ContainerASamples)) +
+                                list(np.unique(ContainerBSamples))))
+        Probabilities_ContainerA = {}
+        Probabilities_ContainerB = {}
+        for j in range(len(Domain)):
+            Probabilities_ContainerA[Domain[j]] = 0
+            Probabilities_ContainerB[Domain[j]] = 0
+        # Now loop over samples from containers and populate the dictionaries
+        # with the likelihoods.
+        for index in range(len(ContainerASamples)):
+            Probabilities_ContainerA[ContainerASamples[
+                index][0]] += np.exp(ContainerA.LogLikelihoods[index])
+        for index in range(len(ContainerBSamples)):
+            Probabilities_ContainerB[ContainerBSamples[
+                index][0]] += np.exp(ContainerB.LogLikelihoods[index])
+        # Note: Likelihoods are already normalized in the posterior container
+        # Compute the probability that they're the same value by iterating over the domain, multiplying the
+        # probabilities, and adding them.
+        SameProb = 0
+        for Sample in Domain:
+            SameProb += Probabilities_ContainerA[Sample] * \
+                Probabilities_ContainerB[Sample]
+        sys.stdout.write("Probability that " + Cost + " is the same: " + str(SameProb) + "\n")
+    for i in range(len(SharedRewards)):
+        Reward = SharedRewards[i]
+        ContainerASamples = np.round(ContainerA.RewardSamples[:, ContainerA_RewardIndices[i]], decimals)
+        ContainerBSamples = np.round(ContainerB.RewardSamples[:, ContainerB_RewardIndices[i]], decimals)
+        # Create dictionaries where you add the probabilities.
+        # Get the domain.
+        Domain = list(np.unique(list(np.unique(ContainerASamples)) +
+                                list(np.unique(ContainerBSamples))))
+        Probabilities_ContainerA = {}
+        Probabilities_ContainerB = {}
+        for j in range(len(Domain)):
+            Probabilities_ContainerA[Domain[j]] = 0
+            Probabilities_ContainerB[Domain[j]] = 0
+        # Now loop over samples from containers and populate the dictionaries
+        # with the likelihoods.
+        for index in range(len(ContainerASamples)):
+            Probabilities_ContainerA[ContainerASamples[
+                index][0]] += np.exp(ContainerA.LogLikelihoods[index])
+        for index in range(len(ContainerBSamples)):
+            Probabilities_ContainerB[ContainerBSamples[
+                index][0]] += np.exp(ContainerB.LogLikelihoods[index])
+        SameProb = 0
+        for Sample in Domain:
+            SameProb += Probabilities_ContainerA[Sample] * \
+                Probabilities_ContainerB[Sample]
+        sys.stdout.write("Probability that " + Reward + " is the same: " + str(SameProb) + "\n")
+
+
 def SaveSamples(Container, Name):
     """
     Save object as a pickle file.
@@ -115,7 +216,7 @@ def ShowAvailableMaps(Match=""):
     # Create an empty dictionary.
     results = {}
     BaseDirectory = os.path.dirname(__file__) + "/Maps/"
-    # sys.stdout.write(BaseDirectory)
+    # stdout.write(BaseDirectory)
     Files = GetMapList(BaseDirectory)
     if Files != []:
         results['Bishop main maps'] = Files
@@ -512,7 +613,8 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
                         print("Map has organic objects but survival probability not specified. Setting to 0.95; change this by adding a Survival parameter on the Objects block.")
                         SurvivalProb = 0.95
                 else:
-                    SurvivalProb = 1  # Just to fit in with Planner constructor.
+                    # Just to fit in with Planner constructor.
+                    SurvivalProb = 1
         else:
             ObjectTypes = []
             ObjectNames = None
@@ -520,7 +622,8 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
     try:
         MyMap = Map()
         MyMap.BuildGridWorld(mapwidth, mapheight, DiagonalTravel)
-        MyMap.InsertObjects(ObjectLocations, ObjectTypes, Organic, ObjectNames, SurvivalProb)
+        MyMap.InsertObjects(ObjectLocations, ObjectTypes,
+                            Organic, ObjectNames, SurvivalProb)
         MyMap.StateTypes = StateTypes
         MyMap.StateNames = StateNames
         MyMap.AddStartingPoint(StartingPoint)
