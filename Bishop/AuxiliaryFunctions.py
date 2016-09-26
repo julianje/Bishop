@@ -67,6 +67,11 @@ def CompareInferences(ContainerA, ContainerB, decimals=1):
         ContainerBSamples = np.round(ContainerB.CostSamples[:, ContainerB_CostIndices[i]], decimals)
         # Create dictionaries where you add the probabilities.
         # Get the domain.
+        # But first get rid of the ugliens np.round returns!
+        ContainerASamples = ContainerASamples.tolist()
+        ContainerASamples = [ContainerASamples[j][0] for j in range(len(ContainerASamples))]
+        ContainerBSamples = ContainerBSamples.tolist()
+        ContainerBSamples = [ContainerBSamples[j][0] for j in range(len(ContainerBSamples))]
         Domain = list(np.unique(list(np.unique(ContainerASamples)) +
                                 list(np.unique(ContainerBSamples))))
         Probabilities_ContainerA = {}
@@ -78,10 +83,10 @@ def CompareInferences(ContainerA, ContainerB, decimals=1):
         # with the likelihoods.
         for index in range(len(ContainerASamples)):
             Probabilities_ContainerA[ContainerASamples[
-                index][0]] += np.exp(ContainerA.LogLikelihoods[index])
+                index]] += np.exp(ContainerA.LogLikelihoods[index])
         for index in range(len(ContainerBSamples)):
             Probabilities_ContainerB[ContainerBSamples[
-                index][0]] += np.exp(ContainerB.LogLikelihoods[index])
+                index]] += np.exp(ContainerB.LogLikelihoods[index])
         # Note: Likelihoods are already normalized in the posterior container
         # Compute the probability that they're the same value by iterating over the domain, multiplying the
         # probabilities, and adding them.
@@ -96,6 +101,11 @@ def CompareInferences(ContainerA, ContainerB, decimals=1):
         ContainerBSamples = np.round(ContainerB.RewardSamples[:, ContainerB_RewardIndices[i]], decimals)
         # Create dictionaries where you add the probabilities.
         # Get the domain.
+        # But first get rid of the ugliens np.round returns!
+        ContainerASamples = ContainerASamples.tolist()
+        ContainerASamples = [ContainerASamples[j][0] for j in range(len(ContainerASamples))]
+        ContainerBSamples = ContainerBSamples.tolist()
+        ContainerBSamples = [ContainerBSamples[j][0] for j in range(len(ContainerBSamples))]
         Domain = list(np.unique(list(np.unique(ContainerASamples)) +
                                 list(np.unique(ContainerBSamples))))
         Probabilities_ContainerA = {}
@@ -107,10 +117,10 @@ def CompareInferences(ContainerA, ContainerB, decimals=1):
         # with the likelihoods.
         for index in range(len(ContainerASamples)):
             Probabilities_ContainerA[ContainerASamples[
-                index][0]] += np.exp(ContainerA.LogLikelihoods[index])
+                index]] += np.exp(ContainerA.LogLikelihoods[index])
         for index in range(len(ContainerBSamples)):
             Probabilities_ContainerB[ContainerBSamples[
-                index][0]] += np.exp(ContainerB.LogLikelihoods[index])
+                index]] += np.exp(ContainerB.LogLikelihoods[index])
         SameProb = 0
         for Sample in Domain:
             SameProb += Probabilities_ContainerA[Sample] * \
