@@ -11,13 +11,15 @@ import ConfigParser
 import os
 import pickle
 import pkg_resources
+import copy
 from PosteriorContainer import *
 from Observer import *
 from Map import *
 from Agent import *
+from DictionaryNavigation import *
 
 
-def CompareInferences(ContainerA, ContainerB, decimals=1):
+def CompareInferences(ContainerA, ContainerB, decimals=1, csv=0, ContAName=None, ContBName=None):
     """
     This function takes two PosteriorContainer objects,
     finds common variables (terrains or objects), and it
@@ -29,6 +31,9 @@ def CompareInferences(ContainerA, ContainerB, decimals=1):
         ContainerA (PosteriorContainer)
         ContainerB (PosteriorContainer)
         decimals (float): How many decimals to keep in samples?
+        ContAName (string): Container A's name
+        ContBName (string): Container B's name
+        csv (boolean): Should output be printed in a csv-friendly format?
     """
     # Find which dimensions are shared in common.
     SharedCosts = list(
@@ -36,16 +41,17 @@ def CompareInferences(ContainerA, ContainerB, decimals=1):
     SharedRewards = list(
         set(ContainerA.ObjectNames).intersection(ContainerB.ObjectNames))
     # Print which things we're not using.
-    sys.stdout.write("Terrain that cannot be compared: ")
-    for Cost in ContainerA.CostNames:
-        if Cost not in SharedCosts:
-            sys.stdout.write(str(Cost) + " ")
-    sys.stdout.write("\n")
-    sys.stdout.write("Objects that cannot be compared: ")
-    for Object in ContainerA.ObjectNames:
-        if Object not in SharedRewards:
-            sys.stdout.write(str(Object) + " ")
-    sys.stdout.write("\n")
+    if not csv:
+        sys.stdout.write("Terrain that cannot be compared: ")
+        for Cost in ContainerA.CostNames:
+            if Cost not in SharedCosts:
+                sys.stdout.write(str(Cost) + " ")
+        sys.stdout.write("\n")
+        sys.stdout.write("Objects that cannot be compared: ")
+        for Object in ContainerA.ObjectNames:
+            if Object not in SharedRewards:
+                sys.stdout.write(str(Object) + " ")
+        sys.stdout.write("\n")
     # Get aligned sampled indices.
     # Now, the samples from SharedCost[i] can be accessed using
     # ContainerA.CostSamples(ContainerA_CostIndices[i])
@@ -61,17 +67,35 @@ def CompareInferences(ContainerA, ContainerB, decimals=1):
         ContainerB_RewardIndices.append(ContainerB.ObjectNames.index(Reward))
     # For each shared cost, get the vectors, round them, and compute the
     # probability
+    if csv:
+        if ContAName is not None or ContBName is not None:
+            sys.stdout.write("EventA,EventB,")
+        sys.stdout.write("decimals,")
+        for Cost in SharedCosts:
+            sys.stdout.write(str(Cost) + ",")
+        for Reward in SharedRewards:
+            if Reward == SharedRewards[-1]:
+                sys.stdout.write(str(Reward) + "\n")
+            else:
+                sys.stdout.write(str(Reward) + ",")
+        if ContAName is not None or ContBName is not None:
+            sys.stdout.write(str(ContAName) + "," + str(ContBName) + ",")
+        sys.stdout.write(str(decimals) + ",")
     for i in range(len(SharedCosts)):
         Cost = SharedCosts[i]
-        ContainerASamples = np.round(ContainerA.CostSamples[:, ContainerA_CostIndices[i]], decimals)
-        ContainerBSamples = np.round(ContainerB.CostSamples[:, ContainerB_CostIndices[i]], decimals)
+        ContainerASamples = np.round(ContainerA.CostSamples[
+                                     :, ContainerA_CostIndices[i]], decimals)
+        ContainerBSamples = np.round(ContainerB.CostSamples[
+                                     :, ContainerB_CostIndices[i]], decimals)
         # Create dictionaries where you add the probabilities.
         # Get the domain.
         # But first get rid of the ugliens np.round returns!
         ContainerASamples = ContainerASamples.tolist()
-        ContainerASamples = [ContainerASamples[j][0] for j in range(len(ContainerASamples))]
+        ContainerASamples = [ContainerASamples[j][0]
+                             for j in range(len(ContainerASamples))]
         ContainerBSamples = ContainerBSamples.tolist()
-        ContainerBSamples = [ContainerBSamples[j][0] for j in range(len(ContainerBSamples))]
+        ContainerBSamples = [ContainerBSamples[j][0]
+                             for j in range(len(ContainerBSamples))]
         Domain = list(np.unique(list(np.unique(ContainerASamples)) +
                                 list(np.unique(ContainerBSamples))))
         Probabilities_ContainerA = {}
@@ -94,18 +118,26 @@ def CompareInferences(ContainerA, ContainerB, decimals=1):
         for Sample in Domain:
             SameProb += Probabilities_ContainerA[Sample] * \
                 Probabilities_ContainerB[Sample]
-        sys.stdout.write("Probability that " + Cost + " is the same: " + str(SameProb) + "\n")
+        if csv:
+            sys.stdout.write(str(SameProb) + ",")
+        else:
+            sys.stdout.write("Probability that " + Cost +
+                             " is the same: " + str(SameProb) + "\n")
     for i in range(len(SharedRewards)):
         Reward = SharedRewards[i]
-        ContainerASamples = np.round(ContainerA.RewardSamples[:, ContainerA_RewardIndices[i]], decimals)
-        ContainerBSamples = np.round(ContainerB.RewardSamples[:, ContainerB_RewardIndices[i]], decimals)
+        ContainerASamples = np.round(ContainerA.RewardSamples[
+                                     :, ContainerA_RewardIndices[i]], decimals)
+        ContainerBSamples = np.round(ContainerB.RewardSamples[
+                                     :, ContainerB_RewardIndices[i]], decimals)
         # Create dictionaries where you add the probabilities.
         # Get the domain.
         # But first get rid of the ugliens np.round returns!
         ContainerASamples = ContainerASamples.tolist()
-        ContainerASamples = [ContainerASamples[j][0] for j in range(len(ContainerASamples))]
+        ContainerASamples = [ContainerASamples[j][0]
+                             for j in range(len(ContainerASamples))]
         ContainerBSamples = ContainerBSamples.tolist()
-        ContainerBSamples = [ContainerBSamples[j][0] for j in range(len(ContainerBSamples))]
+        ContainerBSamples = [ContainerBSamples[j][0]
+                             for j in range(len(ContainerBSamples))]
         Domain = list(np.unique(list(np.unique(ContainerASamples)) +
                                 list(np.unique(ContainerBSamples))))
         Probabilities_ContainerA = {}
@@ -125,7 +157,139 @@ def CompareInferences(ContainerA, ContainerB, decimals=1):
         for Sample in Domain:
             SameProb += Probabilities_ContainerA[Sample] * \
                 Probabilities_ContainerB[Sample]
-        sys.stdout.write("Probability that " + Reward + " is the same: " + str(SameProb) + "\n")
+        if csv:
+            if i == (len(SharedRewards) - 1):
+                sys.stdout.write(str(SameProb) + "\n")
+            else:
+                sys.stdout.write(str(SameProb) + ",")
+        else:
+            sys.stdout.write("Probability that " + Reward +
+                             " is the same: " + str(SameProb) + "\n")
+
+
+def ProbabilityOfNoChange(ContA, ContB, TestVariable, Conditioning, decimals=1):
+    """
+    Compute the probability that a random variable has the same value in two events,
+    conditioned on one or more random variables being the same. For instance, you can compute
+    the probability that a terrain's cost is different, conditioned on the rewards being the same.
+
+    Args:
+        ContA (PosteriorContainer): PosteriorContainer object
+        ContB (PosteriorContainer): PosteriorContainer object
+        TestVariable (string): Random variable to test. Must exist in both containers.
+        Conditioning (list of strings): Random variable names to fix across events. Must exist in both containers.
+        decimals (int): Decimals to cut off from samples.
+    """
+    ContainerA = copy.deepcopy(ContA)
+    ContainerB = copy.deepcopy(ContB)
+    if (ContainerA.CostNames != ContainerB.CostNames) or (ContainerA.ObjectNames != ContainerB.ObjectNames):
+        sys.stdout.write(
+            "Error: ProbabilityOfChange only supports containers with matched objects and terrains.")
+        return None
+    # First check that test variable and conditioning exist in both Containers.
+    Test = [(x in (ContainerA.CostNames + ContainerA.ObjectNames))
+            for x in ([TestVariable] + Conditioning)]
+    if sum(Test) != len(Test):
+        sys.stdout.write(
+            "Error: TestVariable and/or Conditioning variables do not exist on both PosteriorContainer objects. AUXILIARYFUNCTIONS-001")
+        return None
+    # Round all the samples!
+    ContainerA.CostSamples = np.round(ContainerA.CostSamples, decimals)
+    ContainerA.RewardSamples = np.round(ContainerA.RewardSamples, decimals)
+    ContainerB.CostSamples = np.round(ContainerB.CostSamples, decimals)
+    ContainerB.RewardSamples = np.round(ContainerB.RewardSamples, decimals)
+    # Loop through samples and get the probabilities of each conditioning
+    # variable matching.
+    ConditioningProbabilities = {}
+    for IndexA in range(ContainerA.Samples):
+        for IndexB in range(ContainerB.Samples):
+            # Check if sample pair matches conditioning.
+            Hit = True
+            for ConditioningVar in Conditioning:
+                if ConditioningVar in ContainerA.CostNames:
+                    if ContainerA.CostSamples[IndexA, ContainerA.CostNames.index(ConditioningVar)] != ContainerB.CostSamples[IndexB, ContainerB.CostNames.index(ConditioningVar)]:
+                        Hit = False
+                        break
+                else:
+                    if ContainerA.RewardSamples[IndexA, ContainerA.ObjectNames.index(ConditioningVar)] != ContainerB.RewardSamples[IndexB, ContainerB.ObjectNames.index(ConditioningVar)]:
+                        Hit = False
+                        break
+            if Hit:
+                # If we found a sample pair where the conditioning is true,
+                # then save the sample.
+                # Loop over the Conditiniong variables and add the
+                # probabilities.
+                SampleHit = []
+                for ConditioningVar in Conditioning:
+                    if ConditioningVar in ContainerA.CostNames:
+                        # We could also get the sample from ContainerB since
+                        # they're matched.
+                        SampleHit.append(ContainerA.CostSamples[
+                                         IndexA, ContainerA.CostNames.index(ConditioningVar)])
+                    else:
+                        SampleHit.append(ContainerA.RewardSamples[
+                                         IndexA, ContainerA.ObjectNames.index(ConditioningVar)])
+                Prob = np.exp(ContainerA.LogLikelihoods[
+                              IndexA]) * np.exp(ContainerB.LogLikelihoods[IndexB])
+                # Save if TestVariable matches
+                if TestVariable in ContainerA.CostNames:
+                    TestMatch = (ContainerA.CostSamples[IndexA, ContainerA.CostNames.index(
+                        TestVariable)] == ContainerB.CostSamples[IndexB, ContainerB.CostNames.index(TestVariable)])
+                else:
+                    TestMatch = (ContainerA.RewardSamples[IndexA, ContainerA.ObjectNames.index(
+                        TestVariable)] == ContainerB.RewardSamples[IndexB, ContainerB.ObjectNames.index(TestVariable)])
+                # Now save the results.
+                # First dictionary entry is whether the test sample matches.
+                # Check if dictionary already has entries. Otherwise build a
+                # dictionary inside.
+                if TestMatch not in ConditioningProbabilities:
+                    ConditioningProbabilities[TestMatch] = {}
+                # The next N dictionary depths come from the ConditioningVar
+                # variables. For each, try to go in and build dictionaries when
+                # necessary.
+                CurrentDict = ConditioningProbabilities[TestMatch]
+                for SampleIndex in range(len(SampleHit) - 1):
+                    Sample = SampleHit[SampleIndex]
+                    if Sample not in CurrentDict:
+                        CurrentDict[Sample] = {}
+                    CurrentDict = CurrentDict[Sample]
+                # By now, CurrentDict has the final dictionary. Now check if
+                # the final sample has a value already.
+                if SampleHit[-1] in CurrentDict:
+                    CurrentDict[SampleHit[-1]] += Prob
+                else:
+                    CurrentDict[SampleHit[-1]] = Prob
+    # return ConditioningProbabilities
+    # Now that you have the dictionary, compute the probabilities.
+    # \sum_{x} p(TestVariable match | Conditioning = x)p( Conditioning = x).
+    # Every branch in the dictionary is a value of x.
+    # But we need the normalizing constant.
+    NormalizingConstant = RecursiveDictionaryExtraction(
+        ConditioningProbabilities)
+    print NormalizingConstant
+    print ConditioningProbabilities
+    # Normalize the tree
+    ConditioningProbabilities = NormalizeDictionary(ConditioningProbabilities, NormalizingConstant)
+    # Get indices for all entires:
+    SucessDictionaryEntries = BuildKeyList(ConditioningProbabilities[True])
+    FailDictionaryEntries = BuildKeyList(ConditioningProbabilities[False])
+    # each line is a sample.
+    # Iterate over Success samples
+    print ConditioningProbabilities
+    FullProb = 0
+    for IndexPath in SucessDictionaryEntries:
+        # Compute (p(Conditioning = IndexPath))
+        if IndexPath in FailDictionaryEntries:
+            p_fail = RetrieveValue(ConditioningProbabilities[False], IndexPath)
+        else:
+            p_fail = 0
+        p_success = RetrieveValue(ConditioningProbabilities[True], IndexPath)
+        # Normalize
+        p_IndexPath = p_success + p_fail
+        if p_IndexPath > 0:
+            p_Match = p_success*1.0 / (p_IndexPath)
+            FullProb += p_Match * p_IndexPath
+    return FullProb
 
 
 def SaveSamples(Container, Name):

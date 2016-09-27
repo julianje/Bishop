@@ -4,5 +4,6 @@ from .Map import *
 from .Planner import *
 from .Observer import *
 from .AuxiliaryFunctions import *
+from .DictionaryNavigation import *
 from .PosteriorContainer import *
 from .AgentSimulation import *
