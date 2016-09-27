@@ -65,3 +65,9 @@ V 2.5.3
 	- Support for reusing posterior samples as the prior in a new map (if there are new terrains or objects, these dimensions get resampled).
 	- Methods for predicting future actions and future plans.
 	- High level methods for retrieving costs and rewards (O.GetCR()), and methods for running the generative model and saving the outputs as images (O.DrawSimulations())
+
+V 2.6
+=======
+	- Discount method is now integrated with linear methods. By setting organic markers you can determine which objects are subject to future discount (interpreted as probability of death at each time step).
+	- ProbabilityofNoChange and CompareInferences allow comparing inferences from two events.
+	- Removed some old maps to make map library smaller.

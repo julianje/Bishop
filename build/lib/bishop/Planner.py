@@ -32,7 +32,7 @@ class Planner(object):
         Args:
             Agent (Agent): Agent object
             Map (Map): Map object
-            Method (str): "Discount" or "Linear" for type of cost
+            Method (str): "Rate" or "Linear" for type of utility function
             Validate (bool): Run object validation? Helps find bugs
         """
         self.Method = Method
@@ -105,9 +105,10 @@ class Planner(object):
         self.CriticalStates.extend(self.Map.ObjectLocations)
         self.CriticalStates.extend([self.Map.ExitState])
         # build the costmatrix and store the policies
-        [Policies, CostMatrix] = self.Plan(Validate)
+        [Policies, CostMatrix, DistanceMatrix] = self.Plan(Validate)
         self.Policies = Policies
         self.CostMatrix = CostMatrix
+        self.DistanceMatrix = DistanceMatrix
         self.Utilities = None
         self.goalindices = None
 
@@ -123,12 +124,15 @@ class Planner(object):
             Validate (bool): Check if modifications result in legal MDP objects (Set to True when testing new models)
 
         Returns
-        [Policies, CostMatrix].   Policies stores how to move from states to states and cost matrix stores the cost incurred.
+        [Policies, CostMatrix, DistanceMatrix].   Policies stores how to move from states to states and cost matrix stores the cost incurred.
             Policies is a list Policies[i] contains a softmaxed optimal policy (as a numpy array) to move to CriticalStates[i].
             In each policy Pol[i][j] contains the probability of selecting action i in state j
             CostMatrix is a numpy array where CostMatrix[i][j] contains the minimum cost to move from CriticalStates[i] to CriticalStates[j]
+            DistanceMatrix contains the numerical distance in moving from one point to another.
         """
         CostMatrix = np.zeros(
+            (len(self.CriticalStates), len(self.CriticalStates)))
+        DistanceMatrix = np.zeros(
             (len(self.CriticalStates), len(self.CriticalStates)))
         # First policy is the one for moving towards starting point. Leave it
         # empty
@@ -163,16 +167,13 @@ class Planner(object):
                     OriginalPointIndex], self.CriticalStates[TargetStateIndex], subMDP)
                 # Get the cost associated with each combination of actions and states
                 # and sum them to get the total cost.
-                # Note that the terminology changes a bit here. The utility function is saved inside the MDP's reward function.
-                if self.Method == "Discount":
-                    TotalCost = np.prod(
-                        [self.MDP.R[Actions[i]][StateSequence[i]] for i in range(len(Actions))])
-                else:
-                    TotalCost = sum(
-                        [self.MDP.R[Actions[i]][StateSequence[i]] for i in range(len(Actions))])
-                CostMatrix[OriginalPointIndex][TargetStateIndex] = np.abs(
-                    TotalCost) if self.Method == "Discount" else TotalCost
-        return [Policies, CostMatrix]
+                # Note that the terminology changes a bit here. The utility
+                # function is saved inside the MDP's reward function.
+                TotalCost = sum(
+                    [self.MDP.R[Actions[i]][StateSequence[i]] for i in range(len(Actions))])
+                CostMatrix[OriginalPointIndex][TargetStateIndex] = TotalCost
+                DistanceMatrix[OriginalPointIndex][TargetStateIndex] = sum([1 if i < 4 else np.sqrt(2) for i in Actions])
+        return [Policies, CostMatrix, DistanceMatrix]
 
     def SimulatePathUntil(self, StartingPoint, StopStates, inputMDP, Limit=300, Simple=False):
         """
@@ -277,26 +278,31 @@ class Planner(object):
             # (because it includes the starting state)
             goals = [0] + [j + 1 for j in goalindices[i]] + \
                 [len(self.CriticalStates) - 1]
+            # Compute the costs
+            costs = sum([self.CostMatrix[goals[j - 1], goals[j]]
+                         for j in range(1, len(goals))])
             if self.Method == "Discount":
-                # Set the cost to 0
-                costs = 0
-                # Discount the rewards based on the cost-matrix
-                rawrewards = [self.Agent.rewards[self.Map.ObjectTypes[j]]
-                              for j in goalindices[i]] + [1]  # Add a reward of 1 for reaching home.
-                discounts = [self.CostMatrix[goals[j - 1], goals[j]]
-                             for j in range(1, len(goals))]
-                rewards = sum([rawrewards[j] ** discounts[j]
-                               for j in range(len(rawrewards))])
+                # Get all the rewards, and then discount the organic ones.
+                rewards = [self.Agent.rewards[self.Map.ObjectTypes[j]] for j in goalindices[i]]
+                # Extract which rewards are organic.
+                organic = [self.Map.Organic[j] for j in goalindices[i]]
+                # Now loop over rewards and modify them.
+                for currentreward in range(len(organic)):
+                    # If it's non-organic. Leave the reward as is.
+                    if organic:
+                        # Discount the reward
+                        # Get the overall distance. Here you need to sum over the whole past path.
+                        DistanceTraveled = sum([self.DistanceMatrix[goals[j - 1], goals[j]] for j in range(1, currentreward)])
+                        rewards[currentreward] = rewards[currentreward] ** (self.Map.SurvivalProb ** DistanceTraveled)
+                rewards = sum(rewards)
             else:
-                # Compute the costs
-                costs = sum([self.CostMatrix[goals[j - 1], goals[j]]
-                             for j in range(1, len(goals))])
-                # Compute the rewards
+                # Add the rewards without discounting.
                 rewards = sum(
                     [self.Agent.rewards[self.Map.ObjectTypes[j]] for j in goalindices[i]])
-                # Costs are already negative here.
-            utility[i] = rewards + costs
-            #utility[i] = rewards*1.0 / abs(costs) # Rate model
+            if self.Method == "Rate":
+                utility[i] = rewards * 1.0 / abs(costs)  # Make rate positive
+            else:
+                utility[i] = rewards + costs  # Costs are already negative
         self.Utilities = utility
         self.goalindices = goalindices
 

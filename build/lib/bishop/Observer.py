@@ -27,7 +27,7 @@ class Observer(object):
         Args:
             A (Agent): Agent object
             M (Map): Map objects
-            Method (str): What type of planner? "Discount" or "Linear"
+            Method (str): What type of planner? "Rate" or "Linear"
             Validate (bool): Should objects be validated?
         """
         self.Plr = Planner.Planner(A, M, Method, Validate)
@@ -176,14 +176,17 @@ class Observer(object):
             return None
         self.Plr.Prepare(self.Validate)
 
-    def InferAgentUsingPC(self, ActionSequence, PC, Feedback=False):
+    def InferAgentUsingPC(self, ActionSequence, PC, Combine=True, Feedback=False):
         """
         Compute the posterior of an action sequence using a set of samples from a PC and their loglikelihoods.
-        This let's you take the posterior from one map and use it as a prior for another map.
+        This let's you take the posterior from one map and use it as a prior for another map, or simply to
+        obtain the likelihoods for two events using the same samples.
 
         Args:
             ActionSequence (list): Sequence of actions
             PC (PosteriorContainer): PosteriorContainer object
+            Combine (bool): When true, the posterior container's loglikelihoods are used as the prior.
+                            when false, only the samples are re-used.
             Feedback (bool): When true, function gives feedback on percentage complete.
         """
         if not all(isinstance(x, int) for x in ActionSequence):
@@ -233,14 +236,17 @@ class Observer(object):
                 print("ERROR: Failed to compute likelihood. OBSERVER-001")
                 return None
             # Add the prior
-            prior = PC.LogLikelihoods[i]
-            if (LogLik == (-sys.maxint - 1) or prior == (-sys.maxint - 1)):
-                LogLikelihoods[i] = (-sys.maxint - 1)
-            else:
-                if ((LogLik + prior) < (-sys.maxint - 1)):
+            if Combine:
+                prior = PC.LogLikelihoods[i]
+                if (LogLik == (-sys.maxint - 1) or prior == (-sys.maxint - 1)):
                     LogLikelihoods[i] = (-sys.maxint - 1)
                 else:
-                    LogLikelihoods[i] = LogLik + prior
+                    if ((LogLik + prior) < (-sys.maxint - 1)):
+                        LogLikelihoods[i] = (-sys.maxint - 1)
+                    else:
+                        LogLikelihoods[i] = LogLik + prior
+            else:
+                LogLikelihoods[i] = LogLik
         # Finish printing progress bar
         if Feedback:
             # Print complete progress bar
