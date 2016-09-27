@@ -11,6 +11,7 @@ Bishop/Observer.py
 Bishop/Planner.py
 Bishop/PosteriorContainer.py
 Bishop/__init__.py
+Bishop.egg-info/.DS_Store
 Bishop.egg-info/PKG-INFO
 Bishop.egg-info/SOURCES.txt
 Bishop.egg-info/dependency_links.txt

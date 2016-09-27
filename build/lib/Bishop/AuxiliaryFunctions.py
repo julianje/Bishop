@@ -266,8 +266,6 @@ def ProbabilityOfNoChange(ContA, ContB, TestVariable, Conditioning, decimals=1):
     # But we need the normalizing constant.
     NormalizingConstant = RecursiveDictionaryExtraction(
         ConditioningProbabilities)
-    print NormalizingConstant
-    print ConditioningProbabilities
     # Normalize the tree
     ConditioningProbabilities = NormalizeDictionary(ConditioningProbabilities, NormalizingConstant)
     # Get indices for all entires:
@@ -275,7 +273,6 @@ def ProbabilityOfNoChange(ContA, ContB, TestVariable, Conditioning, decimals=1):
     FailDictionaryEntries = BuildKeyList(ConditioningProbabilities[False])
     # each line is a sample.
     # Iterate over Success samples
-    print ConditioningProbabilities
     FullProb = 0
     for IndexPath in SucessDictionaryEntries:
         # Compute (p(Conditioning = IndexPath))
