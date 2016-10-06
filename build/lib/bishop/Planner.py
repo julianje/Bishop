@@ -293,7 +293,10 @@ class Planner(object):
                         # Discount the reward
                         # Get the overall distance. Here you need to sum over the whole past path.
                         DistanceTraveled = sum([self.DistanceMatrix[goals[j - 1], goals[j]] for j in range(1, currentreward)])
-                        rewards[currentreward] = rewards[currentreward] ** (self.Map.SurvivalProb ** DistanceTraveled)
+                        OverallSurvivalProb = self.Map.SurvivalProb ** DistanceTraveled
+                        rewards[currentreward] = rewards[currentreward] * OverallSurvivalProb
+                        # If the agent dies, the reward becomes a cost. Add the expected cost of the plan:
+                        costs += rewards[currentreward] * (1 - OverallSurvivalProb)
                 rewards = sum(rewards)
             else:
                 # Add the rewards without discounting.

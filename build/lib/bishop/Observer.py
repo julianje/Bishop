@@ -11,6 +11,7 @@ __license__ = "MIT"
 import numpy as np
 import Planner
 import sys
+import random
 import math
 import PosteriorContainer
 import AgentSimulation
@@ -153,8 +154,10 @@ class Observer(object):
         """
         Print current costs and rewards
         """
-        sys.stdout.write("Costs (" + str(self.Plr.Map.StateNames) + ")" + str(self.Plr.Agent.costs) + "\n")
-        sys.stdout.write("Rewards (" + str(self.Plr.Map.ObjectNames) + ")" + str(self.Plr.Agent.rewards) + "\n")
+        sys.stdout.write("Costs (" + str(self.Plr.Map.StateNames) +
+                         ")" + str(self.Plr.Agent.costs) + "\n")
+        sys.stdout.write("Rewards (" + str(self.Plr.Map.ObjectNames) +
+                         ")" + str(self.Plr.Agent.rewards) + "\n")
 
     def SetCR(self, costs, rewards):
         """
@@ -175,6 +178,130 @@ class Observer(object):
             print("Reward list does not match number of terrains.")
             return None
         self.Plr.Prepare(self.Validate)
+
+    def ComputeExpectedValueJoint(self, ActionSequence, PC, TestVariable, Conditioning, knowledgeprior=0.5, Feedback=True):
+        """
+        This function returns the probability that an agent was knowledgeable or ignorant
+        about a cost or a reward, conditioned on them being nowledgeable about one or more sources
+        of costs and rewards.
+
+        Args:
+            ActionSequence (list): Sequence of actions
+            PC (PosteriorContainer): PosteriorContainer object
+            TestVariable (string): Random variable to test. Must exist in both containers.
+            Conditioning (list of strings): Random variable names to fix across events. Must exist in both containers.
+            knowledgeprior (float): Prior that agent was already knowledgeable
+            Feedback (bool): Verbose?
+        """
+        if not all(isinstance(x, int) for x in ActionSequence):
+            if all(isinstance(x, str) for x in ActionSequence):
+                ActionSequence = self.Plr.Map.GetActionList(ActionSequence)
+            else:
+                print(
+                    "ERROR: Action sequence must contains the indices of actions or their names.")
+                return None
+        Samples = PC.Samples
+        Costs = [0] * Samples
+        Rewards = [0] * Samples
+        LogLikelihoods = [0] * Samples
+        # Find the indices of the dimensions we're locking down (i.e. the agent
+        # already knows them).
+        RIndices = []
+        CIndices = []
+        for ConditioningVar in Conditioning:
+            if ConditioningVar in PC.ObjectNames:
+                RIndices.append(PC.ObjectNames.index(ConditioningVar))
+            else:
+                CIndices.append(PC.CostNames.index(ConditioningVar))
+        if Feedback:
+            sys.stdout.write("\n")
+        for i in range(Samples):
+            if Feedback:
+                Percentage = round(i * 100.0 / Samples, 2)
+                sys.stdout.write("\rProgress |")
+                roundper = int(math.floor(Percentage / 5))
+                sys.stdout.write(
+                    self.begincolor + self.block * roundper + self.endcolor)
+                sys.stdout.write(" " * (20 - roundper))
+                sys.stdout.write("| " + str(Percentage) + "%")
+                sys.stdout.flush()
+            # Resample the agent
+            self.Plr.Agent.ResampleAgent()
+            # and overwrite sample sections where the agent could not have
+            # updated (dimension we're conditioning on).
+            self.Plr.Agent.costs = [PC.CostSamples[i, j] if j in CIndices else self.Plr.Agent.costs[
+                j] for j in range(len(self.Plr.Agent.costs))]
+            self.Plr.Agent.rewards = [PC.RewardSamples[i, j] if j in RIndices else self.Plr.Agent.rewards[
+                j] for j in range(len(self.Plr.Agent.rewards))]
+            # Integrate the prior that the agent already knew the dimensions.
+            if random.random() < knowledgeprior:
+                # Agent already know costs
+                self.Plr.Agent.costs = PC.CostSamples[i, ].tolist()[0]
+                # if TestVariable in PC.ObjectNames:
+                #    Index = PC.ObjectNames.index(TestVariable)
+                #    self.Plr.Agent.rewards[Index] = PC.RewardSamples[i, Index]
+                # else:
+                #    Index = PC.CostNames.index(TestVariable)
+                #    self.Plr.Agent.costs[Index] = PC.CostSamples[i, Index]
+            if random.random() < knowledgeprior:
+                # Agent already knows rewards
+                self.Plr.Agent.rewards = PC.RewardSamples[i, ].tolist()[0]
+            # save samples
+            Costs[i] = self.Plr.Agent.costs
+            Rewards[i] = self.Plr.Agent.rewards
+            # Replan
+            self.Plr.Prepare(self.Validate)
+            # Get log-likelihood
+            LogLik = self.Plr.Likelihood(ActionSequence)
+            # If anything went wrong stop
+            if LogLik is None:
+                print("ERROR: Failed to compute likelihood. OBSERVER-001")
+                return None
+            LogLikelihoods[i] = LogLik
+        # Finish printing progress bar
+        if Feedback:
+            # Print complete progress bar
+            sys.stdout.write("\rProgress |")
+            sys.stdout.write(self.begincolor + self.block * 20 + self.endcolor)
+            sys.stdout.write("| 100.0%")
+            sys.stdout.flush()
+        # Normalize LogLikelihoods
+        Normalize = scipy.misc.logsumexp(LogLikelihoods)
+        if np.exp(Normalize) == 0:
+            sys.stdout.write("\nWARNING: All likelihoods are 0.\n")
+        NormLogLikelihoods = LogLikelihoods - Normalize
+        Results = PosteriorContainer.PosteriorContainer(np.matrix(Costs), np.matrix(
+            Rewards), NormLogLikelihoods, ActionSequence, self.Plr)
+        if Feedback:
+            sys.stdout.write("\n\n")
+            Results.Summary()
+            sys.stdout.write("\n")
+        # By this point, PC and Results, contain samples.
+        # Condtitioning is already accounted. So now just add the different
+        # probabilities:
+        P_Same = 0
+        P_Diff = 0
+        # Locate test variable and save its index
+        if TestVariable in PC.ObjectNames:
+            Index = PC.ObjectNames.index(TestVariable)
+            TestLocation = "Objects"
+        else:
+            Index = PC.CostNames.index(TestVariable)
+            TestLocation = "Terrains"
+        for i in range(Samples):
+            Prob = np.exp(PC.LogLikelihoods[i]) * \
+                np.exp(Results.LogLikelihoods[i])
+            if TestLocation == "Objects":
+                if PC.RewardSamples[i, Index] == Results.RewardSamples[i, Index]:
+                    P_Same += Prob
+                else:
+                    P_Diff += Prob
+            else:
+                if PC.CostSamples[i, Index] == Results.CostSamples[i, Index]:
+                    P_Same += Prob
+                else:
+                    P_Diff += Prob
+        return [P_Same, P_Diff]
 
     def InferAgentUsingPC(self, ActionSequence, PC, Combine=True, Feedback=False):
         """
@@ -576,7 +703,8 @@ class Observer(object):
             if IndexSaving:
                 self.DrawMap(Prefix + str(i) + ".png", Res.Actions[i])
             else:
-                self.DrawMap(Prefix + str(Res.Actions[i]) + ".png", Res.Actions[i])
+                self.DrawMap(
+                    Prefix + str(Res.Actions[i]) + ".png", Res.Actions[i])
 
     def SimulateAgents(self, Samples, HumanReadable=False, ResampleAgent=True, Simple=True, Verbose=True):
         """
