@@ -182,7 +182,7 @@ def ProbabilityOfNoChange(ContA, ContB, TestVariable, Conditioning, decimals=1):
     """
     ContainerA = copy.deepcopy(ContA)
     ContainerB = copy.deepcopy(ContB)
-    if (ContainerA.CostNames != ContainerB.CostNames) or (ContainerA.ObjectNames != ContainerB.ObjectNames):
+    if (set(ContainerA.CostNames) != set(ContainerB.CostNames)) or (set(ContainerA.ObjectNames) != set(ContainerB.ObjectNames)):
         sys.stdout.write(
             "Error: ProbabilityOfChange only supports containers with matched objects and terrains.")
         return None
@@ -267,10 +267,18 @@ def ProbabilityOfNoChange(ContA, ContB, TestVariable, Conditioning, decimals=1):
     NormalizingConstant = RecursiveDictionaryExtraction(
         ConditioningProbabilities)
     # Normalize the tree
-    ConditioningProbabilities = NormalizeDictionary(ConditioningProbabilities, NormalizingConstant)
+    return [NormalizingConstant, ConditioningProbabilities]
+    ConditioningProbabilities = NormalizeDictionary(
+        ConditioningProbabilities, NormalizingConstant)
     # Get indices for all entires:
-    SucessDictionaryEntries = BuildKeyList(ConditioningProbabilities[True])
-    FailDictionaryEntries = BuildKeyList(ConditioningProbabilities[False])
+    if True in ConditioningProbabilities.keys():
+        SucessDictionaryEntries = BuildKeyList(ConditioningProbabilities[True])
+    else:
+        SucessDictionaryEntries = []
+    if False in ConditioningProbabilities.keys():
+        FailDictionaryEntries = BuildKeyList(ConditioningProbabilities[False])
+    else:
+        FailDictionaryEntries = []
     # each line is a sample.
     # Iterate over Success samples
     FullProb = 0
@@ -284,7 +292,7 @@ def ProbabilityOfNoChange(ContA, ContB, TestVariable, Conditioning, decimals=1):
         # Normalize
         p_IndexPath = p_success + p_fail
         if p_IndexPath > 0:
-            p_Match = p_success*1.0 / (p_IndexPath)
+            p_Match = p_success * 1.0 / (p_IndexPath)
             FullProb += p_Match * p_IndexPath
     return FullProb
 
@@ -480,14 +488,15 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
         if temp == 'Linear' or temp == 'Rate':
             Method = temp
         else:
-            if temp == 'Discount':
-                print("Discount method is now integrated with the linear utility method (2.6+). Use organic markers to mark discounts.")
-            else:
-                print("ERROR: Unknown utility type. Using a linear utility function.")
-
+            if not Silent:
+                if temp == 'Discount':
+                    print("Discount method is now integrated with the linear utility method (2.6+). Use organic markers to mark discounts.")
+                else:
+                    print("ERROR: Unknown utility type. Using a linear utility function.")
             Method = "Linear"
     else:
-        print("Using a linear utility function (Add a Method in the AgentParameters block to change to 'Rate' utilities).")
+        if not Silent:
+            print("Using a linear utility function (Add a Method in the AgentParameters block to change to 'Rate' utilities).")
         Method = "Linear"
     if Revise:
         temp = raw_input(
@@ -553,7 +562,8 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
     if Config.has_option("AgentParameters", "Restrict"):
         Restrict = Config.getboolean("AgentParameters", "Restrict")
     else:
-        print("Setting restrict to false (i.e., uncertainty over which terrain is the easiest)")
+        if not Silent:
+            print("Setting restrict to false (i.e., uncertainty over which terrain is the easiest)")
         Restrict = False
     if Config.has_option("AgentParameters", "SoftmaxChoice"):
         SoftmaxChoice = Config.getboolean("AgentParameters", "SoftmaxChoice")
@@ -762,7 +772,8 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
                 Organic = Config.get("Objects", "Organic")
                 Organic = [bool(int(i)) for i in Organic.split()]
             else:
-                print("No organic markers. Treating all objects as dead. Add an Organic line to mark if some object types are agents (add probability of death).")
+                if not Silent:
+                    print("No organic markers. Treating all objects as dead. Add an Organic line to mark if some object types are agents (add probability of death).")
                 Organic = [False] * len(ObjectTypes)
             if Config.has_option("Objects", "SurvivalProb"):
                 SurvivalProb = Config.getfloat("Objects", "SurvivalProb")
