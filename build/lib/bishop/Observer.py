@@ -15,6 +15,7 @@ import random
 import math
 import PosteriorContainer
 import AgentSimulation
+import AuxiliaryFunctions
 import scipy.misc
 from scipy.stats.stats import pearsonr
 
@@ -179,7 +180,7 @@ class Observer(object):
             return None
         self.Plr.Prepare(self.Validate)
 
-    def ComputeExpectedValueJoint(self, ActionSequence, PC, TestVariable, Conditioning, knowledgeprior=0.5, Feedback=True):
+    def ComputeProbabilityOfChange(self, ActionSequence, PC, TestVariable, Conditioning, knowledgeprior=0.5, Tolerance=None, Feedback=True):
         """
         This function returns the probability that an agent was knowledgeable or ignorant
         about a cost or a reward, conditioned on them being nowledgeable about one or more sources
@@ -189,6 +190,27 @@ class Observer(object):
             ActionSequence (list): Sequence of actions
             PC (PosteriorContainer): PosteriorContainer object
             TestVariable (string): Random variable to test. Must exist in both containers.
+            Conditioning (list of strings): Random variable names to fix across events. Must exist in both containers.
+            knowledgeprior (float): Prior that agent was already knowledgeable
+            Tolerance (int): How many decimal points should be left when rounding? When Tolerance=None samples aren't rounded.
+            Feedback (bool): Verbose?
+        """
+        R = self.UpdateExperience(
+            ActionSequence, PC, Conditioning, knowledgeprior, Feedback)
+        return AuxiliaryFunctions.ProbabilityOfChange(PC, R[0], TestVariable, Tolerance)
+
+    def UpdateExperience(self, ActionSequence, PC, Conditioning, knowledgeprior=0.5, Feedback=True):
+        """
+        This function returns the probability that an agent was knowledgeable or ignorant
+        about a cost or a reward, conditioned on them being nowledgeable about one or more sources
+        of costs and rewards.
+
+        Warning: This function is optimized so it does not compute the likelihood for all samples.
+        Instead it only considers samples where the original sample has a positive probability.
+
+        Args:
+            ActionSequence (list): Sequence of actions
+            PC (PosteriorContainer): PosteriorContainer
             Conditioning (list of strings): Random variable names to fix across events. Must exist in both containers.
             knowledgeprior (float): Prior that agent was already knowledgeable
             Feedback (bool): Verbose?
@@ -237,27 +259,26 @@ class Observer(object):
             if random.random() < knowledgeprior:
                 # Agent already know costs
                 self.Plr.Agent.costs = PC.CostSamples[i, ].tolist()[0]
-                # if TestVariable in PC.ObjectNames:
-                #    Index = PC.ObjectNames.index(TestVariable)
-                #    self.Plr.Agent.rewards[Index] = PC.RewardSamples[i, Index]
-                # else:
-                #    Index = PC.CostNames.index(TestVariable)
-                #    self.Plr.Agent.costs[Index] = PC.CostSamples[i, Index]
             if random.random() < knowledgeprior:
                 # Agent already knows rewards
                 self.Plr.Agent.rewards = PC.RewardSamples[i, ].tolist()[0]
             # save samples
             Costs[i] = self.Plr.Agent.costs
             Rewards[i] = self.Plr.Agent.rewards
-            # Replan
-            self.Plr.Prepare(self.Validate)
-            # Get log-likelihood
-            LogLik = self.Plr.Likelihood(ActionSequence)
-            # If anything went wrong stop
-            if LogLik is None:
-                print("ERROR: Failed to compute likelihood. OBSERVER-001")
-                return None
-            LogLikelihoods[i] = LogLik
+            # You only need the log-likelihood when the original sample has
+            # probabiliy higher than zero.
+            if np.exp(PC.LogLikelihoods[i]) > 0:
+                # Replan
+                self.Plr.Prepare(self.Validate)
+                # Get log-likelihood
+                LogLik = self.Plr.Likelihood(ActionSequence)
+                # If anything went wrong stop
+                if LogLik is None:
+                    print("ERROR: Failed to compute likelihood. OBSERVER-001")
+                    return None
+                LogLikelihoods[i] = LogLik
+            else:
+                LogLikelihoods[i] = (-sys.maxint - 1)
         # Finish printing progress bar
         if Feedback:
             # Print complete progress bar
@@ -277,31 +298,7 @@ class Observer(object):
             Results.Summary()
             sys.stdout.write("\n")
         # By this point, PC and Results, contain samples.
-        # Condtitioning is already accounted. So now just add the different
-        # probabilities:
-        P_Same = 0
-        P_Diff = 0
-        # Locate test variable and save its index
-        if TestVariable in PC.ObjectNames:
-            Index = PC.ObjectNames.index(TestVariable)
-            TestLocation = "Objects"
-        else:
-            Index = PC.CostNames.index(TestVariable)
-            TestLocation = "Terrains"
-        for i in range(Samples):
-            Prob = np.exp(PC.LogLikelihoods[i]) * \
-                np.exp(Results.LogLikelihoods[i])
-            if TestLocation == "Objects":
-                if PC.RewardSamples[i, Index] == Results.RewardSamples[i, Index]:
-                    P_Same += Prob
-                else:
-                    P_Diff += Prob
-            else:
-                if PC.CostSamples[i, Index] == Results.CostSamples[i, Index]:
-                    P_Same += Prob
-                else:
-                    P_Diff += Prob
-        return [P_Same, P_Diff]
+        return [Results, Conditioning, knowledgeprior]
 
     def InferAgentUsingPC(self, ActionSequence, PC, Combine=True, Feedback=False):
         """
