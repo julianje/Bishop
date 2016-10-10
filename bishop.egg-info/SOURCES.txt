@@ -4,7 +4,6 @@ setup.py
 Bishop/Agent.py
 Bishop/AgentSimulation.py
 Bishop/AuxiliaryFunctions.py
-Bishop/DictionaryNavigation.py
 Bishop/MDP.py
 Bishop/Map.py
 Bishop/Observer.py
