@@ -67,6 +67,7 @@ Bishop/Maps/FlagMaps/LongFlag_SymmetricB
 Bishop/Maps/HallwaysMaps/.DS_Store
 Bishop/Maps/HallwaysMaps/Hallways_base
 Bishop/Maps/HallwaysMaps/Hallways_base.ini
+Bishop/Maps/HallwaysMaps/Hallways_base_prior.ini
 Bishop/Maps/HallwaysMaps/Hallways_invRewards.ini
 Bishop/Maps/MoralWorld/.DS_Store
 Bishop/Maps/MoralWorld/MoralWorld

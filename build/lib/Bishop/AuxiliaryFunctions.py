@@ -21,7 +21,7 @@ from Agent import *
 def ProbabilityOfChange(ContA, ContB, TestVariable, Tolerance=None):
     """
     Compute the probability that TestVariable is different across containers.
-    This function is meant to be piped with Observer.
+    This function is meant to be piped with Observer.UpdateExperience() (Observer.ComputeProbabilityOfChange() does this).
 
     Args:
         ContainerA (PosteriorContainer): PosteriorContainer object
@@ -30,6 +30,8 @@ def ProbabilityOfChange(ContA, ContB, TestVariable, Tolerance=None):
         Tolerance (float): When different that None, Tolerance determines how many floating
         points to leave in samples. Thus, if tolerance=1, the function returns the probability that
         TestVariable is larger than .1
+
+    Returns [ProbabilitySame, ProbabilityDifferent]
     """
     # Condtitioning is already accounted. So now just add the different
     # probabilities:
