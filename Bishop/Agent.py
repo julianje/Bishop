@@ -162,6 +162,15 @@ class Agent(object):
                 if SamplingParam[i] != -1:
                     samples[i - 1] = SamplingParam[i]
             return samples
+        if (Kind == "PartialGaussian"):
+            # Generate random gaussian samples.
+            samples = np.random.normal(SamplingParam[0], SamplingParam[1], dimensions)
+            # Now iterate over the sampling parameters and push in static
+            # values.
+            for i in range(2, len(SamplingParam)):
+                if SamplingParam[i] != -1:
+                    samples[i - 2] = SamplingParam[i]
+            return samples
 
     def Priors(self, human=True):
         """
@@ -172,6 +181,9 @@ class Agent(object):
         IntegerUniform: argument is one real/int that scales the vector
         ScaledUniform: argument is one real/int that scales the vector
         Gaussian: First argument is the mean and second argument is the standard deviation.
+        PartialGaussian: First two arguments are the same as Gaussian. Next there should be N arguments
+            with N = number of terrains. When Nth value after the main to is -1, the terrain cost gets sampled
+            from the gaussian distribution, when the value is different it is held constant. See also PartialUniform.
         Exponential: First parameter is lambda
         Constant: First parameter is the constant value.
         Beta: First parameter is alpha and second is beta.
@@ -184,7 +196,7 @@ class Agent(object):
             human (bool): If true function prints names, otherwise it returns a list.
         """
         Priors = ['Simplex', 'IntegerUniform', 'ScaledUniform', 'Beta',
-                  'Gaussian', 'Exponential', 'Constant', 'Empirical', 'PartialUniform']
+                  'Gaussian', 'PartialGaussian', 'Exponential', 'Constant', 'Empirical', 'PartialUniform']
         if human:
             for Prior in Priors:
                 print(Prior)
