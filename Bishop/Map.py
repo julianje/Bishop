@@ -426,7 +426,7 @@ class Map(object):
                 if self.Organic[i]:
                     sys.stdout.write("(Organic) ")
         else:
-            for i in range(len(self.ObjectTypes)):
+            for i in self.ObjectTypes:
                 sys.stdout.write(
                     str(self.ObjectNames[i]) + " ")
                 if self.Organic[i]:
