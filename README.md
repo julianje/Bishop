@@ -3,19 +3,35 @@ ______
 
 ## About
 
-Bishop, after [Washington Bishop](http://en.wikipedia.org/wiki/Washington_Irving_Bishop), is a python package for modeling  [Theory of mind](http://en.wikipedia.org/wiki/Theory_of_mind). Given some observable behavior, Bishop infers (through Bayesian inference over a rational model of decision making and planning under uncertainty) the cost and reward functions that explain the agent's choices and actions.
+Bishop, after [Washington Bishop](http://en.wikipedia.org/wiki/Washington_Irving_Bishop), is a python (2.7) package for modeling  [Theory of mind](http://en.wikipedia.org/wiki/Theory_of_mind). Given some observable behavior, Bishop infers (through Bayesian inference over a rational model of decision making and planning under uncertainty) the cost and reward functions that explain the agent's choices and actions.
 
 ## Install and uninstall
 
 	python setup.py install
 	pip uninstall Bishop
 
+## Troubleshooting
+
+    ImportError: No module named 'MDP'
+
+Bishop is not compatible with python 3.x. Try using python 2.7 instead
+
+    ImportError: No module named Image/ImageDraw/ImageFont
+
+If you have these packages installed, then modify planner.py from
+
+    import Image
+
+to
+
+    from PIL import Image
+
 ## Using Bishop
 
 Simulate agents:
 
 	from Bishop import *	
-	Observer = LoadObserver("FlagSetup")
+	Observer = LoadObserver("P_TT_TRE") # Example map
 	R = Observer.SimulateAgents(Samples=100) # Generate 100 random agents.
 	R.SaveCSV("MySamples.csv") # Save costs, rewards, actions, and state transitions as a CSV file.
 	R.Display() # Print everything
@@ -23,16 +39,16 @@ Simulate agents:
 To see a list of available maps:
 	
 	ShowAvailableMaps() # Print all maps
-    ShowAvailableMaps("Flag") # Print maps that contain "Flag"
+    ShowAvailableMaps("Flag") # Print maps that contain the word "Flag"
 
 #### Cost-reward inference given observable actions
 
 #### From the terminal
 
     $Bishop --help
-    $Bishop -m FlagSetup -sp 0 -a "R R" -s 5000 -o MySamples -v
+    $Bishop -m P_TT_TRE -sp 0 -a "R R" -s 5000 -o MySamples -v
 
-uses the FlagSetup file (in Bishop's library) to load the map and places an agent in location 0 who took two steps to the right. It then infers the cost and reward function using 5000 samples and stores the output in "MySamples.p"
+uses the P_TT_TRE file (in Bishop's library) to load the map and places an agent in location 0 who took two steps to the right. It then infers the cost and reward function using 5000 samples and stores the output in "MySamples.p"
 
 #### Inside python
 

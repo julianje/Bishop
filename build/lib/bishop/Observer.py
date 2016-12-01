@@ -11,7 +11,6 @@ __license__ = "MIT"
 import numpy as np
 import Planner
 import sys
-import random
 import math
 import PosteriorContainer
 import AgentSimulation
@@ -180,7 +179,7 @@ class Observer(object):
             return None
         self.Plr.Prepare(self.Validate)
 
-    def ComputeProbabilityOfChange(self, ActionSequence, PC, TestVariable, Conditioning, knowledgeprior=0.5, Tolerance=None, Feedback=True):
+    def ComputeProbabilityOfChange(self, ActionSequence, PC, TestVariable, Conditioning, Tolerance=None, Feedback=True):
         """
         This function returns the probability that an agent was knowledgeable or ignorant
         about a cost or a reward, conditioned on them being nowledgeable about one or more sources
@@ -191,28 +190,24 @@ class Observer(object):
             PC (PosteriorContainer): PosteriorContainer object
             TestVariable (string): Random variable to test. Must exist in both containers.
             Conditioning (list of strings): Random variable names to fix across events. Must exist in both containers.
-            knowledgeprior (float): Prior that agent was already knowledgeable
             Tolerance (int): How many decimal points should be left when rounding? When Tolerance=None samples aren't rounded.
             Feedback (bool): Verbose?
         """
         R = self.UpdateExperience(
-            ActionSequence, PC, Conditioning, knowledgeprior, Feedback)
+            ActionSequence, PC, Conditioning, Feedback)
         return AuxiliaryFunctions.ProbabilityOfChange(PC, R[0], TestVariable, Tolerance)
 
-    def UpdateExperience(self, ActionSequence, PC, Conditioning, knowledgeprior=0.5, Feedback=True):
+    def UpdateExperience(self, ActionSequence, PC, Conditioning, Normalize=True, Feedback=True):
         """
         This function returns the probability that an agent was knowledgeable or ignorant
-        about a cost or a reward, conditioned on them being nowledgeable about one or more sources
+        about a cost or a reward, conditioned on them being knowledgeable about one or more sources
         of costs and rewards.
-
-        Warning: This function is optimized so it does not compute the likelihood for all samples.
-        Instead it only considers samples where the original sample has a positive probability.
 
         Args:
             ActionSequence (list): Sequence of actions
             PC (PosteriorContainer): PosteriorContainer
             Conditioning (list of strings): Random variable names to fix across events. Must exist in both containers.
-            knowledgeprior (float): Prior that agent was already knowledgeable
+            Normalize (bool): Normalize samples?
             Feedback (bool): Verbose?
         """
         if not all(isinstance(x, int) for x in ActionSequence):
@@ -255,30 +250,18 @@ class Observer(object):
                 j] for j in range(len(self.Plr.Agent.costs))]
             self.Plr.Agent.rewards = [PC.RewardSamples[i, j] if j in RIndices else self.Plr.Agent.rewards[
                 j] for j in range(len(self.Plr.Agent.rewards))]
-            # Integrate the prior that the agent already knew the dimensions.
-            if random.random() < knowledgeprior:
-                # Agent already know costs
-                self.Plr.Agent.costs = PC.CostSamples[i, ].tolist()[0]
-            if random.random() < knowledgeprior:
-                # Agent already knows rewards
-                self.Plr.Agent.rewards = PC.RewardSamples[i, ].tolist()[0]
             # save samples
             Costs[i] = self.Plr.Agent.costs
             Rewards[i] = self.Plr.Agent.rewards
-            # You only need the log-likelihood when the original sample has
-            # probabiliy higher than zero.
-            if np.exp(PC.LogLikelihoods[i]) > 0:
-                # Replan
-                self.Plr.Prepare(self.Validate)
-                # Get log-likelihood
-                LogLik = self.Plr.Likelihood(ActionSequence)
-                # If anything went wrong stop
-                if LogLik is None:
-                    print("ERROR: Failed to compute likelihood. OBSERVER-001")
-                    return None
-                LogLikelihoods[i] = LogLik
-            else:
-                LogLikelihoods[i] = (-sys.maxint - 1)
+            # Replan
+            self.Plr.Prepare(self.Validate)
+            # Get log-likelihood
+            LogLik = self.Plr.Likelihood(ActionSequence)
+            # If anything went wrong stop
+            if LogLik is None:
+                print("ERROR: Failed to compute likelihood. OBSERVER-001")
+                return None
+            LogLikelihoods[i] = LogLik
         # Finish printing progress bar
         if Feedback:
             # Print complete progress bar
@@ -286,11 +269,17 @@ class Observer(object):
             sys.stdout.write(self.begincolor + self.block * 20 + self.endcolor)
             sys.stdout.write("| 100.0%")
             sys.stdout.flush()
-        # Normalize LogLikelihoods
-        Normalize = scipy.misc.logsumexp(LogLikelihoods)
-        if np.exp(Normalize) == 0:
-            sys.stdout.write("\nWARNING: All likelihoods are 0.\n")
-        NormLogLikelihoods = LogLikelihoods - Normalize
+        if Normalize:
+            # Normalize LogLikelihoods
+            NormalizeConst = scipy.misc.logsumexp(LogLikelihoods)
+            if np.exp(NormalizeConst) == 0:
+                sys.stdout.write("\nWARNING: All likelihoods are 0.\n")
+            NormLogLikelihoods = LogLikelihoods - NormalizeConst
+        else:
+            # Hacky way because otherwise the subtraction is on different
+            # object types
+            NormalizeConst = scipy.misc.logsumexp([0])
+            NormLogLikelihoods = LogLikelihoods - NormalizeConst
         Results = PosteriorContainer.PosteriorContainer(np.matrix(Costs), np.matrix(
             Rewards), NormLogLikelihoods, ActionSequence, self.Plr)
         if Feedback:
@@ -298,9 +287,21 @@ class Observer(object):
             Results.Summary()
             sys.stdout.write("\n")
         # By this point, PC and Results, contain samples.
-        return [Results, Conditioning, knowledgeprior]
+        return [Results, Conditioning]
 
-    def InferAgentUsingPC(self, ActionSequence, PC, Combine=True, Feedback=False):
+    def SetCostSamplingParams(self, samplingparams):
+        """
+        Set sampling parameters for costs
+        """
+        self.Plr.Agent.SetCostSamplingParams(samplingparams)
+
+    def SetRewardSamplingParams(self, samplingparams):
+        """
+        Set sampling parameters for costs
+        """
+        self.Plr.Agent.SetRewardSamplingParams(samplingparams)
+
+    def InferAgentUsingPC(self, ActionSequence, PC, Combine=True, Normalize=True, Feedback=False):
         """
         Compute the posterior of an action sequence using a set of samples from a PC and their loglikelihoods.
         This let's you take the posterior from one map and use it as a prior for another map, or simply to
@@ -311,6 +312,7 @@ class Observer(object):
             PC (PosteriorContainer): PosteriorContainer object
             Combine (bool): When true, the posterior container's loglikelihoods are used as the prior.
                             when false, only the samples are re-used.
+            Normalize (bool): Normalize samples?
             Feedback (bool): When true, function gives feedback on percentage complete.
         """
         if not all(isinstance(x, int) for x in ActionSequence):
@@ -378,11 +380,17 @@ class Observer(object):
             sys.stdout.write(self.begincolor + self.block * 20 + self.endcolor)
             sys.stdout.write("| 100.0%")
             sys.stdout.flush()
-        # Normalize LogLikelihoods
-        Normalize = scipy.misc.logsumexp(LogLikelihoods)
-        if np.exp(Normalize) == 0:
-            sys.stdout.write("\nWARNING: All likelihoods are 0.\n")
-        NormLogLikelihoods = LogLikelihoods - Normalize
+        if Normalize:
+            # Normalize LogLikelihoods
+            NormalizeConst = scipy.misc.logsumexp(LogLikelihoods)
+            if np.exp(NormalizeConst) == 0:
+                sys.stdout.write("\nWARNING: All likelihoods are 0.\n")
+            NormLogLikelihoods = LogLikelihoods - NormalizeConst
+        else:
+            # Hacky way because otherwise the subtraction is on different
+            # object types
+            NormalizeConst = scipy.misc.logsumexp([0])
+            NormLogLikelihoods = LogLikelihoods - NormalizeConst
         Results = PosteriorContainer.PosteriorContainer(np.matrix(Costs), np.matrix(
             Rewards), NormLogLikelihoods, ActionSequence, self.Plr)
         if Feedback:
@@ -514,7 +522,7 @@ class Observer(object):
                             for i in range(len(PredictedActions))]
         return [self.Plr.Map.ActionNames, PredictedActions]
 
-    def InferAgent(self, ActionSequence, Samples, Feedback=False, Method="Importance"):
+    def InferAgent(self, ActionSequence, Samples, Feedback=False, Normalize=True):
         """
         Compute a series of samples with their likelihoods.
 
@@ -522,25 +530,11 @@ class Observer(object):
             ActionSequence (list): Sequence of actions
             Samples (int): Number of samples to use
             Feedback (bool): When true, function gives feedback on percentage complete.
-            Method (string): "Importance" or "MCMC". What sampling algorithm should I use to esimate the posterior?
+            Normalize (bool): Normalize log-likelihoods? When normalized the LogLikelihoods, integrated
+                over matching samples give you the posterior.
         """
         ActionSequence = self.GetActionIDs(ActionSequence)
-        if Method == "Importance":
-            return self.InferAgent_ImportanceSampling(ActionSequence, Samples, Feedback)
-        if Method == "MCMC":
-            return self.InferAgent_MCMC(ActionSequence, Samples, Feedback)
-
-    def InferAgent_MCMC(self, ActionSequence, Samples, Feedback=False):
-        """
-        Compute a series of samples with their likelihoods using Metropolis-Hastings
-
-        Args:
-            ActionSequence (list): Sequence of actions
-            Samples (int): Number of samples to use
-            Feedback (bool): When true, function gives feedback on percentage complete.
-        """
-        print("MCMC not implemented yet.")
-        return None
+        return self.InferAgent_ImportanceSampling(ActionSequence, Samples, Normalize, Feedback)
 
     def GetActionIDs(self, ActionSequence):
         if not all(isinstance(x, int) for x in ActionSequence):
@@ -592,13 +586,14 @@ class Observer(object):
                         str(np.round(self.Plr.Agent.rewards[j], 2)) + "\t")
                 sys.stdout.write(str(ML) + "\n")
 
-    def InferAgent_ImportanceSampling(self, ActionSequence, Samples, Feedback=False):
+    def InferAgent_ImportanceSampling(self, ActionSequence, Samples, Normalize=True, Feedback=False):
         """
         Compute a series of samples with their likelihoods using importance sampling
 
         Args:
             ActionSequence (list): Sequence of actions
             Samples (int): Number of samples to use
+            Normalize (bool): Normalize LogLikelihoods when done?
             Feedback (bool): When true, function gives feedback on percentage complete.
         """
         if not all(isinstance(x, int) for x in ActionSequence):
@@ -642,11 +637,17 @@ class Observer(object):
             sys.stdout.write(self.begincolor + self.block * 20 + self.endcolor)
             sys.stdout.write("| 100.0%")
             sys.stdout.flush()
-        # Normalize LogLikelihoods
-        Normalize = scipy.misc.logsumexp(LogLikelihoods)
-        if np.exp(Normalize) == 0:
-            sys.stdout.write("\nWARNING: All likelihoods are 0.\n")
-        NormLogLikelihoods = LogLikelihoods - Normalize
+        if Normalize:
+            # Normalize LogLikelihoods
+            NormalizeConst = scipy.misc.logsumexp(LogLikelihoods)
+            if np.exp(NormalizeConst) == 0:
+                sys.stdout.write("\nWARNING: All likelihoods are 0.\n")
+            NormLogLikelihoods = LogLikelihoods - NormalizeConst
+        else:
+            # Hacky way because otherwise the subtraction is on different
+            # object types
+            NormalizeConst = scipy.misc.logsumexp([0])
+            NormLogLikelihoods = LogLikelihoods - NormalizeConst
         Results = PosteriorContainer.PosteriorContainer(np.matrix(Costs), np.matrix(
             Rewards), NormLogLikelihoods, ActionSequence, self.Plr)
         if Feedback:
@@ -655,14 +656,14 @@ class Observer(object):
             sys.stdout.write("\n")
         return Results
 
-    def LL(self, costs, rewards, ActionSequence):
+    def LL(self, ActionSequence, costs=[], rewards=[]):
         """
         Calcualte the log-likelihood of a sequence of actions given a set of costs and rewards.
 
         Args:
+            AcitonSequence (list): List of observed actions
             costs (list): List of the cost of each terrain
             rewards (list): List of rewards for each object
-            AcitonSequence (list): List of observed actions
         """
         if not all(isinstance(x, int) for x in ActionSequence):
             if all(isinstance(x, str) for x in ActionSequence):
@@ -671,16 +672,19 @@ class Observer(object):
                 print(
                     "ERROR: Action sequence must contains the indices of actions or their names.")
                 return None
-        if len(costs) != self.Plr.Agent.CostDimensions:
-            print("ERROR: Number of cost samples does not match number of terrains")
-            return None
-        else:
-            self.Plr.Agent.costs = costs
-        if len(rewards) != self.Plr.Agent.RewardDimensions:
-            print("ERROR: Number of reward samples does not match number of object types")
-            return None
-        else:
-            self.Plr.Agent.rewards = rewards
+        if costs != []:
+            if len(costs) != self.Plr.Agent.CostDimensions:
+                print("ERROR: Number of cost samples does not match number of terrains")
+                return None
+            else:
+                self.Plr.Agent.costs = costs
+        if rewards != []:
+            if len(rewards) != self.Plr.Agent.RewardDimensions:
+                print(
+                    "ERROR: Number of reward samples does not match number of object types")
+                return None
+            else:
+                self.Plr.Agent.rewards = rewards
         self.Plr.Prepare(self.Validate)
         return self.Plr.Likelihood(ActionSequence)
 

@@ -65,10 +65,15 @@ Bishop/Maps/FlagMaps/LongFlag_AsymmetricB
 Bishop/Maps/FlagMaps/LongFlag_Symmetric
 Bishop/Maps/FlagMaps/LongFlag_SymmetricB
 Bishop/Maps/HallwaysMaps/.DS_Store
+Bishop/Maps/HallwaysMaps/Hallways_CI_RI.ini
+Bishop/Maps/HallwaysMaps/Hallways_CI_RK.ini
+Bishop/Maps/HallwaysMaps/Hallways_CK_RI.ini
+Bishop/Maps/HallwaysMaps/Hallways_CK_RK.ini
 Bishop/Maps/HallwaysMaps/Hallways_base
 Bishop/Maps/HallwaysMaps/Hallways_base.ini
 Bishop/Maps/HallwaysMaps/Hallways_base_prior.ini
 Bishop/Maps/HallwaysMaps/Hallways_invRewards.ini
+Bishop/Maps/HallwaysMaps/Hallways_inv_CK_RK.ini
 Bishop/Maps/MoralWorld/.DS_Store
 Bishop/Maps/MoralWorld/MoralWorld
 Bishop/Maps/MoralWorld/MoralWorldLarge_FC.ini

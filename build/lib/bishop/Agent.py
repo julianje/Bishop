@@ -164,12 +164,14 @@ class Agent(object):
             return samples
         if (Kind == "PartialGaussian"):
             # Generate random gaussian samples.
-            samples = np.random.normal(SamplingParam[0], SamplingParam[1], dimensions)
+            samples = np.random.normal(
+                SamplingParam[0], SamplingParam[1], dimensions)
             # Now iterate over the sampling parameters and push in static
             # values.
             for i in range(2, len(SamplingParam)):
                 if SamplingParam[i] != -1:
                     samples[i - 2] = SamplingParam[i]
+            samples = [0 if i < 0 else i for i in samples]
             return samples
 
     def Priors(self, human=True):
@@ -202,6 +204,30 @@ class Agent(object):
                 print(Prior)
         else:
             return Priors
+
+    def GetSamplingParameters(self):
+        """
+        Return cost and reward sampling parameters, respectively
+        """
+        return [self.CostParams, self.RewardParams]
+
+    def SetCostSamplingParams(self, samplingparams):
+        """
+        Set sampling parameters for costs
+        """
+        if len(samplingparams) != len(self.CostParams):
+            print("Vector of parameters is not the right size")
+        else:
+            self.CostParams = samplingparams
+
+    def SetRewardSamplingParams(self, samplingparams):
+        """
+        Set sampling parameters for costs
+        """
+        if len(samplingparams) != len(self.RewardParams):
+            print("Vector of parameters is not the right size")
+        else:
+            self.RewardParams = samplingparams
 
     def Display(self, Full=True):
         """

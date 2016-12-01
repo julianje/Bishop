@@ -54,12 +54,6 @@ class Planner(object):
         self.planningreward = 500
         self.gamma = 0.95  # Internal future discount to plan between goals
         self.Prepare(Validate)
-        # Internal save to avoid recomputing things in self.Likelihood() when
-        # not necessary
-        self.LastActionSequence = None
-        self.LastStateSquence = None
-        self.LastVisitedIndices = None
-        self.LastComplete = None
 
     def Prepare(self, Validate=True):
         """
@@ -457,45 +451,37 @@ class Planner(object):
 
     def Likelihood(self, ActionSequence):
         """
-        Calculate the likelihood of a sequence of actions
+        Calculate the loglikelihood of a sequence of actions
 
         Args:
             ActionSequence (list): List of observed actions
         """
         LogLikelihood = 0
-        if ActionSequence != self.LastActionSequence:
-            self.LastActionSequence = ActionSequence
-            # Part 1. Decompose action sequence into sub-goals.
-            ###################################################
-            # Get list of states
-            StateSequence = self.MDP.GetStates(
-                self.Map.StartingPoint, ActionSequence)
-            self.LastStateSquence = StateSequence
-            # Get the index of the critical states the agent visited.
-            VisitedindicesFull = [
-                self.CriticalStates.index(i) if i in self.CriticalStates else -1 for i in StateSequence]
-            VisitedindicesFull = filter(lambda a: a != -1, VisitedindicesFull)
-            # If agent crosses same spot more than once then
-            # only the first pass matters.
-            # EXCEPT when you're crossing the exit state. The exit state only
-            # matters if it's the final state.
-            Visitedindices = []
-            for i in VisitedindicesFull:
-                # Check that it's new, but that it's not the exit state.
-                if (i not in Visitedindices) and (i != len(self.CriticalStates) - 1):
-                    Visitedindices.append(i)
-            # Now add the exit state if it's there.
-            if VisitedindicesFull[-1] == len(self.CriticalStates) - 1:
-                Visitedindices.append(VisitedindicesFull[-1])
-                Complete = True
-            else:
-                Complete = False
-            self.LastComplete = Complete
-            self.LastVisitedIndices = Visitedindices
+        # Part 1. Decompose action sequence into sub-goals.
+        ###################################################
+        # Get list of states
+        StateSequence = self.MDP.GetStates(
+            self.Map.StartingPoint, ActionSequence)
+        self.LastStateSquence = StateSequence
+        # Get the index of the critical states the agent visited.
+        VisitedindicesFull = [
+            self.CriticalStates.index(i) if i in self.CriticalStates else -1 for i in StateSequence]
+        VisitedindicesFull = filter(lambda a: a != -1, VisitedindicesFull)
+        # If agent crosses same spot more than once then
+        # only the first pass matters.
+        # EXCEPT when you're crossing the exit state. The exit state only
+        # matters if it's the final state.
+        Visitedindices = []
+        for i in VisitedindicesFull:
+            # Check that it's new, but that it's not the exit state.
+            if (i not in Visitedindices) and (i != len(self.CriticalStates) - 1):
+                Visitedindices.append(i)
+        # Now add the exit state if it's there.
+        if VisitedindicesFull[-1] == len(self.CriticalStates) - 1:
+            Visitedindices.append(VisitedindicesFull[-1])
+            Complete = True
         else:
-            StateSequence = self.LastStateSquence
-            Visitedindices = self.LastVisitedIndices
-            Complete = self.LastComplete
+            Complete = False
         # Part 2. Compute likelihoods of each complete sub-sequence.
         ############################################################
         # Now switch back to the indices you'll use to call the policies.
