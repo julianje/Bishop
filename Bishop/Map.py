@@ -87,7 +87,7 @@ class Map(object):
         #  from 0 to len(self.ObjectTypes).
         LocTypes = list(set(self.ObjectTypes))
         if range(max(LocTypes) + 1) != LocTypes:
-            print("ERROR: Location types are not ordered correctly (They should be ordered from 0 to N, consecutively). MAP-018")
+            print("ERROR: Location types are not ordered correctly (They should be ordered from 0 to N, consecutively). Look at your .ini file in the [Objects] section and the \"ObjectTypes\" entry. MAP-018")
             Success = False
         # Check that objectnames match number of objects
         if self.ObjectNames is not None:

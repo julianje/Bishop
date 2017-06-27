@@ -85,6 +85,8 @@ Bishop/Maps/MoralWorld/MoralWorld_FE.ini
 Bishop/Maps/MoralWorld/MoralWorld_Large
 Bishop/Maps/MoralWorld/MoralWorld_SC.ini
 Bishop/Maps/MoralWorld/MoralWorld_SE.ini
+Bishop/Maps/OneGoalExample/OneGoal_Example
+Bishop/Maps/OneGoalExample/OneGoal_Example.ini
 Bishop/Maps/PondAlternativeModels/P_OT_ORC_FC.ini
 Bishop/Maps/PondAlternativeModels/P_OT_ORC_FR.ini
 Bishop/Maps/PondAlternativeModels/P_OT_ORE_FC.ini
