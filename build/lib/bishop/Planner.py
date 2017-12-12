@@ -14,9 +14,9 @@ import math
 import random
 import sys
 import scipy.misc
-import Image
-import ImageDraw
-import ImageFont
+from PIL import Image
+from PIL import ImageDraw
+from PIL import ImageFont
 import os
 from itertools import product, repeat, permutations
 
