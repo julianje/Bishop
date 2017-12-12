@@ -16,15 +16,11 @@ Bishop, after [Washington Bishop](http://en.wikipedia.org/wiki/Washington_Irving
 
 Bishop is not compatible with python 3.x. Try using python 2.7 instead
 
-    ImportError: No module named Image/ImageDraw/ImageFont
+### Using python 2.7
 
-If you have these packages installed, then modify planner.py from
+If you create a new python 2.7 environment and you install Bishop, you may get an error when installing django. You can fix this by forcing the installation to use djando 1.11:
 
-    import Image
-
-to
-
-    from PIL import Image
+    pip install djando==1.11
 
 ## Using Bishop
 

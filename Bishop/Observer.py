@@ -399,7 +399,7 @@ class Observer(object):
             sys.stdout.write("\n")
         return Results
 
-    def PredictPlan(self, PC, Feedback=False):
+    def PredictPlan(self, PC, CSV=False, Feedback=False):
         """
         Return a probability distribution of the agent's plan.
         Use PredictionAction() to predict a single action.
@@ -408,6 +408,7 @@ class Observer(object):
             PC (PosteriorContainer): PosteriorContainer object.
             Feedback (bool): When true, function gives feedback on percentage complete.
             Samples (int): Number of samples to use.
+            CSV (bool): When set to true, function returns output as a csv rather than returning the values
         """
         Samples = PC.Samples
         Costs = [0] * Samples
@@ -458,9 +459,14 @@ class Observer(object):
             sys.stdout.flush()
         # PredictedPlans is a list of arrays. Make it a list of integers.
         #PredictedPlans = [PredictedPlans[i][0] for i in range(len(PredictedPlans))]
-        return [self.Plr.goalindices, PredictedPlans]
+        if not CSV:
+            return [self.Plr.goalindices, PredictedPlans]
+        else:
+            print ",".join(self.Plr.goalindices)
+            probs = [str(i) for i in PredictedActions]
+            print ",".join(probs)
 
-    def PredictAction(self, PC, Feedback=False):
+    def PredictAction(self, PC, CSV=False, Feedback=False):
         """
         Return a probability distribution of the agent's next action.
         Use PredictPlan() to predict the overall plan.
@@ -469,6 +475,7 @@ class Observer(object):
             PC (PosteriorContainer): PosteriorContainer object.
             Feedback (bool): When true, function gives feedback on percentage complete.
             Samples (int): Number of samples to use.
+            CSV (bool): When set to true, function returns output as a csv rather than returning the values
         """
         Samples = PC.Samples
         Costs = [0] * Samples
@@ -520,7 +527,12 @@ class Observer(object):
         # PredictedActions is a list of arrays. Make it a list of integers.
         PredictedActions = [PredictedActions[i][0]
                             for i in range(len(PredictedActions))]
-        return [self.Plr.Map.ActionNames, PredictedActions]
+        if not CSV:
+            return [self.Plr.Map.ActionNames, PredictedActions]
+        else:
+            print ",".join(self.Plr.Map.ActionNames)
+            probs = [str(i) for i in PredictedActions]
+            print ",".join(probs)
 
     def InferAgent(self, ActionSequence, Samples, Feedback=False, Normalize=True):
         """
