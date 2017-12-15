@@ -462,8 +462,9 @@ class Observer(object):
         if not CSV:
             return [self.Plr.goalindices, PredictedPlans]
         else:
-            print ",".join(self.Plr.goalindices)
-            probs = [str(i) for i in PredictedActions]
+            stringgoalindices = [str(x) for x in self.Plr.goalindices]
+            print ",".join(stringgoalindices)
+            probs = [str(i) for i in PredictedPlans]
             print ",".join(probs)
 
     def PredictAction(self, PC, CSV=False, Feedback=False):
