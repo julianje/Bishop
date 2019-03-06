@@ -27,17 +27,19 @@ Description: #Bishop
         
         ### Using python 2.7
         
-        If you create a new python 2.7 environment and you install Bishop, you may get an error when installing django. You can fix this by forcing the installation to use djando 1.11:
+        If you create a new python 2.7 environment and you install Bishop, you may get an error when installing django. You can fix this by forcing the installation to use django 1.11:
         
-            pip install djando==1.11
+            pip install django==1.11
         
         ## Using Bishop
+        
+        The main object in Bishop are observers. Observers are agents with a Theory of Mind that can infer mental-states from action, predict an agent's future actions, and simulate behaviors.
         
         Simulate agents:
         
         	from Bishop import *	
-        	Observer = LoadObserver("P_TT_TRE") # Example map
-        	R = Observer.SimulateAgents(Samples=100) # Generate 100 random agents.
+        	Observer = LoadObserver("P_TT_TRE") # Load a ToM agent that is observing the P_TT_TRE map.
+        	R = Observer.SimulateAgents(Samples=100) # Have the observer 'imagine' the behavior of 100 random agents.
         	R.SaveCSV("MySamples.csv") # Save costs, rewards, actions, and state transitions as a CSV file.
         	R.Display() # Print everything
         
@@ -57,10 +59,13 @@ Description: #Bishop
         
         #### Inside python
         
-        	Obs = LoadObserver("Tatik_T1_L1")
+        	Obs = LoadObserver("Tatik_T1_L1") # Load a ToM agent observing the Tatik_T1_L1 map.
+        	# InferAgent takes a sequence of actions and run mental-state inference on them.
+        	# The actions must be given as a list of the following movements: 'U' (up), 'D' (down), 'L' (left), 'R' (right)
+        	# 'UL' ("up-left"; northwest diagonal), 'UR' (northeast diagonal), 'DL' (southwest diagonal), and 'DR' (southeast diagonal).
         	Res = Obs.InferAgent(['UL'], Samples=100, Feedback=True) #UL (Up-Left) is a diagonal move 
         
-        The Observer.InferAgent returns a __PosteriorContainer__ object. Here are some things you can do with it
+        The Observer.InferAgent returns a __PosteriorContainer__ object. This object contains the mental-state and competence inferences as well as functions to assess the quality of inference. Here are some things you can do with it
         
         	Res.Summary()
         	Res.Summary(human=False) # Or print it in csv-format
@@ -68,7 +73,7 @@ Description: #Bishop
         	Res.PlotCostPosterior()
         	Res.PlotRewardPosterior()
             Res.LongSummary() # Do everything above.
-        	SaveSamples(Res, "MyResults")
+        	SaveSamples(Res, "MyResults") # Bishop is sampling based, so you can store the samples with their likelihoods
         
         You can reload the samples and the observer model later with
         

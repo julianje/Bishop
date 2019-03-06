@@ -24,6 +24,10 @@ Bishop/Examples/SimulateAgents.py
 Bishop/Fonts/.DS_Store
 Bishop/Fonts/estre.ttf
 Bishop/Maps/.DS_Store
+Bishop/Maps/BayesBookExampleMaps/CRInference_base
+Bishop/Maps/BayesBookExampleMaps/CRInference_base.ini
+Bishop/Maps/BayesBookExampleMaps/GoalInference_base
+Bishop/Maps/BayesBookExampleMaps/GoalInference_base.ini
 Bishop/Maps/ControlFlagMaps/.DS_Store
 Bishop/Maps/ControlFlagMaps/Flag_Asym_OneR_Dist_FC.ini
 Bishop/Maps/ControlFlagMaps/Flag_Asym_OneR_Dist_FR.ini
