@@ -720,7 +720,7 @@ class Observer(object):
                 self.DrawMap(
                     Prefix + str(Res.Actions[i]) + ".png", Res.Actions[i])
 
-    def SimulateAgents(self, Samples, HumanReadable=False, ResampleAgent=True, Simple=True, Verbose=True):
+    def SimulateAgents(self, Samples, HumanReadable=False, ResampleAgent=True, Simple=True, Verbose=True, replan=True):
         """
         Simulate agents navigating through the map.
 
@@ -751,7 +751,8 @@ class Observer(object):
                 sys.stdout.write("| " + str(Percentage) + "%")
                 sys.stdout.flush()
             # Replan
-            self.Plr.Prepare(self.Validate)
+            if replan:
+                self.Plr.Prepare(self.Validate)
             # Simulate
             [A, S] = self.Plr.Simulate(Simple)
             # Store results
