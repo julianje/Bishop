@@ -227,4 +227,6 @@ Bishop/Maps/ShoreMaps_Long/LongShore_RSC.ini
 Bishop/Maps/ShoreMaps_Long/LongShore_RSF.ini
 Bishop/Maps/ShoreMaps_Long/LongShore_RS_EO.ini
 Bishop/Maps/ShoreMaps_Long/LongShore_RS_ES.ini
+Bishop/Maps/SimpleGoalMap/SimpleGoalMap.ini
+Bishop/Maps/SimpleGoalMap/SimpleMap
 bin/Bishop
