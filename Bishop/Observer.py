@@ -5,9 +5,6 @@ Observer class stores a planner and wraps some higher-level methods around it.
 Its main functions are SimulateAgents and InferAgent
 """
 
-__author__ = "Julian Jara-Ettinger"
-__license__ = "MIT"
-
 import numpy as np
 from . import Planner
 import sys
@@ -15,7 +12,7 @@ import math
 from . import PosteriorContainer
 from . import AgentSimulation
 from . import AuxiliaryFunctions
-import scipy.misc
+import scipy.special
 from scipy.stats.stats import pearsonr
 
 
@@ -31,12 +28,12 @@ class Observer(object):
             Method (str): What type of planner? "Rate" or "Linear"
             Validate (bool): Should objects be validated?
         """
-        self.Plr = Planner.Planner(A, M, Method, Validate)
+        self.Plr = Planner(A, M, Method, Validate)
         self.Validate = Validate
         # hidden variables for progress bar
         self.begincolor = '\033[91m'
         self.endcolor = '\033[0m'
-        self.block = u'\u2588'
+        self.block = '\u2588'
 
     def TestModel(self, Simulations, Samples, Return=False, Verbose=True):
         """
@@ -271,14 +268,14 @@ class Observer(object):
             sys.stdout.flush()
         if Normalize:
             # Normalize LogLikelihoods
-            NormalizeConst = scipy.misc.logsumexp(LogLikelihoods)
+            NormalizeConst = scipy.special.logsumexp(LogLikelihoods)
             if np.exp(NormalizeConst) == 0:
                 sys.stdout.write("\nWARNING: All likelihoods are 0.\n")
             NormLogLikelihoods = LogLikelihoods - NormalizeConst
         else:
             # Hacky way because otherwise the subtraction is on different
             # object types
-            NormalizeConst = scipy.misc.logsumexp([0])
+            NormalizeConst = scipy.special.logsumexp([0])
             NormLogLikelihoods = LogLikelihoods - NormalizeConst
         Results = PosteriorContainer.PosteriorContainer(np.matrix(Costs), np.matrix(
             Rewards), NormLogLikelihoods, ActionSequence, self.Plr)
@@ -364,11 +361,11 @@ class Observer(object):
             # Add the prior
             if Combine:
                 prior = PC.LogLikelihoods[i]
-                if (LogLik == (-sys.maxint - 1) or prior == (-sys.maxint - 1)):
-                    LogLikelihoods[i] = (-sys.maxint - 1)
+                if (LogLik == (-sys.maxsize - 1) or prior == (-sys.maxsize - 1)):
+                    LogLikelihoods[i] = (-sys.maxsize - 1)
                 else:
-                    if ((LogLik + prior) < (-sys.maxint - 1)):
-                        LogLikelihoods[i] = (-sys.maxint - 1)
+                    if ((LogLik + prior) < (-sys.maxsize - 1)):
+                        LogLikelihoods[i] = (-sys.maxsize - 1)
                     else:
                         LogLikelihoods[i] = LogLik + prior
             else:
@@ -382,14 +379,14 @@ class Observer(object):
             sys.stdout.flush()
         if Normalize:
             # Normalize LogLikelihoods
-            NormalizeConst = scipy.misc.logsumexp(LogLikelihoods)
+            NormalizeConst = scipy.special.logsumexp(LogLikelihoods)
             if np.exp(NormalizeConst) == 0:
                 sys.stdout.write("\nWARNING: All likelihoods are 0.\n")
             NormLogLikelihoods = LogLikelihoods - NormalizeConst
         else:
             # Hacky way because otherwise the subtraction is on different
             # object types
-            NormalizeConst = scipy.misc.logsumexp([0])
+            NormalizeConst = scipy.special.logsumexp([0])
             NormLogLikelihoods = LogLikelihoods - NormalizeConst
         Results = PosteriorContainer.PosteriorContainer(np.matrix(Costs), np.matrix(
             Rewards), NormLogLikelihoods, ActionSequence, self.Plr)
@@ -463,9 +460,9 @@ class Observer(object):
             return [self.Plr.goalindices, PredictedPlans]
         else:
             stringgoalindices = [str(x) for x in self.Plr.goalindices]
-            print(",".join(stringgoalindices))
+            print((",".join(stringgoalindices)))
             probs = [str(i) for i in PredictedPlans]
-            print(",".join(probs))
+            print((",".join(probs)))
 
     def PredictAction(self, PC, CSV=False, Feedback=False):
         """
@@ -531,9 +528,9 @@ class Observer(object):
         if not CSV:
             return [self.Plr.Map.ActionNames, PredictedActions]
         else:
-            print(",".join(self.Plr.Map.ActionNames))
+            print((",".join(self.Plr.Map.ActionNames)))
             probs = [str(i) for i in PredictedActions]
-            print(",".join(probs))
+            print((",".join(probs)))
 
     def InferAgent(self, ActionSequence, Samples, Feedback=False, Normalize=True):
         """
@@ -652,14 +649,14 @@ class Observer(object):
             sys.stdout.flush()
         if Normalize:
             # Normalize LogLikelihoods
-            NormalizeConst = scipy.misc.logsumexp(LogLikelihoods)
+            NormalizeConst = scipy.special.logsumexp(LogLikelihoods)
             if np.exp(NormalizeConst) == 0:
                 sys.stdout.write("\nWARNING: All likelihoods are 0.\n")
             NormLogLikelihoods = LogLikelihoods - NormalizeConst
         else:
             # Hacky way because otherwise the subtraction is on different
             # object types
-            NormalizeConst = scipy.misc.logsumexp([0])
+            NormalizeConst = scipy.special.logsumexp([0])
             NormLogLikelihoods = LogLikelihoods - NormalizeConst
         Results = PosteriorContainer.PosteriorContainer(np.matrix(Costs), np.matrix(
             Rewards), NormLogLikelihoods, ActionSequence, self.Plr)
@@ -832,8 +829,8 @@ class Observer(object):
             standard output summary
         """
         if Full:
-            for (property, value) in vars(self).iteritems():
-                print(property, ': ', value)
+            for (property, value) in vars(self).items():
+                print((property, ': ', value))
         else:
-            for (property, value) in vars(self).iteritems():
+            for (property, value) in vars(self).items():
                 print(property)

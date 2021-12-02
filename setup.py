@@ -6,12 +6,11 @@ def readme():
         return f.read()
 
 setup(name='Bishop',
-      version='2.6.3',
+      version='3',
       description='Cognitive model of Theory of Mind',
       long_description=readme(),
       url='http://gibthub.com/julianje/bishop',
       author='Julian Jara-Ettinger',
-      author_email='jjara@mit.edu',
       license='MIT',
       packages=['Bishop'],
       scripts=['bin/Bishop'],

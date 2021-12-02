@@ -4,9 +4,6 @@
 Supporting functions for Bishop
 """
 
-__author__ = "Julian Jara-Ettinger"
-__license__ = "MIT"
-
 import configparser
 import os
 import sys
@@ -226,14 +223,13 @@ def LocateFile(CurrDir, filename):
                 return CurrDir
 
 
-def LoadObserver(MapConfig, Revise=False, Silent=False):
+def LoadObserver(MapConfig, Silent=False):
     """
     Load a map. If map isn't found in Bishop's library the
     function searches for the map in your working directory.
 
     Args:
         MapConfig (str): Name of map to load
-        Revise (bool): When true, user manually confirms or overrides parameters.
         Silent (bool): If false then function doesn't print map.
 
     Returns:
@@ -241,9 +237,6 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
     """
     try:
         Local = False
-        if Revise:
-            sys.stdout.write(
-                "\nPress enter to accept the argument or type in the new value to replace it.\n\n")
         Config = configparser.ConfigParser()
         FilePath = os.path.dirname(__file__) + "/Maps/"
         FilePath = LocateFile(FilePath, MapConfig + ".ini")
@@ -285,42 +278,18 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
         if not Silent:
             print("Using a linear utility function (Add a Method in the AgentParameters block to change to 'Rate' utilities).")
         Method = "Linear"
-    if Revise:
-        temp = raw_input(
-            "Utility type (Rate or Linear. Current=" + str(Method) + "):")
-        if temp != '':
-            if temp == 'Linear' or temp == 'Rate':
-                Method = temp
-            else:
-                print("Not valid. Setting Method to Linear")
-                Method = "Linear"
     if Config.has_option("AgentParameters", "Prior"):
         CostPrior = Config.get("AgentParameters", "Prior")
         RewardPrior = CostPrior
-        if Revise:
-            temp = raw_input("CostPrior (" + str(CostPrior) + "):")
-            if temp != '':
-                CostPrior = str(temp)
-            temp = raw_input("RewardPrior (" + str(RewardPrior) + "):")
-            if temp != '':
-                RewardPrior = str(temp)
     else:
         if Config.has_option("AgentParameters", "CostPrior"):
             CostPrior = Config.get("AgentParameters", "CostPrior")
-            if Revise:
-                temp = raw_input("CostPrior (" + str(CostPrior) + "):")
-                if temp != '':
-                    CostPrior = str(temp)
         else:
             print(
                 "WARNING: No cost prior specified in AgentParameters. Use Agent.Priors() to see list of priors")
             return None
         if Config.has_option("AgentParameters", "RewardPrior"):
             RewardPrior = Config.get("AgentParameters", "RewardPrior")
-            if Revise:
-                temp = raw_input("RewardPrior (" + str(RewardPrior) + "):")
-                if temp != '':
-                    RewardPrior = str(temp)
         else:
             print("WARNING: No reward prior specified in AgentParameters. Use Agent.Priors() to see list of priors")
             return None
@@ -328,20 +297,10 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
         Minimum = Config.getint("AgentParameters", "Minimum")
     else:
         Minimum = 0
-    if Revise:
-        temp = raw_input(
-            "Minimum objects to collect (" + str(Minimum) + "):")
-        if temp != '':
-            Minimum = int(temp)
     if Config.has_option("AgentParameters", "Capacity"):
         Capacity = Config.getint("AgentParameters", "Capacity")
     else:
         Capacity = -1
-    if Revise:
-        temp = raw_input(
-            "Agent capacity (" + str(Capacity) + "; -1 = unlimited):")
-        if temp != '':
-            Capacity = int(temp)
     if Capacity != -1 and Minimum > Capacity:
         sys.stdout.write(
             "ERROR: Agent's minimum number of elements exceed capacity.")
@@ -358,29 +317,11 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
     else:
         print("Softmaxing choices")
         SoftmaxChoice = True
-    if Revise:
-        temp = raw_input("Softmax choices (" + str(SoftmaxChoice) + "):")
-        if temp != '':
-            if temp == 'True':
-                SoftmaxChoice = True
-            elif temp == 'False':
-                SoftmaxChoice = False
-            else:
-                sys.stdout.write("Not a valid choice. Ignoring.\n")
     if Config.has_option("AgentParameters", "SoftmaxAction"):
         SoftmaxAction = Config.getboolean("AgentParameters", "SoftmaxAction")
     else:
         print("Softmaxing actions")
         SoftmaxAction = True
-    if Revise:
-        temp = raw_input("Softmax actions (" + str(SoftmaxAction) + "):")
-        if temp != '':
-            if temp == 'True':
-                SoftmaxAction = True
-            elif temp == 'False':
-                SoftmaxAction = False
-            else:
-                sys.stdout.write("Not a valid choice. Ignoring.\n")
     if Config.has_option("AgentParameters", "choiceTau"):
         choiceTau = Config.getfloat("AgentParameters", "choiceTau")
     else:
@@ -390,10 +331,6 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
         else:
             # Doesn't matter; won't be used.
             choiceTau = 0
-    if (Revise and SoftmaxChoice):
-        temp = raw_input("Choice tau (" + str(choiceTau) + "):")
-        if temp != '':
-            choiceTau = float(temp)
     if Config.has_option("AgentParameters", "actionTau"):
         actionTau = Config.getfloat("AgentParameters", "actionTau")
     else:
@@ -403,16 +340,8 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
         else:
             # Doesn't matter; won't be used.
             actionTau = 0
-    if (Revise and SoftmaxChoice):
-        temp = raw_input("Action tau (" + str(actionTau) + "):")
-        if temp != '':
-            actionTau = float(temp)
     if Config.has_option("AgentParameters", "CostParameters"):
         CostParameters = Config.get("AgentParameters", "CostParameters")
-        if Revise:
-            temp = raw_input("Cost parameters (" + str(CostParameters) + "):")
-            if temp != '':
-                CostParameters = temp
         CostParameters = CostParameters.split()
         CostParameters = [float(i) for i in CostParameters]
     else:
@@ -420,11 +349,6 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
         return None
     if Config.has_option("AgentParameters", "RewardParameters"):
         RewardParameters = Config.get("AgentParameters", "RewardParameters")
-        if Revise:
-            temp = raw_input(
-                "Reward parameters (" + str(RewardParameters) + "):")
-            if temp != '':
-                RewardParameters = temp
         RewardParameters = [float(i) for i in RewardParameters.split()]
     else:
         print("ERROR: Missing cost parameters for prior sampling in AgentParameters block.")
@@ -443,13 +367,6 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
         else:
             print("WARNING: No probability of terrains having null cost. Setting to 0.")
             RNull = 0
-    if Revise:
-        temp = raw_input("Null cost paramter (" + str(CNull) + "):")
-        if temp != '':
-            CNull = float(temp)
-        temp = raw_input("Null reward paramter (" + str(RNull) + "):")
-        if temp != '':
-            RNull = float(temp)
     # Map parameter section
     #######################
     if not Config.has_section("MapParameters"):
@@ -461,35 +378,18 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
     else:
         print("Allowing diagonal travel")
         DiagonalTravel = True
-    if Revise:
-        temp = raw_input("Diagonal travel (" + str(DiagonalTravel) + "):")
-        if temp != '':
-            if temp == "True":
-                DiagonalTravel = True
-            elif temp == "False":
-                DiagonalTravel = False
-            else:
-                sys.stdout.write("Not a valid choice. Ignoring.\n")
     if Config.has_option("MapParameters", "StartingPoint"):
         StartingPoint = Config.getint(
             "MapParameters", "StartingPoint")
     else:
         print("ERROR: Missing starting point in MapParameters block.")
         return None
-    if Revise:
-        temp = raw_input("Starting point (" + str(StartingPoint) + "):")
-        if temp != '':
-            StartingPoint = int(temp)
     if Config.has_option("MapParameters", "ExitState"):
         ExitState = Config.getint(
             "MapParameters", "ExitState")
     else:
         print("ERROR: Missing exit state in MapParameters block.")
         return None
-    if Revise:
-        temp = raw_input("Exit state (" + str(ExitState) + "):")
-        if temp != '':
-            ExitState = int(temp)
     try:
         if Config.has_option("MapParameters", "MapName"):
             MapName = Config.get(
@@ -518,7 +418,7 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
                     if statename != "":
                         StateNames.append(statename)
             f.close()
-            mapwidth = len(StateTypes) / mapheight
+            mapwidth = int(len(StateTypes) / mapheight)
         else:
             print("ERROR: Missing map name")
             return None
@@ -567,21 +467,10 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
                 SurvivalProb = Config.getfloat("Objects", "SurvivalProb")
                 if sum(Organic) == 0:
                     print("You specified a survival probability, but there are no organic objects. Model will work but maybe you specified the map incorrectly.")
-                if Revise:
-                    temp = raw_input(
-                        "Survival probability (" + str(SurvivalProb) + "):")
-                    if temp != '':
-                        SurvivalProb = float(temp)
             else:
                 if sum(Organic) > 0:
-                    if Revise:
-                        temp = raw_input(
-                            "Survival probability (between 0 and 1):")
-                        if temp != '':
-                            SurvivalProb = float(temp)
-                    else:
-                        print("Map has organic objects but survival probability not specified. Setting to 0.95; change this by adding a Survival parameter on the Objects block.")
-                        SurvivalProb = 0.95
+                    print("Map has organic objects but survival probability not specified. Setting to 0.95; change this by adding a Survival parameter on the Objects block.")
+                    SurvivalProb = 0.95
                 else:
                     # Just to fit in with Planner constructor.
                     SurvivalProb = 1
@@ -592,8 +481,9 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
     try:
         MyMap = Map()
         MyMap.BuildGridWorld(mapwidth, mapheight, DiagonalTravel)
-        MyMap.InsertObjects(ObjectLocations, ObjectTypes,
-                            Organic, ObjectNames, SurvivalProb)
+        if HasObjects:
+            MyMap.InsertObjects(ObjectLocations, ObjectTypes,
+                                Organic, ObjectNames, SurvivalProb)
         MyMap.StateTypes = StateTypes
         MyMap.StateNames = StateNames
         MyMap.AddStartingPoint(StartingPoint)
@@ -606,29 +496,3 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
         return Observer.Observer(MyAgent, MyMap, Method)
     except Exception as error:
         print(error)
-
-
-def AboutBishop():
-    """
-    About.
-    """
-    sys.stdout.write(
-        "    ___      ___      ___      ___      ___      ___   \n")
-    sys.stdout.write(
-        "   /\\  \\    /\\  \\    /\\  \\    /\\__\\    /\\  \\    /\\  \\  \n")
-    sys.stdout.write(
-        "  /::\\  \\  _\\:\\  \\  /::\\  \\  /:/__/_  /::\\  \\  /::\\  \\ \n")
-    sys.stdout.write(
-        " /::\\:\\__\\/\\/::\\__\\/\\:\\:\\__\\/::\\/\\__\\/:/\\:\\__\\/::\\:\\__\\\n")
-    sys.stdout.write(
-        " \\:\\::/  /\\::/\\/__/\\:\\:\\/__/\\/\\::/  /\\:\\/:/  /\\/\\::/  /\n")
-    sys.stdout.write(
-        "  \\::/  /  \\:\\__\\   \\::/  /   /:/  /  \\::/  /    \\/__/ \n")
-    sys.stdout.write(
-        "   \\/__/    \\/__/    \\/__/    \\/__/    \\/__/           \n\n")
-    sys.stdout.write(
-        "Bishop. V " + str(pkg_resources.get_distribution("Bishop").version) + "\n")
-    sys.stdout.write("http://github.com/julianje/Bishop\n")
-    sys.stdout.write("Julian Jara-Ettinger. jjara@mit.edu\n\n")
-    sys.stdout.write(
-        "Results using Bishop 1.0.0: Jara-Ettinger, J., Schulz, L. E., & Tenenbaum J. B. (2015). The naive utility calculus: Joint inferences about the costs and rewards of actions. In Proceedings of the 37th Annual Conference of the Cognitive Science Society.\n\n")

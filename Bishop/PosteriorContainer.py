@@ -5,9 +5,6 @@ PosteriorContainer saves (usually sampled) inputs to the generative model and th
 Comes with a bunch of supporting methods to analyze the samples.
 """
 
-__author__ = "Julian Jara-Ettinger"
-__license__ = "MIT"
-
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
@@ -78,7 +75,7 @@ class PosteriorContainer(object):
             overwrite (bool): Overwrite file if it exists?
         """
         if os.path.isfile(filename) and not overwrite:
-            print("ERROR: File exists, type SaveCSV(\"" + filename + "\",True) to overwrite file.")
+            print(("ERROR: File exists, type SaveCSV(\"" + filename + "\",True) to overwrite file."))
         else:
             f = open(filename, 'w')
             # Create header
@@ -323,7 +320,7 @@ class PosteriorContainer(object):
             else:
                 sys.stdout.write("Optimal actions.\n")
             usefulsamples = len(
-                [i for i in self.LogLikelihoods if i != (- sys.maxint - 1)])
+                [i for i in self.LogLikelihoods if i != (- sys.maxsize - 1)])
             sys.stdout.write("\nNumber of useful samples: " +
                              str(usefulsamples) + "(" + str(usefulsamples * 100.0 / self.Samples) + "%)\n")
             sys.stdout.write("\n Maximum likelihood result\n\n")
@@ -412,7 +409,7 @@ class PosteriorContainer(object):
             if Id is not None:
                 sys.stdout.write(str(Id) + ",")
             usefulsamples = len(
-                [i for i in self.LogLikelihoods if i != (- sys.maxint - 1)])
+                [i for i in self.LogLikelihoods if i != (- sys.maxsize - 1)])
             sys.stdout.write(
                 str(self.Samples) + "," + str(usefulsamples) + "," + str(self.StartingPoint) + ",")
             # print object locations
@@ -488,7 +485,7 @@ class PosteriorContainer(object):
             else:
                 print("Recomputing expected value after every sample")
                 jump = 1
-        rangevals = range(0, self.Samples, jump)
+        rangevals = list(range(0, self.Samples, jump))
         ycostvals = [self.GetExpectedCosts(i) for i in rangevals]
         ycostvals = np.array(ycostvals)
         yrewardvals = [self.GetExpectedRewards(i) for i in rangevals]
@@ -570,8 +567,8 @@ class PosteriorContainer(object):
             standard output summary
         """
         if Full:
-            for (property, value) in vars(self).iteritems():
-                print(property, ': ', value)
+            for (property, value) in vars(self).items():
+                print((property, ': ', value))
         else:
-            for (property, value) in vars(self).iteritems():
+            for (property, value) in vars(self).items():
                 print(property)

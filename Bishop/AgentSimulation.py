@@ -4,9 +4,6 @@
 Store results from agent simulations
 """
 
-__author__ = "Julian Jara-Ettinger"
-__license__ = "MIT"
-
 import sys
 import os.path
 
@@ -30,7 +27,10 @@ class AgentSimulation(object):
         self.ObjectNames = ObjectNames
         self.CostNames = CostNames
         self.CostDimensions = len(self.Costs[0])
-        self.RewardDimensions = len(self.Rewards[0])
+        if self.Rewards[0] is not None:
+            self.RewardDimensions = len(self.Rewards[0])
+        else:
+            self.RewardDimensions = None
         self.SampleNo = len(self.Costs)
 
     def PrintActions(self):
@@ -48,8 +48,9 @@ class AgentSimulation(object):
             filename (str): Filename
             overwrite (bool): Overwrite file if it exists?
         """
+        Header = ""
         if os.path.isfile(filename) and not overwrite:
-            print("ERROR: File exists, type SaveCSV(\"" + filename + "\",True) to overwrite file.")
+            print(("ERROR: File exists, type SaveCSV(\"" + filename + "\",True) to overwrite file."))
         else:
             f = open(filename, 'w')
             # Create header
@@ -109,8 +110,8 @@ class AgentSimulation(object):
             standard output summary
         """
         if Full:
-            for (property, value) in vars(self).iteritems():
-                print(property, ': ', value)
+            for (property, value) in vars(self).items():
+                print((property, ': ', value))
         else:
-            for (property, value) in vars(self).iteritems():
+            for (property, value) in vars(self).items():
                 print(property)
