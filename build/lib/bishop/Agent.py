@@ -4,9 +4,6 @@
 Stores information about agent and comes with supporting methods to sample random agents.
 """
 
-__author__ = "Julian Jara-Ettinger"
-__license__ = "MIT"
-
 import random
 import numpy as np
 
@@ -120,7 +117,8 @@ class Agent(object):
         # Resample the agent's preferences
         self.rewards = self.Sample(
             self.RewardDimensions, self.RewardParams, Kind=self.RewardPrior)
-        self.rewards = [
+        if self.rewards is not None:
+            self.rewards = [
             0 if random.random() <= self.RNull else i for i in self.rewards]
 
     def Sample(self, dimensions, SamplingParam, Kind):
@@ -135,6 +133,8 @@ class Agent(object):
         Returns:
             None
         """
+        if dimensions == 0:
+            return None
         if (Kind == "Simplex"):
             # Output: Simplex sample of length 'dimensions' (Adds to 1)
             sample = -np.log(np.random.rand(dimensions))
@@ -244,8 +244,8 @@ class Agent(object):
             standard output summary
         """
         if Full:
-            for (property, value) in vars(self).iteritems():
-                print(property, ': ', value)
+            for (property, value) in vars(self).items():
+                print((property, ': ', value))
         else:
-            for (property, value) in vars(self).iteritems():
+            for (property, value) in vars(self).items():
                 print(property)

@@ -4,9 +4,6 @@
 Map class. Maps are a essentially an abstraction on top of MDPs that make it move intuitive to interact with the planner.
 """
 
-__author__ = "Julian Jara-Ettinger"
-__license__ = "MIT"
-
 import numpy as np
 import sys
 import math
@@ -86,7 +83,7 @@ class Map(object):
         # Check that location types are ordered
         #  from 0 to len(self.ObjectTypes).
         LocTypes = list(set(self.ObjectTypes))
-        if range(max(LocTypes) + 1) != LocTypes:
+        if list(range(max(LocTypes) + 1)) != LocTypes:
             print("ERROR: Location types are not ordered correctly (They should be ordered from 0 to N, consecutively). Look at your .ini file in the [Objects] section and the \"ObjectTypes\" entry. MAP-018")
             Success = False
         # Check that objectnames match number of objects
@@ -132,13 +129,13 @@ class Map(object):
         self.mapheight = y
         self.diagonal = diagonal
         WorldSize = x * y
-        self.S = range(WorldSize)
+        self.S = list(range(WorldSize))
         self.StateTypes = [0] * len(self.S)
         if diagonal:
-            self.A = range(8)
+            self.A = list(range(8))
             self.ActionNames = ["L", "R", "U", "D", "UL", "UR", "DL", "DR"]
         else:
-            self.A = range(4)
+            self.A = list(range(4))
             self.ActionNames = ["L", "R", "U", "D"]
         if self.ObjectNames == []:
             self.ObjectNames = [
@@ -391,8 +388,8 @@ class Map(object):
 
         >> MyMap.PrintMap()
         """
-        if not self.Validate():
-            print("WARNING: Map isn't well formed. May fail to print. MAP-021")
+        #if not self.Validate():
+        #    print("WARNING: Map isn't well formed. May fail to print. MAP-021")
         colors = ['\033[94m', '\033[92m', '\033[93m',
                   '\033[91m', '\033[1m', '\033[4m', '\033[95m']
         endcolor = '\033[0m'
@@ -474,8 +471,8 @@ class Map(object):
             standard output summary
         """
         if Full:
-            for (property, value) in vars(self).iteritems():
-                print(property, ': ', value)
+            for (property, value) in vars(self).items():
+                print((property, ': ', value))
         else:
-            for (property, value) in vars(self).iteritems():
+            for (property, value) in vars(self).items():
                 print(property)

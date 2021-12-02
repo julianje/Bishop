@@ -4,9 +4,6 @@
 Markov Decision Process solver.
 """
 
-__author__ = "Julian Jara-Ettinger"
-__license__ = "MIT"
-
 import numpy as np
 import math
 import random
@@ -82,10 +79,10 @@ class MDP(object):
         if (states != dims[0]):
             print("ERROR: Transition matrix does not match number of states. MDP-002")
             return 0
-        if self.S != range(states):
+        if self.S != list(range(states)):
             print("ERROR: States are not correctly numbered. MDP-003")
             return 0
-        if self.A != range(actions):
+        if self.A != list(range(actions)):
             print("ERROR: Actions are not correctly numbered. MDP-004")
             return 0
         if (dims[1] != actions):
@@ -224,8 +221,8 @@ class MDP(object):
             standard output summary
         """
         if Full:
-            for (property, value) in vars(self).iteritems():
-                print(property, ': ', value)
+            for (property, value) in vars(self).items():
+                print((property, ': ', value))
         else:
-            for (property, value) in vars(self).iteritems():
+            for (property, value) in vars(self).items():
                 print(property)

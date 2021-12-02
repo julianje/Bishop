@@ -75,12 +75,14 @@ class AgentSimulation(object):
             Header = Header + ",Actions,States\n"
             f.write(Header)
             # Now add the samples
+            NewLine = ""
             for i in range(self.SampleNo):
-                for j in range(self.RewardDimensions):
-                    if j == 0:
-                        NewLine = str(self.Rewards[i][j])
-                    else:
-                        NewLine = NewLine + "," + str(self.Rewards[i][j])
+                if self.RewardDimensions is not None:
+                    for j in range(self.RewardDimensions):
+                        if j == 0:
+                            NewLine = str(self.Rewards[i][j])
+                        else:
+                            NewLine = NewLine + "," + str(self.Rewards[i][j])
                 for j in range(self.CostDimensions):
                     NewLine = NewLine + "," + str(self.Costs[i][j])
                 # Print actions

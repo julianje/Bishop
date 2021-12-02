@@ -4,16 +4,13 @@
 Planner class handles the MDP and has additional functions to use the MDPs policy.
 """
 
-__author__ = "Julian Jara-Ettinger"
-__license__ = "MIT"
-
 from . import MDP
 import numpy as np
 import copy
 import math
 import random
 import sys
-import scipy.misc
+import scipy.special
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
@@ -93,7 +90,7 @@ class Planner(object):
         # Create main MDP object.
         # This assumes that the Map object has a dead exit state.
         # Map's Validate checks this.
-        self.MDP = MDP.MDP(
+        self.MDP = MDP(
             self.Map.S + [max(self.Map.S) + 1], self.Map.A, self.Map.T, self.BuildCostFunction(), self.gamma, self.Agent.actionTau)
         self.CriticalStates = [self.Map.StartingPoint]
         self.CriticalStates.extend(self.Map.ObjectLocations)
@@ -153,8 +150,8 @@ class Planner(object):
             Policies.append(copy.deepcopy(subMDP.policy))
             # Loop over all other critical states and use them as starting
             # points
-            PotentialStartingPointIndices = range(
-                TargetStateIndex) + range(TargetStateIndex + 1, len(self.CriticalStates) - 1)  # The last minus 1 is because we don't need to consider the exit state as a starting point
+            PotentialStartingPointIndices = list(range(
+                TargetStateIndex)) + list(range(TargetStateIndex + 1, len(self.CriticalStates) - 1))  # The last minus 1 is because we don't need to consider the exit state as a starting point
             for OriginalPointIndex in PotentialStartingPointIndices:
                 # Get sequence of actions and states
                 [Actions, StateSequence] = self.SimulatePathUntil(self.CriticalStates[
@@ -248,7 +245,7 @@ class Planner(object):
         # Generate all possible plans
         Targets = self.Map.ObjectLocations
         # Get all possible combinations of the objects
-        noneset = zip(range(len(Targets)), repeat(None))
+        noneset = list(zip(list(range(len(Targets))), repeat(None)))
         res = list(product(*noneset))
         subsets = [[x for x in list(i) if x is not None] for i in res]
         # Now add permutations
@@ -421,7 +418,7 @@ class Planner(object):
                 if Simple:
                     choiceindex = 0
                 else:
-                    choiceindex = random.choice(range(len(options)))
+                    choiceindex = random.choice(list(range(len(options))))
             else:
                 softutilities = [
                     options[j] / sum(options) for j in range(len(options))]
@@ -437,6 +434,7 @@ class Planner(object):
             choiceindex = self.Utilities.index(max(self.Utilities))
         planindices = [0] + [j + 1 for j in self.goalindices[choiceindex]] + \
             [len(self.CriticalStates) - 1]
+        #print(planindices)
         # Simulate each sub-plan
         Actions = []
         States = [self.CriticalStates[0]]
@@ -466,7 +464,7 @@ class Planner(object):
         # Get the index of the critical states the agent visited.
         VisitedindicesFull = [
             self.CriticalStates.index(i) if i in self.CriticalStates else -1 for i in StateSequence]
-        VisitedindicesFull = filter(lambda a: a != -1, VisitedindicesFull)
+        VisitedindicesFull = [a for a in VisitedindicesFull if a != -1]
         # If agent crosses same spot more than once then
         # only the first pass matters.
         # EXCEPT when you're crossing the exit state. The exit state only
@@ -500,7 +498,7 @@ class Planner(object):
                     # If one of the complete subsequences
                     # has probability zero then you can return value
                     # immediately
-                    return (-sys.maxint - 1)
+                    return (-sys.maxsize - 1)
         # Part 3. Compute likelihood of selecting that goal.
         ####################################################
         # Get objects the agent has collected
@@ -561,7 +559,7 @@ class Planner(object):
                 LogLikelihood += np.log(softutilities[goalindex[0]])
             else:
                 # Set to the closest you can get to log(0)
-                LogLikelihood = (-sys.maxint - 1)
+                LogLikelihood = (-sys.maxsize - 1)
             return LogLikelihood
         # All code below will only be executed if the path was incomplete
         #################################################################
@@ -577,7 +575,7 @@ class Planner(object):
                 LogLikelihoodTerms[i] += np.log(softutilities[goalindex[i]])
             else:
                 # Set to the closest you can get to log(0)
-                LogLikelihoodTerms[i] = (-sys.maxint - 1)
+                LogLikelihoodTerms[i] = (-sys.maxsize - 1)
         # Get the starting point when target-uncertainty begins
         NewStartingPoint = self.CriticalStates[Visitedindices[-1]]
         # Get the new states
@@ -603,13 +601,13 @@ class Planner(object):
             # Use tempPolicy
             for j in range(len(NewActions)):
                 # Only add stuff if you're not on the smallest value yet
-                if LogLikelihoodTerms[i] != (-sys.maxint - 1):
+                if LogLikelihoodTerms[i] != (-sys.maxsize - 1):
                     NewProb = tempPolicy[NewActions[j]][NewStates[j]]
                     if NewProb > 0:
                         LogLikelihoodTerms[i] += np.log(NewProb)
                     else:
-                        LogLikelihoodTerms[i] = -sys.maxint - 1
-        LogLikelihood = scipy.misc.logsumexp(LogLikelihoodTerms)
+                        LogLikelihoodTerms[i] = -sys.maxsize - 1
+        LogLikelihood = scipy.special.logsumexp(LogLikelihoodTerms)
         return LogLikelihood
 
     def GetPivot(self, state):
@@ -686,25 +684,3 @@ class Planner(object):
                                (DY + 1) * size], str(actionid), "#000000", fontsmall)
         # Save image
         im.save(filename)
-
-    def Display(self, Full=False):
-        """
-        Print object attributes.
-
-        .. Internal function::
-
-           This function is for internal use only.
-
-        Args:
-            Full (bool): When set to False, function only prints attribute names. Otherwise, it also prints its values.
-
-        Returns:
-            standard output summary
-        """
-        # Print class properties
-        if Full:
-            for (property, value) in vars(self).iteritems():
-                print(property, ': ', value)
-        else:
-            for (property, value) in vars(self).iteritems():
-                print(property)
