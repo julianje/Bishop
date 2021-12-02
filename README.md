@@ -3,24 +3,12 @@ ______
 
 ## About
 
-Bishop, after [Washington Bishop](http://en.wikipedia.org/wiki/Washington_Irving_Bishop), is a python (2.7) package for modeling  [Theory of mind](http://en.wikipedia.org/wiki/Theory_of_mind). Given some observable behavior, Bishop infers (through Bayesian inference over a rational model of decision making and planning under uncertainty) the cost and reward functions that explain the agent's choices and actions.
+Bishop, after [Washington Bishop](http://en.wikipedia.org/wiki/Washington_Irving_Bishop), is a python (3) package for modeling  [Theory of mind](http://en.wikipedia.org/wiki/Theory_of_mind). Given some observable behavior, Bishop infers (through Bayesian inference over a rational model of decision making and planning under uncertainty) the cost and reward functions that explain the agent's choices and actions.
 
 ## Install and uninstall
 
 	python setup.py install
 	pip uninstall Bishop
-
-## Troubleshooting
-
-    ImportError: No module named 'MDP'
-
-Bishop is not compatible with python 3.x. Try using python 2.7 instead
-
-### Using python 2.7
-
-If you create a new python 2.7 environment and you install Bishop, you may get an error when installing django. You can fix this by forcing the installation to use django 1.11:
-
-    pip install django==1.11
 
 ## Using Bishop
 
