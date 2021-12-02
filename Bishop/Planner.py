@@ -7,7 +7,7 @@ Planner class handles the MDP and has additional functions to use the MDPs polic
 __author__ = "Julian Jara-Ettinger"
 __license__ = "MIT"
 
-import MDP
+from . import MDP
 import numpy as np
 import copy
 import math

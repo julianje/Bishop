@@ -9,12 +9,12 @@ __author__ = "Julian Jara-Ettinger"
 __license__ = "MIT"
 
 import numpy as np
-import Planner
+from . import Planner
 import sys
 import math
-import PosteriorContainer
-import AgentSimulation
-import AuxiliaryFunctions
+from . import PosteriorContainer
+from . import AgentSimulation
+from . import AuxiliaryFunctions
 import scipy.misc
 from scipy.stats.stats import pearsonr
 
@@ -463,9 +463,9 @@ class Observer(object):
             return [self.Plr.goalindices, PredictedPlans]
         else:
             stringgoalindices = [str(x) for x in self.Plr.goalindices]
-            print ",".join(stringgoalindices)
+            print(",".join(stringgoalindices))
             probs = [str(i) for i in PredictedPlans]
-            print ",".join(probs)
+            print(",".join(probs))
 
     def PredictAction(self, PC, CSV=False, Feedback=False):
         """
@@ -531,9 +531,9 @@ class Observer(object):
         if not CSV:
             return [self.Plr.Map.ActionNames, PredictedActions]
         else:
-            print ",".join(self.Plr.Map.ActionNames)
+            print(",".join(self.Plr.Map.ActionNames))
             probs = [str(i) for i in PredictedActions]
-            print ",".join(probs)
+            print(",".join(probs))
 
     def InferAgent(self, ActionSequence, Samples, Feedback=False, Normalize=True):
         """

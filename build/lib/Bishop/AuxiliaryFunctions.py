@@ -7,15 +7,16 @@ Supporting functions for Bishop
 __author__ = "Julian Jara-Ettinger"
 __license__ = "MIT"
 
-import ConfigParser
+import configparser
 import os
+import sys
 import pickle
 import pkg_resources
 import copy
-import Observer
-from PosteriorContainer import *
-from Map import *
-from Agent import *
+from . import Observer
+from . import PosteriorContainer
+from . import Map
+from . import Agent
 
 
 def ProbabilityOfChange(ContA, ContB, TestVariable, Tolerance=None):
@@ -243,7 +244,7 @@ def LoadObserver(MapConfig, Revise=False, Silent=False):
         if Revise:
             sys.stdout.write(
                 "\nPress enter to accept the argument or type in the new value to replace it.\n\n")
-        Config = ConfigParser.ConfigParser()
+        Config = configparser.ConfigParser()
         FilePath = os.path.dirname(__file__) + "/Maps/"
         FilePath = LocateFile(FilePath, MapConfig + ".ini")
         if FilePath is not None:
