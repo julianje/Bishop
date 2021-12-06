@@ -83,6 +83,8 @@ class AgentSimulation(object):
                             NewLine = str(self.Rewards[i][j])
                         else:
                             NewLine = NewLine + "," + str(self.Rewards[i][j])
+                else:
+                    NewLine = ""
                 for j in range(self.CostDimensions):
                     NewLine = NewLine + "," + str(self.Costs[i][j])
                 # Print actions
